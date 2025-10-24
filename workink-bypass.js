@@ -557,7 +557,7 @@
         let captchaDone = false;
 
         const map = {
-            sendM: ['sendMessage', 'sendMsg', 'writeMessage', 'writeMsg', 'writMessage'],
+            sendM: ['sendMessage', 'sendMsg', 'writeMessage', 'writeMsg', 'writMessage', 'wr_tMessgae'],
             onLI: ['onLinkInfo'],
             onLD: ['onLinkDestination']
         };
