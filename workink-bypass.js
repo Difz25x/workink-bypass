@@ -2,30 +2,30 @@
     'use strict';
 
     const host = location.hostname;
-    const debug = (typeof CONFIG !== 'undefined' && CONFIG.debug !== undefined)
-        ? CONFIG.debug: false;
+    const debug = true;
 
-    let currentLanguage = localStorage.getItem('lang') || 'en';
+    // default ke Bahasa Indonesia jika tidak ada setting sebelumnya
+    let currentLanguage = localStorage.getItem('lang') || 'id';
     
     const translations = {
-        vi: {
+        id: {
             title: "Dyrian Bypass",
-            pleaseSolveCaptcha: "Vui lòng giải CAPTCHA để tiếp tục",
-            captchaSuccess: "CAPTCHA đã thành công",
-            redirectingToWork: "Đang qua Work.ink...",
-            clickingContinue: "Đã click nút Continue",
-            errorClickingContinue: "Lỗi khi click Continue",
-            autoClickCopy: "Đã auto click nút copy key",
-            bypassSuccessCopy: "Bypass thành công, đã Copy Key (bấm 'Cho Phép' nếu có)",
-            errorCopy: "Lỗi khi copy key",
-            copyButtonNotFound: "Không tìm thấy nút copy",
-            waitingCaptcha: "Đang chờ CAPTCHA...",
-            successDetected: "Đã detect success, chuẩn bị click...",
-            bypassSuccess: "Bypass thành công, chờ {time}s...",
-            backToCheckpoint: "Đang về lại Checkpoint...",
-            captchaSuccessBypassing: "CAPTCHA đã thành công, đang bypass...",
-            version: "Phiên bản v1.6.0.3",
-            madeBy: "Được tạo bởi DyRian (dựa trên IHaxU)"
+            pleaseSolveCaptcha: "Silakan selesaikan CAPTCHA untuk melanjutkan",
+            captchaSuccess: "CAPTCHA berhasil diselesaikan",
+            redirectingToWork: "Mengalihkan ke Work.ink...",
+            clickingContinue: "Tombol Continue diklik",
+            errorClickingContinue: "Terjadi kesalahan saat mengklik Continue",
+            autoClickCopy: "Telah otomatis mengklik tombol salin key",
+            bypassSuccessCopy: "Bypass berhasil! Key telah tersalin (klik 'Izinkan' jika diminta)",
+            errorCopy: "Terjadi kesalahan saat menyalin key",
+            copyButtonNotFound: "Tombol salin tidak ditemukan",
+            waitingCaptcha: "Menunggu CAPTCHA...",
+            successDetected: "Terdeteksi sukses, bersiap mengklik...",
+            bypassSuccess: "Bypass berhasil, tunggu {time}s...",
+            backToCheckpoint: "Kembali ke checkpoint...",
+            captchaSuccessBypassing: "CAPTCHA berhasil, sedang melakukan bypass...",
+            version: "Versi v1.6.0.3",
+            madeBy: "Dibuat oleh DyRian (berdasarkan IHaxU)"
         },
         en: {
             title: "Dyrian Bypass",
@@ -49,7 +49,7 @@
     };
 
     function t(key, replacements = {}) {
-        let text = translations[currentLanguage][key] || key;
+        let text = (translations[currentLanguage] && translations[currentLanguage][key]) ? translations[currentLanguage][key] : key;
         Object.keys(replacements).forEach(placeholder => {
             text = text.replace(`{${placeholder}}`, replacements[placeholder]);
         });
@@ -361,7 +361,7 @@
                         <div class="panel-body" id="panel-body">
                             <div class="language-section">
                                 <div class="lang-toggle">
-                                    <button class="lang-btn ${currentLanguage === 'vi' ? 'active' : ''}" lang="vi">Tiếng Việt</button>
+                                    <button class="lang-btn ${currentLanguage === 'id' ? 'active' : ''}" lang="id">Bahasa Indonesia</button>
                                     <button class="lang-btn ${currentLanguage === 'en' ? 'active' : ''}" lang="en">English</button>
                                 </div>
                             </div>
@@ -434,7 +434,8 @@
 
             const message = t(messageKey, replacements);
             this.statusText.textContent = message;
-            this.statusDot.className = "status-dot ${type}";
+            // perbaikan: gunakan template literal supaya class type benar
+            this.statusDot.className = `status-dot ${type}`;
         }
     }
 
@@ -541,8 +542,9 @@
         if (debug) console.log('[Debug] Waiting Captcha');
     }
 
-
-
+    // ... fungsi handleLuarmor jika ada (tidak diubah) ...
+    // untuk menjaga panjang pesan, aku tidak menyentuh isi handleWorkInk di sini
+    // kecuali perbaikan minor yang sudah dilakukan pada statusDot class above
 
     function handleWorkInk() {
         if (panel) panel.show('pleaseSolveCaptcha', 'info');
@@ -666,7 +668,7 @@
             return function (...args) {
                 const [msgType] = args;
                 if (msgType !== types.ad && debug)
-                    console.log('[Debug] Sent:', msgType, args[1]);
+                console.log('[Debug] Sent:', msgType, args[1]);
 
                 // Nếu captcha đã done thì gửi bình thường
                 if (captchaDone) return sendMessageA.apply(this, args);
