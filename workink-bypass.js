@@ -443,7 +443,7 @@
       return function (...args) {
         try {
           const [msgType] = args;
-          safeLog("[WorkInk] Sent:", msgType, args[1]);
+          safeLog("[WorkInk] Send this Message Types:", msgType, args[1]);
           if (msgType !== types.ad) safeLog("[WorkInk] Sent:", msgType, args[1]);
 
           if (captchaDone) return sendMessageA.apply(this, args);
@@ -567,9 +567,9 @@
           const secondsPassed = (Date.now() - startTime) / 1000;
           const currentUrl = window.location.href;
           let waitTimeSeconds;
-          if (currentUrl.includes("42rk6hcq")) waitTimeSeconds = 38;
-          else if (currentUrl.includes("ito4wckq")) waitTimeSeconds = 38;
-          else if (currentUrl.includes("pzarvhq1")) waitTimeSeconds = 38;
+          if (currentUrl.includes("42rk6hcq")) waitTimeSeconds = 25;
+          else if (currentUrl.includes("ito4wckq")) waitTimeSeconds = 25;
+          else if (currentUrl.includes("pzarvhq1")) waitTimeSeconds = 25;
           else waitTimeSeconds = 5;
 
           if (secondsPassed >= waitTimeSeconds) {
@@ -729,5 +729,4 @@
       }
     } catch (e) { safeErr("Start routing failed", e); }
   })();
-
 })(); // IIFE end
