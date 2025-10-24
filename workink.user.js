@@ -7,7 +7,7 @@
 // @match        https://key.volcano.wtf/*
 // @match        https://work.ink/*
 // @grant        none
-// @run-at       document-start
+// @run-at       document-end
 // @downloadURL  https://github.com/Difz25x/workink-bypass/raw/main/workink.user.js
 // @updateURL    https://github.com/Difz25x/workink-bypass/raw/main/workink.user.js
 // @require      https://github.com/Difz25x/workink-bypass/raw/main/workink-bypass.js
