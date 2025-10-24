@@ -51,7 +51,7 @@
     function t(key, replacements = {}) {
         let text = translations[currentLanguage][key] || key;
         Object.keys(replacements).forEach(placeholder => {
-            text = `text.replace({${placeholder}}, replacements[placeholder])`;
+            text = text.replace(`{${placeholder}}`, replacements[placeholder]);
         });
         return text;
     }
@@ -655,9 +655,9 @@
             for (const cookie of cookies) {
                 const [name] = cookie.split('=');
                 // xóa cho path root
-                document.cookie = "${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/";
+                document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
                 // xóa cho path hiện tại (phòng trường hợp khác)
-                document.cookie = "${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=${location.pathname}";
+                document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=${location.pathname}`;
             }
             if (debug) console.log("[Debug] Cleared cookies for ${location.hostname}");
         }
@@ -696,7 +696,7 @@
                     }
 
                     // kiểm tra nút DOM "Go To Destination"
-                    const btn = document.querySelector('.button.large.accessBtn.svelte-16n5fft');
+                    const btn = document.querySelector('.button.large.accessBtn.svelte-bv7qlp');
                     const elapsed = (Date.now() - start) / 1000;
 
                     if (btn && btn.textContent.includes('Go To Destination')) {
@@ -718,7 +718,7 @@
                         consecutiveStuck++;
 
                         if (debug)
-                            console.warn("[Debug] Captcha timeout — retrying (#${captchaRetryCount}), consecutive stuck: ${consecutiveStuck}");
+                            console.warn(`[Debug] Captcha timeout — retrying (#${captchaRetryCount}), consecutive stuck: ${consecutiveStuck}`);
                         if (panel)
                             panel.show('pleaseSolveCaptcha', 'warning', {
                                 text: `Captcha not detected, retrying... (#${captchaRetryCount})`
