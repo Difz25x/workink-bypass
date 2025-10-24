@@ -2,10 +2,8 @@
     'use strict';
 
     const host = location.hostname;
-    const debug = (typeof CONFIG !== 'undefined' && CONFIG.debug !== undefined)
-        ? CONFIG.debug: false;
 
-    let currentLanguage = localStorage.getItem('lang') || 'vi';
+    let currentLanguage = localStorage.getItem('lang') || 'en';
     
     const translations = {
         vi: {
@@ -481,15 +479,15 @@
                 if (btn) {
                     alreadyDoneContinue = true;
                     if (panel) panel.show('captchaSuccess', 'success');
-                    if (debug) console.log('[Debug] Captcha Solved');
+                    console.log('[Debug] Captcha Solved');
 
                     setTimeout(() => {
                         try {
                             btn.click();
                             if (panel) panel.show('redirectingToWork', 'info');
-                            if (debug) console.log('[Debug] Clicking Continue');
+                            console.log('[Debug] Clicking Continue');
                         } catch (err) {
-                            if (debug) console.log('[Debug] No Continue Found', err);
+                            console.log('[Debug] No Continue Found', err);
                         }
                     }, 300);
                 }
@@ -501,9 +499,9 @@
                     try {
                         copyBtn.click();
                         if (panel) panel.show('bypassSuccessCopy', 'success');
-                        if (debug) console.log('[Debug] Copy button clicked (spam)');
+                        console.log('[Debug] Copy button clicked (spam)');
                     } catch (err) {
-                        if (debug) console.log('[Debug] No Copy Found', err);
+                        console.log('[Debug] No Copy Found', err);
                     }
                 }, 150);
             }
@@ -515,13 +513,13 @@
             const copyBtn = getCopy();
 
             if (btn || copyBtn) {
-                if (debug) console.log(`[Debug] Detect success (attempt ${attempts})`);
+                console.log(`[Debug] Detect success (attempt ${attempts})`);
                 actOnCheckpoint();
                 return true;
             }
 
             if (attempts >= dtcAttempt) {
-                if (debug) console.log('[Debug] No more poll attempts.');
+                console.log('[Debug] No more poll attempts.');
                 return false;
             }
             return false;
@@ -538,7 +536,7 @@
         });
         mo.observe(document.documentElement, { childList: true, subtree: true, attributes: true });
 
-        if (debug) console.log('[Debug] Waiting Captcha');
+        console.log('[Debug] Waiting Captcha');
     }
 
 
@@ -640,7 +638,7 @@
                         });
                         break;
                     default:
-                        if (debug) console.log('[Debug] Unknown monetization:', monetization);
+                        console.log('[Debug] Unknown monetization:', monetization);
                 }
             }
         }
@@ -659,13 +657,13 @@
                 // xóa cho path hiện tại (phòng trường hợp khác)
                 document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=${location.pathname}`;
             }
-            if (debug) console.log(`[Debug] Cleared cookies for ${location.hostname}`);
+            console.log(`[Debug] Cleared cookies for ${location.hostname}`);
         }
 
         function createSendProxy() {
             return function (...args) {
                 const [msgType] = args;
-                if (msgType !== types.ad && debug)
+                if (msgType !== types.ad)
                     console.log('[Debug] Sent:', msgType, args[1]);
 
                 // Nếu captcha đã done thì gửi bình thường
@@ -686,7 +684,7 @@
                     if (msgType === types.tr) {
                         captchaDone = true;
                         clearInterval(interval);
-                        if (debug) console.log('[Debug] Captcha bypassed via tr');
+                        console.log('[Debug] Captcha bypassed via tr');
                         if (panel) panel.show('captchaSuccessBypassing', 'success');
                         spoofWorkink.call(this);
                         // reset counters
@@ -702,7 +700,7 @@
                     if (btn && btn.textContent.includes('Go To Destination')) {
                         captchaDone = true;
                         clearInterval(interval);
-                        if (debug) console.log('[Debug] Captcha bypassed via DOM');
+                        console.log('[Debug] Captcha bypassed via DOM');
                         if (panel) panel.show('captchaSuccessBypassing', 'success');
                         spoofWorkink.call(this);
                         // reset counters
@@ -717,8 +715,7 @@
                         captchaRetryCount++;
                         consecutiveStuck++;
 
-                        if (debug)
-                            console.warn(`[Debug] Captcha timeout — retrying (#${captchaRetryCount}), consecutive stuck: ${consecutiveStuck}`);
+                        console.warn(`[Debug] Captcha timeout — retrying (#${captchaRetryCount}), consecutive stuck: ${consecutiveStuck}`);
                         if (panel)
                             panel.show('pleaseSolveCaptcha', 'warning', {
                                 text: `Captcha not detected, retrying... (#${captchaRetryCount})`
@@ -726,7 +723,7 @@
 
                         // Nếu lặp 2 lần liên tiếp mà vẫn chưa qua => clear cookies + reload
                         if (consecutiveStuck >= 2) {
-                            if (debug) console.warn('[Debug] Captcha stuck twice — clearing cookies and reloading...');
+                            console.warn('[Debug] Captcha stuck twice — clearing cookies and reloading...');
                             clearSiteCookies();
                             // delay 1s để cookie kịp bị xóa
                             setTimeout(() => window.location.reload(), 1000);
@@ -738,7 +735,7 @@
                             try {
                                 createSendProxy().call(this, ...args);
                             } catch (e) {
-                                if (debug) console.error('[Debug] Error retrying send proxy', e);
+                                console.error('[Debug] Error retrying send proxy', e);
                             }
                         }, 300);
                     }
@@ -752,7 +749,7 @@
         function createLinkInfoProxy() {
             return function (...args) {
                 const [info] = args;
-                if (debug) console.log('[Debug] Link info:', info);
+                console.log('[Debug] Link info:', info);
                 Object.defineProperty(info, 'isAdblockEnabled', {
                     get: () => false,
                     set: () => {},
@@ -768,13 +765,13 @@
         }
 
         function startCountdown(url, waitLeft) {
-            if (debug) console.log('[Debug] Countdown started:', waitLeft, 'seconds');
+            console.log('[Debug] Countdown started:', waitLeft, 'seconds');
             if (panel) panel.show('bypassSuccess', 'warning', { time: Math.ceil(waitLeft) });
             
             const interval = setInterval(() => {
                 waitLeft -= 1;
                 if (waitLeft > 0) {
-                    if (debug) console.log('[Debug] Time remaining:', waitLeft);
+                    console.log('[Debug] Time remaining:', waitLeft);
                     if (panel) panel.show('bypassSuccess', 'warning', { time: Math.ceil(waitLeft) });
                 } else {
                     clearInterval(interval);
@@ -786,7 +783,7 @@
         function createDestinationProxy() {
             return function (...args) {
                 const [data] = args;
-                if (debug) console.log('[Debug] Destination:', data);
+                console.log('[Debug] Destination:', data);
                 const secondsPassed = (Date.now() - startTime) / 1000;
 
                 const currentUrl = window.location.href;
@@ -841,7 +838,7 @@
         }
 
         function checkController(target, prop, value) {
-            if (debug) console.log('[Debug] Checking:', prop, value);
+            console.log('[Debug] Checking:', prop, value);
             if (value &&
                 typeof value === 'object' &&
                 findMethod(value, map.sendM).fn &&
@@ -849,7 +846,7 @@
                 findMethod(value, map.onLD).fn &&
                 !sessionController) {
                 sessionController = value;
-                if (debug) console.log('[Debug] Controller detected:', sessionController);
+                console.log('[Debug] Controller detected:', sessionController);
                 setupProxies();
             }
             return Reflect.set(target, prop, value);
