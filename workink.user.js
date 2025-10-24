@@ -8,7 +8,7 @@
 // @match        https://work.ink/*
 // @grant        none
 // @run-at       document-start
-// @require      https://github.com/Difz25x/workink-bypass/raw/refs/heads/main/workink-bypass.js
-// @downloadURL  https://github.com/Difz25x/workink-bypass/raw/refs/heads/main/workink.user.js
-// @updateURL    https://github.com/Difz25x/workink-bypass/raw/refs/heads/main/workink.user.js
+// @downloadURL  https://github.com/Difz25x/workink-bypass/raw/main/workink.user.js
+// @updateURL    https://github.com/Difz25x/workink-bypass/raw/main/workink.user.js
+// @require      https://github.com/Difz25x/workink-bypass/raw/main/workink-bypass.js
 // ==/UserScript==
