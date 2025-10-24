@@ -5,7 +5,7 @@
     const debug = (typeof CONFIG !== 'undefined' && CONFIG.debug !== undefined)
         ? CONFIG.debug: false;
 
-    let currentLanguage = localStorage.getItem('lang') || 'vi';
+    let currentLanguage = localStorage.getItem('lang') || 'en';
     
     const translations = {
         vi: {
@@ -361,8 +361,8 @@
                         <div class="panel-body" id="panel-body">
                             <div class="language-section">
                                 <div class="lang-toggle">
-                                    <button class="lang-btn ${currentLanguage === 'vi' ? 'active' : ''}" data-lang="vi">Tiếng Việt</button>
-                                    <button class="lang-btn ${currentLanguage === 'en' ? 'active' : ''}" data-lang="en">English</button>
+                                    <button class="lang-btn ${currentLanguage === 'vi' ? 'active' : ''}" lang="vi">Tiếng Việt</button>
+                                    <button class="lang-btn ${currentLanguage === 'en' ? 'active' : ''}" lang="en">English</button>
                                 </div>
                             </div>
                             <div class="info-section">
@@ -399,7 +399,7 @@
         setupEventListeners() {
             this.langBtns.forEach(btn => {
                 btn.addEventListener('click', () => {
-                    currentLanguage = btn.dataset.lang;
+                    currentLanguage = btn.lang;
                     this.updateLanguage();
                 });
             });
@@ -415,7 +415,7 @@
             localStorage.setItem('lang', currentLanguage);
 
             this.langBtns.forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.lang === currentLanguage);
+                btn.classList.toggle('active', btn.lang === currentLanguage);
             });
 
             this.shadow.querySelector('.title').textContent = t('title');
