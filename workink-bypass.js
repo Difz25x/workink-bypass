@@ -1,451 +1,347 @@
-const DEBUG = true; // debug logging
+const DEBUG = true;
 
-    // Preserve original console methods in case the site overrides them
-    const oldLog = unsafeWindow.console.log;
-    const oldWarn = unsafeWindow.console.warn;
-    const oldError = unsafeWindow.console.error;
-    
-    // Wrapper functions prepend a tag and only log when DEBUG is true
-    function log(...args) { if (DEBUG) oldLog("[UnShortener]", ...args); }
-    function warn(...args) { if (DEBUG) oldWarn("[UnShortener]", ...args); }
-    function error(...args) { if (DEBUG) oldError("[UnShortener]", ...args); }
+const oldLog = unsafeWindow.console.log;
+const oldWarn = unsafeWindow.console.warn;
+const oldError = unsafeWindow.console.error;
 
-    // Override console.clear in DEBUG mode to prevent the site from erasing debug logs
-    if (DEBUG) unsafeWindow.console.clear = function() {};
+function log(...args) { if (DEBUG) oldLog("[UnShortener]", ...args); }
+function warn(...args) { if (DEBUG) oldWarn("[UnShortener]", ...args); }
+function error(...args) { if (DEBUG) oldError("[UnShortener]", ...args); }
 
-    const container = unsafeWindow.document.createElement("div");
-    container.style.position = "fixed";
-    container.style.bottom = "10px";
-    container.style.left = "10px";
-    container.style.zIndex = 999999;
+if (DEBUG) unsafeWindow.console.clear = function () {};
 
-    // Attach closed shadow root
-    const shadow = container.attachShadow({ mode: "closed" });
+// === Modern Debug Panel ===
+const container = unsafeWindow.document.createElement("div");
+Object.assign(container.style, {
+  position: "fixed",
+  bottom: "20px",
+  left: "20px",
+  zIndex: 999999,
+  width: "320px",
+  height: "90px",
+  borderRadius: "14px",
+  overflow: "hidden",
+  fontFamily: "Inter, Segoe UI, sans-serif",
+  boxShadow: "0 0 25px rgba(0, 0, 0, 0.6)",
+  backdropFilter: "blur(10px)",
+  border: "1px solid rgba(255, 255, 255, 0.1)"
+});
 
-    // Create your hint element
-    const hint = unsafeWindow.document.createElement("div");
-    hint.textContent = "🔒 Please solve the captcha to continue";
+const shadow = container.attachShadow({ mode: "closed" });
 
-    Object.assign(hint.style, {
-        background: "rgba(0,0,0,0.8)",
-        color: "#fff",
-        padding: "8px 12px",
-        borderRadius: "6px",
-        fontSize: "14px",
-        fontFamily: "sans-serif",
-        pointerEvents: "none"
+const style = document.createElement("style");
+style.textContent = `
+  @keyframes shimmer {
+    0% { background-position: 0% 0%; }
+    100% { background-position: 200% 200%; }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .panel {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    background: linear-gradient(45deg, #1a1a1a, #2a2a2a, #1a1a1a);
+    background-size: 200% 200%;
+    animation: shimmer 6s linear infinite, fadeIn 0.4s ease;
+    padding: 14px 18px;
+    color: #e0e0e0;
+  }
+
+  .panel::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(45deg, rgba(255,255,255,0.04) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.04) 50%, rgba(255,255,255,0.04) 75%, transparent 75%, transparent);
+    background-size: 40px 40px;
+    mix-blend-mode: overlay;
+    animation: shimmer 8s linear infinite;
+    z-index: 0;
+  }
+
+  .panel h2 {
+    margin: 0;
+    font-size: 15px;
+    color: #00ffd5;
+    text-shadow: 0 0 6px rgba(0,255,213,0.5);
+  }
+
+  .panel span {
+    font-size: 13px;
+    opacity: 0.9;
+  }
+
+  .pulse {
+    position: absolute;
+    bottom: 10px;
+    right: 14px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #00ffd5;
+    box-shadow: 0 0 8px #00ffd5;
+    animation: pulseAnim 1.8s infinite;
+  }
+
+  @keyframes pulseAnim {
+    0% { transform: scale(1); opacity: 0.8; }
+    50% { transform: scale(1.4); opacity: 0.3; }
+    100% { transform: scale(1); opacity: 0.8; }
+  }
+`;
+
+const panel = document.createElement("div");
+panel.className = "panel";
+
+const title = document.createElement("h2");
+title.textContent = "WorkInk Debug Panel";
+
+const message = document.createElement("span");
+message.textContent = "🔒 Please solve the captcha to continue";
+
+const pulse = document.createElement("div");
+pulse.className = "pulse";
+
+panel.appendChild(title);
+panel.appendChild(message);
+panel.appendChild(pulse);
+shadow.appendChild(style);
+shadow.appendChild(panel);
+unsafeWindow.document.documentElement.appendChild(container);
+
+// === Core logic ===
+const NAME_MAP = {
+  sendMessage: ["sendMessage", "sendMsg", "writeMessage", "writeMsg", "writMessage"],
+  onLinkInfo: ["onLinkInfo"],
+  onLinkDestination: ["onLinkDestination"]
+};
+
+function resolveName(obj, candidates) {
+  for (let i = 0; i < candidates.length; i++) {
+    const name = candidates[i];
+    if (typeof obj[name] === "function") {
+      return { fn: obj[name], index: i, name };
+    }
+  }
+  return { fn: null, index: -1, name: null };
+}
+
+let _sessionController;
+let _sendMessage;
+let _onLinkInfo;
+let _onLinkDestination;
+
+function getClientPacketTypes() {
+  return {
+    ANNOUNCE: "c_announce",
+    MONETIZATION: "c_monetization",
+    SOCIAL_STARTED: "c_social_started",
+    RECAPTCHA_RESPONSE: "c_recaptcha_response",
+    HCAPTCHA_RESPONSE: "c_hcaptcha_response",
+    TURNSTILE_RESPONSE: "c_turnstile_response",
+    ADBLOCKER_DETECTED: "c_adblocker_detected",
+    FOCUS_LOST: "c_focus_lost",
+    OFFERS_SKIPPED: "c_offers_skipped",
+    FOCUS: "c_focus",
+    WORKINK_PASS_AVAILABLE: "c_workink_pass_available",
+    WORKINK_PASS_USE: "c_workink_pass_use",
+    PING: "c_ping"
+  };
+}
+
+function updateHint(text) {
+  message.textContent = text;
+}
+
+function redirect(url) {
+  updateHint("🎉 Redirecting to your destination...");
+  window.location.href = url;
+}
+
+function startCountdown(url, waitLeft) {
+  updateHint(`⏳ Destination found, redirecting in ${waitLeft}s`);
+  const interval = setInterval(() => {
+    waitLeft--;
+    if (waitLeft > 0) {
+      updateHint(`⏳ Destination found, redirecting in ${waitLeft}s`);
+    } else {
+      clearInterval(interval);
+      redirect(url);
+    }
+  }, 1000);
+}
+
+function createSendMessageProxy() {
+  const clientPacketTypes = getClientPacketTypes();
+  return function (...args) {
+    const packet_type = args[0];
+    const packet_data = args[1];
+
+    if (packet_type !== clientPacketTypes.PING)
+      log("Sent message:", packet_type, packet_data);
+
+    if (packet_type === clientPacketTypes.ADBLOCKER_DETECTED) {
+      warn("Blocked adblocker detected message.");
+      return;
+    }
+
+    if (_sessionController.linkInfo && packet_type === clientPacketTypes.TURNSTILE_RESPONSE) {
+      const ret = _sendMessage.apply(this, args);
+      updateHint("⏳ Captcha solved, bypassing...");
+      for (const social of _sessionController.linkInfo.socials)
+        _sendMessage.call(this, clientPacketTypes.SOCIAL_STARTED, { url: social.url });
+      return ret;
+    }
+
+    return _sendMessage.apply(this, args);
+  };
+}
+
+function createOnLinkInfoProxy() {
+  return function (...args) {
+    const linkInfo = args[0];
+    log("Link info received:", linkInfo);
+    Object.defineProperty(linkInfo, "isAdblockEnabled", {
+      get() { return false },
+      set(v) { log("Attempted to set isAdblockEnabled to:", v); },
+      configurable: false,
+      enumerable: true
     });
+    return _onLinkInfo.apply(this, args);
+  };
+}
 
-    shadow.appendChild(hint);
-    unsafeWindow.document.documentElement.appendChild(container);
+function createOnLinkDestinationProxy() {
+  return function (...args) {
+    const payload = args[0];
+    log("Link destination received:", payload);
+    startCountdown(payload.url, 30);
+    return _onLinkDestination.apply(this, args);
+  };
+}
 
-    const NAME_MAP = {
-        sendMessage: ["sendMessage", "sendMsg", "writeMessage", "writeMsg", "writMessage"],
-        onLinkInfo: ["onLinkInfo"],
-        onLinkDestination: ["onLinkDestination"]
-    };
+function setupSessionControllerProxy() {
+  const sendMessage = resolveName(_sessionController, NAME_MAP.sendMessage);
+  const onLinkInfo = resolveName(_sessionController, NAME_MAP.onLinkInfo);
+  const onLinkDestination = resolveName(_sessionController, NAME_MAP.onLinkDestination);
 
-    function resolveName(obj, candidates) {
-        for (let i = 0; i < candidates.length; i++) {
-            const name = candidates[i];
-            if (typeof obj[name] === "function") {
-                return { fn: obj[name], index: i, name };
-            }
-        }
-        return { fn: null, index: -1, name: null };
+  _sendMessage = sendMessage.fn;
+  _onLinkInfo = onLinkInfo.fn;
+  _onLinkDestination = onLinkDestination.fn;
+
+  const sendMessageProxy = createSendMessageProxy();
+  const onLinkInfoProxy = createOnLinkInfoProxy();
+  const onLinkDestinationProxy = createOnLinkDestinationProxy();
+
+  Object.defineProperty(_sessionController, sendMessage.name, { get() { return sendMessageProxy }, set(v) { _sendMessage = v } });
+  Object.defineProperty(_sessionController, onLinkInfo.name, { get() { return onLinkInfoProxy }, set(v) { _onLinkInfo = v } });
+  Object.defineProperty(_sessionController, onLinkDestination.name, { get() { return onLinkDestinationProxy }, set(v) { _onLinkDestination = v } });
+  log("SessionController proxies installed.");
+}
+
+function checkForSessionController(target, prop, value, receiver) {
+  if (
+    value && typeof value === "object" &&
+    resolveName(value, NAME_MAP.sendMessage).fn &&
+    resolveName(value, NAME_MAP.onLinkInfo).fn &&
+    resolveName(value, NAME_MAP.onLinkDestination).fn &&
+    !_sessionController
+  ) {
+    _sessionController = value;
+    log("Intercepted session controller.");
+    setupSessionControllerProxy();
+  }
+  return Reflect.set(target, prop, value, receiver);
+}
+
+function createComponentProxy(component) {
+  return new Proxy(component, {
+    construct(target, args) {
+      const result = Reflect.construct(target, args);
+      result.$$.ctx = new Proxy(result.$$.ctx, { set: checkForSessionController });
+      return result;
     }
+  });
+}
 
-    // Global state
-    let _sessionController = undefined;
-    let _sendMessage = undefined;
-    let _onLinkInfo = undefined;
-    let _onLinkDestination = undefined;
-    
-    // Constants
-    function getClientPacketTypes() {
-        return {
-            ANNOUNCE: "c_announce",
-            MONETIZATION: "c_monetization",
-            SOCIAL_STARTED: "c_social_started",
-            RECAPTCHA_RESPONSE: "c_recaptcha_response",
-            HCAPTCHA_RESPONSE: "c_hcaptcha_response",
-            TURNSTILE_RESPONSE: "c_turnstile_response",
-            ADBLOCKER_DETECTED: "c_adblocker_detected",
-            FOCUS_LOST: "c_focus_lost",
-            OFFERS_SKIPPED: "c_offers_skipped",
-            FOCUS: "c_focus",
-            WORKINK_PASS_AVAILABLE: "c_workink_pass_available",
-            WORKINK_PASS_USE: "c_workink_pass_use",
-            PING: "c_ping"
-        };
+function createNodeResultProxy(result) {
+  return new Proxy(result, {
+    get(target, prop, receiver) {
+      if (prop === "component") return createComponentProxy(target.component);
+      return Reflect.get(target, prop, receiver);
     }
+  });
+}
 
-    const startTime = Date.now();
+function createNodeProxy(oldNode) {
+  return async (...args) => {
+    const result = await oldNode(...args);
+    return createNodeResultProxy(result);
+  };
+}
 
-    function createSendMessageProxy() {
-        const clientPacketTypes = getClientPacketTypes();
-
-        return function(...args) {
-            const packet_type = args[0];
-            const packet_data = args[1];
-
-            if (packet_type !== clientPacketTypes.PING) {
-                log("Sent message:", packet_type, packet_data);
-            }
-
-            if (packet_type === clientPacketTypes.ADBLOCKER_DETECTED) {
-                warn("Blocked adblocker detected message to avoid false positive.");
-                return;
-            }
-
-            if (_sessionController.linkInfo && packet_type === clientPacketTypes.TURNSTILE_RESPONSE) {
-                const ret = _sendMessage.apply(this, args);
-
-                hint.textContent = "⏳ Captcha solved, bypassing... (This can take up to a minute)";
-
-                // Send bypass messages
-                for (const social of _sessionController.linkInfo.socials) {
-                    _sendMessage.call(this, clientPacketTypes.SOCIAL_STARTED, {
-                        url: social.url
-                    });
-                }
-
-                for (const monetizationIdx in _sessionController.linkInfo.monetizations) {
-                    const monetization = _sessionController.linkInfo.monetizations[monetizationIdx];
-
-                    switch (monetization) {
-                        case 22: { // readArticles2
-                            _sendMessage.call(this, clientPacketTypes.MONETIZATION, {
-                                type: "readArticles2",
-                                payload: {
-                                    event: "read"
-                                }
-                            });
-                            break;
-                        }
-
-                        case 25: { // operaGX
-                            _sendMessage.call(this, clientPacketTypes.MONETIZATION, {
-                                type: "operaGX",
-                                payload: {
-                                    event: "start"
-                                }
-                            });
-                            _sendMessage.call(this, clientPacketTypes.MONETIZATION, {
-                                type: "operaGX",
-                                payload: {
-                                    event: "installClicked"
-                                }
-                            });
-                            fetch('https://work.ink/_api/v2/callback/operaGX', {
-                                method: 'POST',
-                                mode: 'no-cors',
-                                headers: {
-                                    'Content-Type': 'application/json'
-                                },
-                                body: JSON.stringify({
-                                    'noteligible': true
-                                })
-                            });
-                            break;
-                        }
-
-                        case 34: { // norton
-                            _sendMessage.call(this, clientPacketTypes.MONETIZATION, {
-                                type: "norton",
-                                payload: {
-                                    event: "start"
-                                }
-                            });
-                            _sendMessage.call(this, clientPacketTypes.MONETIZATION, {
-                                type: "norton",
-                                payload: {
-                                    event: "installClicked"
-                                }
-                            });
-                            break;
-                        }
-
-                        case 71: { // externalArticles
-                            _sendMessage.call(this, clientPacketTypes.MONETIZATION, {
-                                type: "externalArticles",
-                                payload: {
-                                    event: "start"
-                                }
-                            });
-                            _sendMessage.call(this, clientPacketTypes.MONETIZATION, {
-                                type: "externalArticles",
-                                payload: {
-                                    event: "installClicked"
-                                }
-                            });
-                            break;
-                        }
-
-                        case 45: { // pdfeditor
-                            _sendMessage.call(this, clientPacketTypes.MONETIZATION, {
-                                type: "pdfeditor",
-                                payload: {
-                                    event: "installed"
-                                }
-                            });
-                            break;
-                        }
-
-                        case 57: { // betterdeals
-                            _sendMessage.call(this, clientPacketTypes.MONETIZATION, {
-                                type: "betterdeals",
-                                payload: {
-                                    event: "installed"
-                                }
-                            });
-                            break;
-                        }
-
-                        default: {
-                            log("Unknown monetization type:", typeof monetization, monetization);
-                            break;
-                        }
-                    }
-                }
-
-                return ret;
-            }
-
-            return _sendMessage.apply(this, args);
-        };
-    }
-
-    function createOnLinkInfoProxy() {
-        return function(...args) {
-            const linkInfo = args[0];
-
-            log("Link info received:", linkInfo);
-
-            Object.defineProperty(linkInfo, "isAdblockEnabled", {
-                get() { return false },
-                set(newValue) {
-                    log("Attempted to set isAdblockEnabled to:", newValue);
-                },
-                configurable: false,
-                enumerable: true
-            });
-
-            return _onLinkInfo.apply(this, args);
-        };
-    }
-
-    function updateHint(waitLeft) {
-        hint.textContent = `⏳ Destination found, redirecting in ${waitLeft} seconds...`;
-    }
-
-    function redirect(url) {
-        hint.textContent = "🎉 Redirecting to your destination...";
-        window.location.href = url;
-    }
-
-    function startCountdown(url, waitLeft) {
-        updateHint(waitLeft);
-
-        const interval = setInterval(() => {
-            waitLeft -= 1;
-            if (waitLeft > 0) {
-                updateHint(waitLeft);
-            } else {
-                clearInterval(interval);
-                redirect(url);
-            }
-        }, 1000);
-    }
-    
-    function createOnLinkDestinationProxy() {
+function createKitProxy(kit) {
+  if (typeof kit !== "object" || !kit) return [false, kit];
+  const originalStart = "start" in kit && kit.start;
+  if (!originalStart) return [false, kit];
+  const kitProxy = new Proxy(kit, {
+    get(target, prop, receiver) {
+      if (prop === "start") {
         return function (...args) {
-            const payload = args[0];
-            log("Link destination received:", payload);
-
-            startCountdown(payload.url, 30);
-
-            return _onLinkDestination.apply(this, args);
+          const appModule = args[0];
+          const options = args[2];
+          if (typeof appModule === "object" && typeof appModule.nodes === "object" &&
+              typeof options === "object" && typeof options.node_ids === "object") {
+            const oldNode = appModule.nodes[options.node_ids[1]];
+            appModule.nodes[options.node_ids[1]] = createNodeProxy(oldNode);
+          }
+          log("kit.start intercepted!");
+          return originalStart.apply(this, args);
         };
+      }
+      return Reflect.get(target, prop, receiver);
     }
+  });
+  return [true, kitProxy];
+}
 
-    function setupSessionControllerProxy() {
-        const sendMessage = resolveName(_sessionController, NAME_MAP.sendMessage);
-        const onLinkInfo = resolveName(_sessionController, NAME_MAP.onLinkInfo);
-        const onLinkDestination = resolveName(_sessionController, NAME_MAP.onLinkDestination);
-
-        _sendMessage = sendMessage.fn;
-        _onLinkInfo = onLinkInfo.fn;
-        _onLinkDestination = onLinkDestination.fn;
-
-        const sendMessageProxy = createSendMessageProxy();
-        const onLinkInfoProxy = createOnLinkInfoProxy();
-        const onLinkDestinationProxy = createOnLinkDestinationProxy();
-
-        // Patch the actual property name that exists
-        Object.defineProperty(_sessionController, sendMessage.name, {
-            get() { return sendMessageProxy },
-            set(newValue) { _sendMessage = newValue },
-            configurable: false,
-            enumerable: true
+function setupSvelteKitInterception() {
+  const originalPromiseAll = unsafeWindow.Promise.all;
+  let intercepted = false;
+  unsafeWindow.Promise.all = async function (promises) {
+    const result = originalPromiseAll.call(this, promises);
+    if (!intercepted) {
+      intercepted = true;
+      return await new Promise(resolve => {
+        result.then(([kit, app, ...args]) => {
+          const [success, wrappedKit] = createKitProxy(kit);
+          if (success) unsafeWindow.Promise.all = originalPromiseAll;
+          resolve([wrappedKit, app, ...args]);
         });
-
-        Object.defineProperty(_sessionController, onLinkInfo.name, {
-            get() { return onLinkInfoProxy },
-            set(newValue) { _onLinkInfo = newValue },
-            configurable: false,
-            enumerable: true
-        });
-
-        Object.defineProperty(_sessionController, onLinkDestination.name, {
-            get() { return onLinkDestinationProxy },
-            set(newValue) { _onLinkDestination = newValue },
-            configurable: false,
-            enumerable: true
-        });
-
-        log(`SessionController proxies installed: ${sendMessage.name}, ${onLinkInfo.name}, ${onLinkDestination.name}`);
+      });
     }
+    return await result;
+  };
+}
 
-    function checkForSessionController(target, prop, value, receiver) {
-        log("Checking property set:", prop, value);
+setupSvelteKitInterception();
 
-        if (
-            value &&
-            typeof value === "object" &&
-            resolveName(value, NAME_MAP.sendMessage).fn &&
-            resolveName(value, NAME_MAP.onLinkInfo).fn &&
-            resolveName(value, NAME_MAP.onLinkDestination).fn &&
-            !_sessionController
-        ) {
-            _sessionController = value;
-            log("Intercepted session controller:", _sessionController);
-            setupSessionControllerProxy();
-        }
-
-        return Reflect.set(target, prop, value, receiver);
+const observer = new MutationObserver(mutations => {
+  for (const m of mutations) {
+    for (const node of m.addedNodes) {
+      if (node.nodeType === 1) {
+        if (node.classList?.contains("adsbygoogle")) node.remove();
+        node.querySelectorAll?.(".adsbygoogle").forEach(el => el.remove());
+      }
     }
+  }
+});
 
-    function createComponentProxy(component) {
-        return new Proxy(component, {
-            construct(target, args) {
-                const result = Reflect.construct(target, args);
-                log("Intercepted SvelteKit component construction:", target, args, result);
-
-                result.$$.ctx = new Proxy(result.$$.ctx, {
-                    set: checkForSessionController
-                });
-
-                return result;
-            }
-        });
-    }
-
-    function createNodeResultProxy(result) {
-        return new Proxy(result, {
-            get(target, prop, receiver) {
-                if (prop === "component") {
-                    return createComponentProxy(target.component);
-                }
-                return Reflect.get(target, prop, receiver);
-            }
-        });
-    }
-
-    function createNodeProxy(oldNode) {
-        return async (...args) => {
-            const result = await oldNode(...args);
-            log("Intercepted SvelteKit node result:", result);
-            return createNodeResultProxy(result);
-        };
-    }
-
-    function createKitProxy(kit) {
-      	if (typeof kit !== "object" || !kit) return [false, kit];
-
-        const originalStart = "start" in kit && kit.start;
-        if (!originalStart) return [false, kit];
-
-        const kitProxy = new Proxy(kit, {
-            get(target, prop, receiver) {
-                if (prop === "start") {
-                    return function(...args) {
-                        const appModule = args[0];
-                        const options = args[2];
-
-                        if (typeof appModule === "object" &&
-                            typeof appModule.nodes === "object" &&
-                            typeof options === "object" &&
-                            typeof options.node_ids === "object") {
-
-                            const oldNode = appModule.nodes[options.node_ids[1]];
-                            appModule.nodes[options.node_ids[1]] = createNodeProxy(oldNode);
-                        }
-
-                        log("kit.start intercepted!", options);
-                        return originalStart.apply(this, args);
-                    };
-                }
-                return Reflect.get(target, prop, receiver);
-            }
-        });
-
-        return [true, kitProxy];
-    }
-
-    function setupSvelteKitInterception() {
-        const originalPromiseAll = unsafeWindow.Promise.all;
-        let intercepted = false;
-
-        unsafeWindow.Promise.all = async function(promises) {
-            const result = originalPromiseAll.call(this, promises);
-
-            if (!intercepted) {
-                intercepted = true;
-
-                return await new Promise((resolve) => {
-                    result.then(([kit, app, ...args]) => {
-                        log("SvelteKit modules loaded");
-
-                        const [success, wrappedKit] = createKitProxy(kit);
-                        if (success) {
-                            // Restore original Promise.all
-                            unsafeWindow.Promise.all = originalPromiseAll;
-
-                            log("Wrapped kit ready:", wrappedKit, app);
-                        }
-
-                        resolve([wrappedKit, app, ...args]);
-                    });
-                });
-            }
-
-            return await result;
-        };
-    }
-
-    // Initialize the bypass
-    setupSvelteKitInterception();
-
-    // Remove injected ads
-    const observer = new MutationObserver((mutations) => {
-        for (const m of mutations) {
-            for (const node of m.addedNodes) {
-                if (node.nodeType === 1) {
-                    // Direct match
-                    if (node.classList?.contains("adsbygoogle")) {
-                        node.remove();
-                        log("Removed injected ad:", node);
-                    }
-                    // Or children inside the node
-                    node.querySelectorAll?.(".adsbygoogle").forEach((el) => {
-                        el.remove();
-                        log("Removed nested ad:", el);
-                    });
-                }
-            }
-        }
-    });
-
-    // Start observing the document for changes
-    observer.observe(unsafeWindow.document.documentElement, { childList: true, subtree: true });
+observer.observe(unsafeWindow.document.documentElement, { childList: true, subtree: true });
