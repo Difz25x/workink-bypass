@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WorkInk Bypass Loader
 // @namespace    https://github.com/Difz25x
-// @version      1.0.0
+// @version      1.1.0
 // @description  Load main WorkInk bypass script from GitHub
 // @author       Difz25x
 // @match        https://key.volcano.wtf/*
