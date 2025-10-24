@@ -2,6 +2,8 @@
  * workink-bypass.js
  * Wait-for-sendMessage + detection wrapper, plus Work.ink / Volcano handlers
  * Owner: Difz25x
+ *
+ * NOTE: Debug panel positioned top-right as requested.
  */
 
 (function () {
@@ -18,13 +20,13 @@
   const safeErr = (...args) => { if (debug) console.error("[Bypass ERROR]", ...args); };
 
   // -------------------------
-  // Modern debug panel (UI)
+  // Modern debug panel (UI) - TOP RIGHT
   // -------------------------
   const container = document.createElement("div");
   Object.assign(container.style, {
     position: "fixed",
-    top: "20px",
-    right: "20px",
+    top: "20px",          // moved to top
+    right: "20px",        // moved to right
     zIndex: 999999,
     width: "340px",
     height: "100px",
@@ -55,8 +57,8 @@
       animation: shimmer 8s linear infinite;
       font-size: 13px;
     }
-    .title { font-weight: 600; color: #66e2c3; font-size: 14px; margin-bottom: 6px; }
-    .line { font-size: 13px; color: #cbd5da; line-height: 1.3; max-height: 58px; overflow:auto; }
+    .title { font-weight: 600; color: #66e2c3; font-size: 14px; margin-bottom: 6px; text-align:center; }
+    .line { font-size: 13px; color: #cbd5da; line-height: 1.3; max-height: 58px; overflow:auto; word-break:break-word; }
     .line.info { color: #93c5fd; }
     .line.success { color: #86efac; }
     .line.warning { color: #ffd580; }
@@ -78,7 +80,6 @@
     shadow.appendChild(root);
     document.documentElement.appendChild(container);
   } else {
-    // fallback
     container.appendChild(panelStyle);
     container.appendChild(root);
     document.documentElement.appendChild(container);
@@ -105,18 +106,15 @@
   // Global captcha promise/resolver (exposed)
   // -------------------------
   try {
-    // Put promise into unsafeWindow if available so user script wrapper can access it
     if (typeof unsafeWindow !== "undefined") {
       unsafeWindow.__workink_captcha_promise = new Promise((res) => { unsafeWindow.__workink_captcha_resolve = res; });
     } else {
       window.__workink_captcha_promise = new Promise((res) => { window.__workink_captcha_resolve = res; });
     }
   } catch (e) {
-    // fallback
     window.__workink_captcha_promise = new Promise((res) => { window.__workink_captcha_resolve = res; });
   }
 
-  // Convenience: resolve captcha (call whichever resolver is present)
   function resolveCaptcha(reason) {
     safeLog("Resolving captcha:", reason);
     panelShow("captchaSuccess", "success", { text: `Captcha resolved (${reason})` });
@@ -132,10 +130,8 @@
   // -------------------------
   // Hook helpers
   // -------------------------
-  // Candidate names the site might use for the session controller's sendMessage function.
   const CANDIDATE_SEND_NAMES = ["sendMessage", "sendMsg", "writeMessage", "writeMsg", "writMessage"];
 
-  // Install a wrapper around a target function and return the original
   function wrapFunction(owner, name, wrapperFactory) {
     try {
       const orig = owner[name];
@@ -160,7 +156,6 @@
     const intervalId = setInterval(() => {
       elapsed += pollMs;
       try {
-        // Try direct global candidates
         for (const name of CANDIDATE_SEND_NAMES) {
           if (typeof window[name] === "function") {
             clearInterval(intervalId);
@@ -169,8 +164,6 @@
           }
         }
 
-        // Sometimes sendMessage is a method on a controller object attached to window.__s or similar
-        // Search shallowly on window for a function property matching candidate names
         const globals = Object.keys(window);
         for (const g of globals) {
           try {
@@ -184,10 +177,9 @@
                 }
               }
             }
-          } catch (e) { /* ignore cross-origin globals */ }
+          } catch (e) {}
         }
 
-        // if timed out, fall back to installing websocket/fetch hooks (still useful)
         if (elapsed >= timeoutMs) {
           clearInterval(intervalId);
           panelShow("pleaseSolveCaptcha", "warning", { text: "sendMessage not found — using fallback hooks" });
@@ -207,7 +199,6 @@
             const msgType = args[0];
             const payload = args[1];
             safeLog("[sendMessage] ->", msgType, payload);
-            // Detect turnstile response (case-insensitive)
             if (typeof msgType === "string" && msgType.toLowerCase && msgType.toLowerCase().includes("turnstile")) {
               resolveCaptcha("via sendMessage");
             } else if (msgType === "c_turnstile_response" || (typeof msgType === "string" && msgType === "c_turnstile_response")) {
@@ -217,7 +208,6 @@
           return orig.apply(this, args);
         };
         safeLog("sendMessage wrapper installed on", name);
-        // still install fallback hooks to be thorough
         installFallbackHooks();
       } catch (e) {
         safeWarn("installSendWrapper failed", e);
@@ -231,7 +221,6 @@
   // -------------------------
   function installFallbackHooks() {
     try {
-      // WebSocket send hook
       if (window.WebSocket && window.WebSocket.prototype && typeof window.WebSocket.prototype.send === "function") {
         const wsProto = window.WebSocket.prototype;
         if (!wsProto._bypass_wrapped) {
@@ -252,7 +241,6 @@
     } catch (e) { safeWarn("WebSocket fallback hook failed", e); }
 
     try {
-      // fetch hook — inspect request URLs for turnstile mentions (best-effort)
       if (!window._bypass_fetch_wrapped && typeof window.fetch === "function") {
         const origFetch = window.fetch;
         window.fetch = function (...args) {
@@ -262,10 +250,7 @@
               resolveCaptcha("via fetch URL");
             }
           } catch (e) {}
-          return origFetch.apply(this, args).then((resp) => {
-            // optionally inspect body/text if desired (avoid heavy ops)
-            return resp;
-          });
+          return origFetch.apply(this, args).then((resp) => resp);
         };
         window._bypass_fetch_wrapped = true;
         safeLog("Installed fetch fallback hook");
