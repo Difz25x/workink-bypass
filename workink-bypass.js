@@ -367,7 +367,10 @@
     })();
 
     function findMethod(obj, names) {
-      for (const name of names) if (typeof obj[name] === "function") return { fn: obj[name], name };
+      for (const name of names) if (typeof obj[name] === "function"){
+        safeLog("Method that can be using:", obj[name], name)
+        return { fn: obj[name], name };
+      }
       return { fn: null, name: null };
     }
 
