@@ -2,41 +2,33 @@
     'use strict';
 
     const host = location.hostname;
+    const debug = (typeof CONFIG !== 'undefined' && CONFIG.debug !== undefined)
+        ? CONFIG.debug: false;
 
-    // override localStorage untuk key 'lang' supaya tidak tersimpan
-    const originalSetItem = localStorage.setItem;
-    localStorage.setItem = function(key, value) {
-        if (key === 'lang') {
-            console.log('[Debug] LocalStorage lang blocked:', value);
-            return; // abaikan penyimpanan
-        }
-        return originalSetItem.apply(this, arguments);
-    };
-
-    let currentLanguage = 'id';
-
+    let currentLanguage = localStorage.getItem('lang') || 'vi';
+    
     const translations = {
-        id: {
-            title: "Difz25x Bypass",
-            pleaseSolveCaptcha: "Silakan selesaikan CAPTCHA untuk melanjutkan",
-            captchaSuccess: "CAPTCHA berhasil diselesaikan",
-            redirectingToWork: "Mengalihkan ke Work.ink...",
-            clickingContinue: "Tombol Continue diklik",
-            errorClickingContinue: "Terjadi kesalahan saat mengklik Continue",
-            autoClickCopy: "Telah otomatis mengklik tombol salin key",
-            bypassSuccessCopy: "Bypass berhasil! Key telah tersalin (klik 'Izinkan' jika diminta)",
-            errorCopy: "Terjadi kesalahan saat menyalin key",
-            copyButtonNotFound: "Tombol salin tidak ditemukan",
-            waitingCaptcha: "Menunggu CAPTCHA...",
-            successDetected: "Terdeteksi sukses, bersiap mengklik...",
-            bypassSuccess: "Bypass berhasil, tunggu {time}s...",
-            backToCheckpoint: "Kembali ke checkpoint...",
-            captchaSuccessBypassing: "CAPTCHA berhasil, sedang melakukan bypass...",
-            version: "Versi v1.6.0.3",
-            madeBy: "Dibuat oleh Difz25x (berdasarkan IHaxU)"
+        vi: {
+            title: "Dyrian Bypass",
+            pleaseSolveCaptcha: "Vui lòng giải CAPTCHA để tiếp tục",
+            captchaSuccess: "CAPTCHA đã thành công",
+            redirectingToWork: "Đang qua Work.ink...",
+            clickingContinue: "Đã click nút Continue",
+            errorClickingContinue: "Lỗi khi click Continue",
+            autoClickCopy: "Đã auto click nút copy key",
+            bypassSuccessCopy: "Bypass thành công, đã Copy Key (bấm 'Cho Phép' nếu có)",
+            errorCopy: "Lỗi khi copy key",
+            copyButtonNotFound: "Không tìm thấy nút copy",
+            waitingCaptcha: "Đang chờ CAPTCHA...",
+            successDetected: "Đã detect success, chuẩn bị click...",
+            bypassSuccess: "Bypass thành công, chờ {time}s...",
+            backToCheckpoint: "Đang về lại Checkpoint...",
+            captchaSuccessBypassing: "CAPTCHA đã thành công, đang bypass...",
+            version: "Phiên bản v1.6.0.3",
+            madeBy: "Được tạo bởi DyRian (dựa trên IHaxU)"
         },
         en: {
-            title: "Difz25x Bypass",
+            title: "Dyrian Bypass",
             pleaseSolveCaptcha: "Please solve the CAPTCHA to continue",
             captchaSuccess: "CAPTCHA solved successfully",
             redirectingToWork: "Redirecting to Work.ink...",
@@ -52,12 +44,12 @@
             backToCheckpoint: "Returning to checkpoint...",
             captchaSuccessBypassing: "CAPTCHA solved successfully, bypassing...",
             version: "Version v1.6.0.3",
-            madeBy: "Made by Difz25x (based on IHaxU)"
+            madeBy: "Made by DyRian (based on IHaxU)"
         }
     };
 
     function t(key, replacements = {}) {
-        let text = (translations[currentLanguage] && translations[currentLanguage][key]) ? translations[currentLanguage][key] : key;
+        let text = translations[currentLanguage][key] || key;
         Object.keys(replacements).forEach(placeholder => {
             text = text.replace(`{${placeholder}}`, replacements[placeholder]);
         });
@@ -95,44 +87,260 @@
             const style = document.createElement('style');
             style.textContent = `
                 * { margin: 0; padding: 0; box-sizing: border-box; }
+                
                 .panel-container {
-                    position: fixed; top: 20px; right: 20px; width: 400px; z-index: 2147483647;
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    width: 400px;
+                    z-index: 2147483647;
                     font-family: 'Segoe UI', Roboto, 'Noto Sans', Arial, sans-serif;
                 }
-                .panel { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-                    border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); overflow: hidden;
-                    animation: slideIn 0.4s cubic-bezier(0.68,-0.55,0.265,1.55); transition: all 0.3s ease; }
-                @keyframes slideIn { from {opacity:0; transform:translateX(100px) scale(0.9);} to {opacity:1; transform:translateX(0) scale(1);} }
-                .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                    padding: 16px 20px; display:flex; justify-content:space-between; align-items:center; position:relative; }
-                .title { font-size:20px; font-weight:700; color:#fff; text-shadow:0 2px 4px rgba(0,0,0,0.3); }
-                .minimize-btn { background: rgba(255,255,255,0.15); border:none; color:#fff; width:32px; height:32px;
-                    border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center;
-                    font-size:20px; font-weight:700; transition:all 0.2s; }
-                .minimize-btn:hover { background: rgba(255,255,255,0.3); transform:scale(1.1); }
-                .status-section { padding:20px; border-bottom:1px solid rgba(255,255,255,0.05); }
-                .status-box { background: rgba(255,255,255,0.05); border-radius:12px; padding:16px; position:relative; }
-                .status-content { display:flex; align-items:center; gap:12px; }
-                .status-dot { width:14px; height:14px; border-radius:50%; animation:pulse 2s ease-in-out infinite; flex-shrink:0; }
-                @keyframes pulse { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:0.7;transform:scale(1.15);} }
-                .status-dot.info { background:#60a5fa; } .status-dot.success { background:#4ade80; }
-                .status-dot.warning { background:#facc15; } .status-dot.error { background:#f87171; }
-                .status-text { color:#fff; font-size:14px; font-weight:500; flex:1; line-height:1.5; }
-                .panel-body { max-height:500px; overflow:hidden; transition:all 0.3s ease; opacity:1; }
-                .panel-body.hidden { max-height:0; opacity:0; }
-                .language-section { padding:16px 20px; border-bottom:1px solid rgba(255,255,255,0.05); }
-                .lang-toggle { display:flex; gap:10px; }
-                .lang-btn { flex:1; background:rgba(255,255,255,0.05); border:2px solid rgba(255,255,255,0.1); color:#fff;
-                    padding:10px; border-radius:10px; cursor:pointer; font-weight:600; font-size:14px; text-transform:uppercase; }
-                .lang-btn.active { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-color:#667eea; }
-                .info-section { padding:16px 20px; background: rgba(0,0,0,0.2); }
-                .version { color: rgba(255,255,255,0.6); font-size:12px; font-weight:500; margin-bottom:8px; text-align:center; }
-                .credit { color: rgba(255,255,255,0.6); font-size:12px; font-weight:500; text-align:center; margin-bottom:8px; }
-                .links { display:flex; justify-content:center; gap:16px; font-size:11px; }
-                .links a { color:#667eea; text-decoration:none; transition:all 0.2s; }
-                .links a:hover { color:#764ba2; text-decoration:underline; }
-                @media (max-width:480px){ .panel-container { top:10px; right:10px; left:10px; width:auto; } }
+
+                .panel {
+                    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+                    border-radius: 16px;
+                    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+                    overflow: hidden;
+                    animation: slideIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+                    transition: all 0.3s ease;
+                }
+
+                @keyframes slideIn {
+                    from {
+                        opacity: 0;
+                        transform: translateX(100px) scale(0.9);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateX(0) scale(1);
+                    }
+                }
+
+                .header {
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    padding: 16px 20px;
+                    position: relative;
+                    overflow: hidden;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                }
+
+                .header::before {
+                    content: '';
+                    position: absolute;
+                    top: -50%;
+                    left: -50%;
+                    width: 200%;
+                    height: 200%;
+                    background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+                    animation: shine 3s infinite;
+                }
+
+                @keyframes shine {
+                    0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+                    100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+                }
+
+                .title {
+                    font-size: 20px;
+                    font-weight: 700;
+                    color: #fff;
+                    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+                    position: relative;
+                    z-index: 1;
+                }
+
+                .minimize-btn {
+                    background: rgba(255,255,255,0.15);
+                    border: none;
+                    color: #fff;
+                    width: 32px;
+                    height: 32px;
+                    border-radius: 50%;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    transition: all 0.2s;
+                    font-size: 20px;
+                    font-weight: 700;
+                    position: relative;
+                    z-index: 1;
+                }
+
+                .minimize-btn:hover {
+                    background: rgba(255,255,255,0.3);
+                    transform: scale(1.1);
+                }
+
+                .status-section {
+                    padding: 20px;
+                    border-bottom: 1px solid rgba(255,255,255,0.05);
+                }
+
+                .status-box {
+                    background: rgba(255,255,255,0.05);
+                    border-radius: 12px;
+                    padding: 16px;
+                    position: relative;
+                    overflow: hidden;
+                }
+
+                .status-box::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.03), transparent);
+                    animation: shimmer 2s infinite;
+                }
+
+                @keyframes shimmer {
+                    0% { transform: translateX(-100%); }
+                    100% { transform: translateX(100%); }
+                }
+
+                .status-content {
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    position: relative;
+                    z-index: 1;
+                }
+
+                .status-dot {
+                    width: 14px;
+                    height: 14px;
+                    border-radius: 50%;
+                    animation: pulse 2s ease-in-out infinite;
+                    box-shadow: 0 0 12px currentColor;
+                    flex-shrink: 0;
+                }
+
+                @keyframes pulse {
+                    0%, 100% { opacity: 1; transform: scale(1); }
+                    50% { opacity: 0.7; transform: scale(1.15); }
+                }
+
+                .status-dot.info { background: #60a5fa; }
+                .status-dot.success { background: #4ade80; }
+                .status-dot.warning { background: #facc15; }
+                .status-dot.error { background: #f87171; }
+
+                .status-text {
+                    color: #fff;
+                    font-size: 14px;
+                    font-weight: 500;
+                    flex: 1;
+                    line-height: 1.5;
+                }
+
+                .panel-body {
+                    max-height: 500px;
+                    overflow: hidden;
+                    transition: all 0.3s ease;
+                    opacity: 1;
+                }
+
+                .panel-body.hidden {
+                    max-height: 0;
+                    opacity: 0;
+                }
+
+                .language-section {
+                    padding: 16px 20px;
+                    border-bottom: 1px solid rgba(255,255,255,0.05);
+                }
+
+                .lang-toggle {
+                    display: flex;
+                    gap: 10px;
+                }
+
+                .lang-btn {
+                    flex: 1;
+                    background: rgba(255,255,255,0.05);
+                    border: 2px solid rgba(255,255,255,0.1);
+                    color: #fff;
+                    padding: 10px;
+                    border-radius: 10px;
+                    cursor: pointer;
+                    font-weight: 600;
+                    font-size: 14px;
+                    transition: all 0.2s;
+                    text-transform: uppercase;
+                    letter-spacing: 1px;
+                }
+
+                .lang-btn:hover {
+                    background: rgba(255,255,255,0.1);
+                    transform: translateY(-2px);
+                }
+
+                .lang-btn.active {
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    border-color: #667eea;
+                    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+                }
+
+                .info-section {
+                    padding: 16px 20px;
+                    background: rgba(0,0,0,0.2);
+                }
+
+                .version {
+                    color: rgba(255,255,255,0.6);
+                    font-size: 12px;
+                    font-weight: 500;
+                    margin-bottom: 8px;
+                    text-align: center;
+                }
+
+                .credit {
+                    color: rgba(255,255,255,0.6);
+                    font-size: 12px;
+                    font-weight: 500;
+                    text-align: center;
+                    margin-bottom: 8px;
+                }
+
+                .credit-author {
+                    color: #667eea;
+                    font-weight: 700;
+                }
+
+                .links {
+                    display: flex;
+                    justify-content: center;
+                    gap: 16px;
+                    font-size: 11px;
+                }
+
+                .links a {
+                    color: #667eea;
+                    text-decoration: none;
+                    transition: all 0.2s;
+                }
+
+                .links a:hover {
+                    color: #764ba2;
+                    text-decoration: underline;
+                }
+
+                @media (max-width: 480px) {
+                    .panel-container {
+                        top: 10px;
+                        right: 10px;
+                        left: 10px;
+                        width: auto;
+                    }
+                }
             `;
+
             this.shadow.appendChild(style);
 
             const panelHTML = `
@@ -153,13 +361,15 @@
                         <div class="panel-body" id="panel-body">
                             <div class="language-section">
                                 <div class="lang-toggle">
-                                    <button class="lang-btn ${currentLanguage==='id'?'active':''}" lang="id">Bahasa Indonesia</button>
-                                    <button class="lang-btn ${currentLanguage==='en'?'active':''}" lang="en">English</button>
+                                    <button class="lang-btn ${currentLanguage === 'vi' ? 'active' : ''}" data-lang="vi">Tiếng Việt</button>
+                                    <button class="lang-btn ${currentLanguage === 'en' ? 'active' : ''}" data-lang="en">English</button>
                                 </div>
                             </div>
                             <div class="info-section">
                                 <div class="version" id="version">${t('version')}</div>
-                                <div class="credit" id="credit">${t('madeBy')}</div>
+                                <div class="credit" id="credit">
+                                    ${t('madeBy')}
+                                </div>
                                 <div class="links">
                                     <a href="https://www.youtube.com/@dyydeptry" target="_blank">YouTube</a>
                                     <a href="https://discord.gg/DWyEfeBCzY" target="_blank">Discord</a>
@@ -169,6 +379,7 @@
                     </div>
                 </div>
             `;
+
             const wrapper = document.createElement('div');
             wrapper.innerHTML = panelHTML;
             this.shadow.appendChild(wrapper.firstElementChild);
@@ -188,7 +399,7 @@
         setupEventListeners() {
             this.langBtns.forEach(btn => {
                 btn.addEventListener('click', () => {
-                    currentLanguage = btn.lang;
+                    currentLanguage = btn.dataset.lang;
                     this.updateLanguage();
                 });
             });
@@ -201,18 +412,26 @@
         }
 
         updateLanguage() {
-            // localStorage tidak dipakai
-            this.langBtns.forEach(btn => btn.classList.toggle('active', btn.lang === currentLanguage));
+            localStorage.setItem('lang', currentLanguage);
+
+            this.langBtns.forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.lang === currentLanguage);
+            });
+
             this.shadow.querySelector('.title').textContent = t('title');
             this.versionEl.textContent = t('version');
             this.creditEl.textContent = t('madeBy');
-            if (this.currentMessageKey) this.show(this.currentMessageKey, this.currentType, this.currentReplacements);
+
+            if (this.currentMessageKey) {
+                this.show(this.currentMessageKey, this.currentType, this.currentReplacements);
+            }
         }
 
-        show(messageKey, type='info', replacements={}) {
+        show(messageKey, type = 'info', replacements = {}) {
             this.currentMessageKey = messageKey;
             this.currentType = type;
             this.currentReplacements = replacements;
+
             const message = t(messageKey, replacements);
             this.statusText.textContent = message;
             this.statusDot.className = `status-dot ${type}`;
@@ -220,11 +439,14 @@
     }
 
     let panel = null;
-    setTimeout(()=>{ panel=new BypassPanel(); panel.show('pleaseSolveCaptcha','info'); },100);
+    setTimeout(() => {
+        panel = new BypassPanel();
+        panel.show('pleaseSolveCaptcha', 'info');
+    }, 100);
 
-    if(host.includes("key.volcano.wtf")) handleVolcano();
-    else if(host.includes("ads.luarmor.net")) handleLuarmor();
-    else if(host.includes("work.ink")) handleWorkInk();
+    if (host.includes("key.volcano.wtf")) handleVolcano();
+    else if (host.includes("ads.luarmor.net")) handleLuarmor();
+    else if (host.includes("work.ink")) handleWorkInk();
 
     function handleVolcano() {
         const dtcAttempt = 40, poll = 700;
@@ -259,15 +481,15 @@
                 if (btn) {
                     alreadyDoneContinue = true;
                     if (panel) panel.show('captchaSuccess', 'success');
-                    console.log('[Debug] Captcha Solved');
+                    if (debug) console.log('[Debug] Captcha Solved');
 
                     setTimeout(() => {
                         try {
                             btn.click();
                             if (panel) panel.show('redirectingToWork', 'info');
-                            console.log('[Debug] Clicking Continue');
+                            if (debug) console.log('[Debug] Clicking Continue');
                         } catch (err) {
-                            console.log('[Debug] No Continue Found', err);
+                            if (debug) console.log('[Debug] No Continue Found', err);
                         }
                     }, 300);
                 }
@@ -279,9 +501,9 @@
                     try {
                         copyBtn.click();
                         if (panel) panel.show('bypassSuccessCopy', 'success');
-                        console.log('[Debug] Copy button clicked (spam)');
+                        if (debug) console.log('[Debug] Copy button clicked (spam)');
                     } catch (err) {
-                        console.log('[Debug] No Copy Found', err);
+                        if (debug) console.log('[Debug] No Copy Found', err);
                     }
                 }, 150);
             }
@@ -293,13 +515,13 @@
             const copyBtn = getCopy();
 
             if (btn || copyBtn) {
-                console.log("[Debug] Detect success (attempt ${attempts})");
+                if (debug) console.log(`[Debug] Detect success (attempt ${attempts})`);
                 actOnCheckpoint();
                 return true;
             }
 
             if (attempts >= dtcAttempt) {
-                console.log('[Debug] No more poll attempts.');
+                if (debug) console.log('[Debug] No more poll attempts.');
                 return false;
             }
             return false;
@@ -316,20 +538,11 @@
         });
         mo.observe(document.documentElement, { childList: true, subtree: true, attributes: true });
 
-        console.log('[Debug] Waiting Captcha');
+        if (debug) console.log('[Debug] Waiting Captcha');
     }
 
-    function handleLuarmor(){
-        if (panel) panel.show('pleaseSolveCaptcha','info');
-        const nextBtn = document.querySelector('#nextbtn');
-        if(nextBtn){
-            nextBtn.click();
-            if (panel) panel.show('clickingContinue','success');
-            console.log('[Debug] Luarmor Next button clicked');
-        } else {
-            console.log('[Debug] Luarmor Next button not found');
-        }
-    }
+
+
 
     function handleWorkInk() {
         if (panel) panel.show('pleaseSolveCaptcha', 'info');
@@ -342,7 +555,7 @@
         let captchaDone = false;
 
         const map = {
-            sendM: ['sendMessage', 'sendMsg', 'writeMessage', 'writeMsg', 'writMessage', 'wr_tMessgae'],
+            sendM: ['sendMessage', 'sendMsg', 'writeMessage', 'writeMsg', 'writMessage'],
             onLI: ['onLinkInfo'],
             onLD: ['onLinkDestination']
         };
@@ -427,7 +640,7 @@
                         });
                         break;
                     default:
-                        console.log('[Debug] Unknown monetization:', monetization);
+                        if (debug) console.log('[Debug] Unknown monetization:', monetization);
                 }
             }
         }
@@ -446,14 +659,14 @@
                 // xóa cho path hiện tại (phòng trường hợp khác)
                 document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=${location.pathname}`;
             }
-            console.log("[Debug] Cleared cookies for ${location.hostname}");
+            if (debug) console.log(`[Debug] Cleared cookies for ${location.hostname}`);
         }
 
         function createSendProxy() {
             return function (...args) {
                 const [msgType] = args;
-                if (msgType !== types.ad)
-                console.log('[Debug] Sent:', msgType, args[1]);
+                if (msgType !== types.ad && debug)
+                    console.log('[Debug] Sent:', msgType, args[1]);
 
                 // Nếu captcha đã done thì gửi bình thường
                 if (captchaDone) return sendMessageA.apply(this, args);
@@ -473,7 +686,7 @@
                     if (msgType === types.tr) {
                         captchaDone = true;
                         clearInterval(interval);
-                        console.log('[Debug] Captcha bypassed via tr');
+                        if (debug) console.log('[Debug] Captcha bypassed via tr');
                         if (panel) panel.show('captchaSuccessBypassing', 'success');
                         spoofWorkink.call(this);
                         // reset counters
@@ -489,7 +702,7 @@
                     if (btn && btn.textContent.includes('Go To Destination')) {
                         captchaDone = true;
                         clearInterval(interval);
-                        console.log('[Debug] Captcha bypassed via DOM');
+                        if (debug) console.log('[Debug] Captcha bypassed via DOM');
                         if (panel) panel.show('captchaSuccessBypassing', 'success');
                         spoofWorkink.call(this);
                         // reset counters
@@ -504,7 +717,8 @@
                         captchaRetryCount++;
                         consecutiveStuck++;
 
-                                                    console.warn(`[Debug] Captcha timeout — retrying (#${captchaRetryCount}), consecutive stuck: ${consecutiveStuck}`);
+                        if (debug)
+                            console.warn(`[Debug] Captcha timeout — retrying (#${captchaRetryCount}), consecutive stuck: ${consecutiveStuck}`);
                         if (panel)
                             panel.show('pleaseSolveCaptcha', 'warning', {
                                 text: `Captcha not detected, retrying... (#${captchaRetryCount})`
@@ -512,7 +726,7 @@
 
                         // Nếu lặp 2 lần liên tiếp mà vẫn chưa qua => clear cookies + reload
                         if (consecutiveStuck >= 2) {
-                            console.warn('[Debug] Captcha stuck twice — clearing cookies and reloading...');
+                            if (debug) console.warn('[Debug] Captcha stuck twice — clearing cookies and reloading...');
                             clearSiteCookies();
                             // delay 1s để cookie kịp bị xóa
                             setTimeout(() => window.location.reload(), 1000);
@@ -524,7 +738,7 @@
                             try {
                                 createSendProxy().call(this, ...args);
                             } catch (e) {
-                                console.error('[Debug] Error retrying send proxy', e);
+                                if (debug) console.error('[Debug] Error retrying send proxy', e);
                             }
                         }, 300);
                     }
@@ -538,7 +752,7 @@
         function createLinkInfoProxy() {
             return function (...args) {
                 const [info] = args;
-                console.log('[Debug] Link info:', info);
+                if (debug) console.log('[Debug] Link info:', info);
                 Object.defineProperty(info, 'isAdblockEnabled', {
                     get: () => false,
                     set: () => {},
@@ -554,13 +768,13 @@
         }
 
         function startCountdown(url, waitLeft) {
-            console.log('[Debug] Countdown started:', waitLeft, 'seconds');
+            if (debug) console.log('[Debug] Countdown started:', waitLeft, 'seconds');
             if (panel) panel.show('bypassSuccess', 'warning', { time: Math.ceil(waitLeft) });
             
             const interval = setInterval(() => {
                 waitLeft -= 1;
                 if (waitLeft > 0) {
-                    console.log('[Debug] Time remaining:', waitLeft);
+                    if (debug) console.log('[Debug] Time remaining:', waitLeft);
                     if (panel) panel.show('bypassSuccess', 'warning', { time: Math.ceil(waitLeft) });
                 } else {
                     clearInterval(interval);
@@ -572,18 +786,18 @@
         function createDestinationProxy() {
             return function (...args) {
                 const [data] = args;
-                console.log('[Debug] Destination:', data);
+                if (debug) console.log('[Debug] Destination:', data);
                 const secondsPassed = (Date.now() - startTime) / 1000;
 
                 const currentUrl = window.location.href;
                 let waitTimeSeconds;
 
                 if (currentUrl.includes('42rk6hcq')) {
-                    waitTimeSeconds = 38;
+                    waitTimeSeconds = 21;
                 } else if (currentUrl.includes('ito4wckq')) {
-                    waitTimeSeconds = 38;
+                    waitTimeSeconds = 21;
                 } else if (currentUrl.includes('pzarvhq1')) {
-                    waitTimeSeconds = 38;
+                    waitTimeSeconds = 21;
                 } else {
                     waitTimeSeconds = 5;
                 }
@@ -627,7 +841,7 @@
         }
 
         function checkController(target, prop, value) {
-            console.log('[Debug] Checking:', prop, value);
+            if (debug) console.log('[Debug] Checking:', prop, value);
             if (value &&
                 typeof value === 'object' &&
                 findMethod(value, map.sendM).fn &&
@@ -635,7 +849,7 @@
                 findMethod(value, map.onLD).fn &&
                 !sessionController) {
                 sessionController = value;
-                console.log('[Debug] Controller detected:', sessionController);
+                if (debug) console.log('[Debug] Controller detected:', sessionController);
                 setupProxies();
             }
             return Reflect.set(target, prop, value);
