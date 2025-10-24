@@ -6,7 +6,7 @@
 // @author       Difz25x
 // @match        https://key.volcano.wtf/*
 // @match        https://work.ink/*
-// @grant        none
+// @grant        unsafeWindow
 // @run-at       document-start
 // @require      https://github.com/Difz25x/workink-bypass/raw/refs/heads/main/workink-bypass.js
 // @downloadURL  https://github.com/Difz25x/workink-bypass/raw/refs/heads/main/workink.user.js
