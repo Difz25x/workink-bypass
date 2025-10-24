@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WorkInk Bypass Loader
 // @namespace    https://github.com/Difz25x
-// @version      1.2.0
+// @version      1.3.0
 // @description  Try to fixing Captcha Detector
 // @author       Difz25x
 // @match        https://key.volcano.wtf/*
