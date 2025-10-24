@@ -12,12 +12,11 @@
   // -------------------------
   // Config & logging helpers
   // -------------------------
-  const debug = true;
   const host = location.hostname;
 
-  const safeLog = (...args) => { if (debug) console.log("[Bypass]", ...args); };
-  const safeWarn = (...args) => { if (debug) console.warn("[Bypass WARN]", ...args); };
-  const safeErr = (...args) => { if (debug) console.error("[Bypass ERROR]", ...args); };
+  const safeLog = (...args) => { console.log("[Bypass]", ...args); };
+  const safeWarn = (...args) => { console.warn("[Bypass WARN]", ...args); };
+  const safeErr = (...args) => { console.error("[Bypass ERROR]", ...args); };
 
   // -------------------------
   // Modern debug panel (UI) - TOP RIGHT
@@ -444,7 +443,8 @@
       return function (...args) {
         try {
           const [msgType] = args;
-          if (msgType !== types.ad && debug) safeLog("[WorkInk] Sent:", msgType, args[1]);
+          safeLog("[WorkInk] Sent:", msgType, args[1]);
+          if (msgType !== types.ad) safeLog("[WorkInk] Sent:", msgType, args[1]);
 
           if (captchaDone) return sendMessageA.apply(this, args);
 
