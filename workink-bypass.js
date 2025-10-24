@@ -4,12 +4,21 @@
     const host = location.hostname;
     const debug = true;
 
-    // default ke Bahasa Indonesia jika tidak ada setting sebelumnya
-    let currentLanguage = localStorage.getItem('lang') || 'id';
-    
+    // override localStorage untuk key 'lang' supaya tidak tersimpan
+    const originalSetItem = localStorage.setItem;
+    localStorage.setItem = function(key, value) {
+        if (key === 'lang') {
+            if(debug) console.log('[Debug] LocalStorage lang blocked:', value);
+            return; // abaikan penyimpanan
+        }
+        return originalSetItem.apply(this, arguments);
+    };
+
+    let currentLanguage = 'id';
+
     const translations = {
         id: {
-            title: "Dyrian Bypass",
+            title: "Difz25x Bypass",
             pleaseSolveCaptcha: "Silakan selesaikan CAPTCHA untuk melanjutkan",
             captchaSuccess: "CAPTCHA berhasil diselesaikan",
             redirectingToWork: "Mengalihkan ke Work.ink...",
@@ -25,10 +34,10 @@
             backToCheckpoint: "Kembali ke checkpoint...",
             captchaSuccessBypassing: "CAPTCHA berhasil, sedang melakukan bypass...",
             version: "Versi v1.6.0.3",
-            madeBy: "Dibuat oleh DyRian (berdasarkan IHaxU)"
+            madeBy: "Dibuat oleh Difz25x (berdasarkan IHaxU)"
         },
         en: {
-            title: "Dyrian Bypass",
+            title: "Difz25x Bypass",
             pleaseSolveCaptcha: "Please solve the CAPTCHA to continue",
             captchaSuccess: "CAPTCHA solved successfully",
             redirectingToWork: "Redirecting to Work.ink...",
@@ -44,7 +53,7 @@
             backToCheckpoint: "Returning to checkpoint...",
             captchaSuccessBypassing: "CAPTCHA solved successfully, bypassing...",
             version: "Version v1.6.0.3",
-            madeBy: "Made by DyRian (based on IHaxU)"
+            madeBy: "Made by Difz25x (based on IHaxU)"
         }
     };
 
@@ -87,260 +96,44 @@
             const style = document.createElement('style');
             style.textContent = `
                 * { margin: 0; padding: 0; box-sizing: border-box; }
-                
                 .panel-container {
-                    position: fixed;
-                    top: 20px;
-                    right: 20px;
-                    width: 400px;
-                    z-index: 2147483647;
+                    position: fixed; top: 20px; right: 20px; width: 400px; z-index: 2147483647;
                     font-family: 'Segoe UI', Roboto, 'Noto Sans', Arial, sans-serif;
                 }
-
-                .panel {
-                    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-                    border-radius: 16px;
-                    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-                    overflow: hidden;
-                    animation: slideIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-                    transition: all 0.3s ease;
-                }
-
-                @keyframes slideIn {
-                    from {
-                        opacity: 0;
-                        transform: translateX(100px) scale(0.9);
-                    }
-                    to {
-                        opacity: 1;
-                        transform: translateX(0) scale(1);
-                    }
-                }
-
-                .header {
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                    padding: 16px 20px;
-                    position: relative;
-                    overflow: hidden;
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                }
-
-                .header::before {
-                    content: '';
-                    position: absolute;
-                    top: -50%;
-                    left: -50%;
-                    width: 200%;
-                    height: 200%;
-                    background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
-                    animation: shine 3s infinite;
-                }
-
-                @keyframes shine {
-                    0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
-                    100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
-                }
-
-                .title {
-                    font-size: 20px;
-                    font-weight: 700;
-                    color: #fff;
-                    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-                    position: relative;
-                    z-index: 1;
-                }
-
-                .minimize-btn {
-                    background: rgba(255,255,255,0.15);
-                    border: none;
-                    color: #fff;
-                    width: 32px;
-                    height: 32px;
-                    border-radius: 50%;
-                    cursor: pointer;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    transition: all 0.2s;
-                    font-size: 20px;
-                    font-weight: 700;
-                    position: relative;
-                    z-index: 1;
-                }
-
-                .minimize-btn:hover {
-                    background: rgba(255,255,255,0.3);
-                    transform: scale(1.1);
-                }
-
-                .status-section {
-                    padding: 20px;
-                    border-bottom: 1px solid rgba(255,255,255,0.05);
-                }
-
-                .status-box {
-                    background: rgba(255,255,255,0.05);
-                    border-radius: 12px;
-                    padding: 16px;
-                    position: relative;
-                    overflow: hidden;
-                }
-
-                .status-box::before {
-                    content: '';
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100%;
-                    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.03), transparent);
-                    animation: shimmer 2s infinite;
-                }
-
-                @keyframes shimmer {
-                    0% { transform: translateX(-100%); }
-                    100% { transform: translateX(100%); }
-                }
-
-                .status-content {
-                    display: flex;
-                    align-items: center;
-                    gap: 12px;
-                    position: relative;
-                    z-index: 1;
-                }
-
-                .status-dot {
-                    width: 14px;
-                    height: 14px;
-                    border-radius: 50%;
-                    animation: pulse 2s ease-in-out infinite;
-                    box-shadow: 0 0 12px currentColor;
-                    flex-shrink: 0;
-                }
-
-                @keyframes pulse {
-                    0%, 100% { opacity: 1; transform: scale(1); }
-                    50% { opacity: 0.7; transform: scale(1.15); }
-                }
-
-                .status-dot.info { background: #60a5fa; }
-                .status-dot.success { background: #4ade80; }
-                .status-dot.warning { background: #facc15; }
-                .status-dot.error { background: #f87171; }
-
-                .status-text {
-                    color: #fff;
-                    font-size: 14px;
-                    font-weight: 500;
-                    flex: 1;
-                    line-height: 1.5;
-                }
-
-                .panel-body {
-                    max-height: 500px;
-                    overflow: hidden;
-                    transition: all 0.3s ease;
-                    opacity: 1;
-                }
-
-                .panel-body.hidden {
-                    max-height: 0;
-                    opacity: 0;
-                }
-
-                .language-section {
-                    padding: 16px 20px;
-                    border-bottom: 1px solid rgba(255,255,255,0.05);
-                }
-
-                .lang-toggle {
-                    display: flex;
-                    gap: 10px;
-                }
-
-                .lang-btn {
-                    flex: 1;
-                    background: rgba(255,255,255,0.05);
-                    border: 2px solid rgba(255,255,255,0.1);
-                    color: #fff;
-                    padding: 10px;
-                    border-radius: 10px;
-                    cursor: pointer;
-                    font-weight: 600;
-                    font-size: 14px;
-                    transition: all 0.2s;
-                    text-transform: uppercase;
-                    letter-spacing: 1px;
-                }
-
-                .lang-btn:hover {
-                    background: rgba(255,255,255,0.1);
-                    transform: translateY(-2px);
-                }
-
-                .lang-btn.active {
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                    border-color: #667eea;
-                    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-                }
-
-                .info-section {
-                    padding: 16px 20px;
-                    background: rgba(0,0,0,0.2);
-                }
-
-                .version {
-                    color: rgba(255,255,255,0.6);
-                    font-size: 12px;
-                    font-weight: 500;
-                    margin-bottom: 8px;
-                    text-align: center;
-                }
-
-                .credit {
-                    color: rgba(255,255,255,0.6);
-                    font-size: 12px;
-                    font-weight: 500;
-                    text-align: center;
-                    margin-bottom: 8px;
-                }
-
-                .credit-author {
-                    color: #667eea;
-                    font-weight: 700;
-                }
-
-                .links {
-                    display: flex;
-                    justify-content: center;
-                    gap: 16px;
-                    font-size: 11px;
-                }
-
-                .links a {
-                    color: #667eea;
-                    text-decoration: none;
-                    transition: all 0.2s;
-                }
-
-                .links a:hover {
-                    color: #764ba2;
-                    text-decoration: underline;
-                }
-
-                @media (max-width: 480px) {
-                    .panel-container {
-                        top: 10px;
-                        right: 10px;
-                        left: 10px;
-                        width: auto;
-                    }
-                }
+                .panel { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+                    border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); overflow: hidden;
+                    animation: slideIn 0.4s cubic-bezier(0.68,-0.55,0.265,1.55); transition: all 0.3s ease; }
+                @keyframes slideIn { from {opacity:0; transform:translateX(100px) scale(0.9);} to {opacity:1; transform:translateX(0) scale(1);} }
+                .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    padding: 16px 20px; display:flex; justify-content:space-between; align-items:center; position:relative; }
+                .title { font-size:20px; font-weight:700; color:#fff; text-shadow:0 2px 4px rgba(0,0,0,0.3); }
+                .minimize-btn { background: rgba(255,255,255,0.15); border:none; color:#fff; width:32px; height:32px;
+                    border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center;
+                    font-size:20px; font-weight:700; transition:all 0.2s; }
+                .minimize-btn:hover { background: rgba(255,255,255,0.3); transform:scale(1.1); }
+                .status-section { padding:20px; border-bottom:1px solid rgba(255,255,255,0.05); }
+                .status-box { background: rgba(255,255,255,0.05); border-radius:12px; padding:16px; position:relative; }
+                .status-content { display:flex; align-items:center; gap:12px; }
+                .status-dot { width:14px; height:14px; border-radius:50%; animation:pulse 2s ease-in-out infinite; flex-shrink:0; }
+                @keyframes pulse { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:0.7;transform:scale(1.15);} }
+                .status-dot.info { background:#60a5fa; } .status-dot.success { background:#4ade80; }
+                .status-dot.warning { background:#facc15; } .status-dot.error { background:#f87171; }
+                .status-text { color:#fff; font-size:14px; font-weight:500; flex:1; line-height:1.5; }
+                .panel-body { max-height:500px; overflow:hidden; transition:all 0.3s ease; opacity:1; }
+                .panel-body.hidden { max-height:0; opacity:0; }
+                .language-section { padding:16px 20px; border-bottom:1px solid rgba(255,255,255,0.05); }
+                .lang-toggle { display:flex; gap:10px; }
+                .lang-btn { flex:1; background:rgba(255,255,255,0.05); border:2px solid rgba(255,255,255,0.1); color:#fff;
+                    padding:10px; border-radius:10px; cursor:pointer; font-weight:600; font-size:14px; text-transform:uppercase; }
+                .lang-btn.active { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-color:#667eea; }
+                .info-section { padding:16px 20px; background: rgba(0,0,0,0.2); }
+                .version { color: rgba(255,255,255,0.6); font-size:12px; font-weight:500; margin-bottom:8px; text-align:center; }
+                .credit { color: rgba(255,255,255,0.6); font-size:12px; font-weight:500; text-align:center; margin-bottom:8px; }
+                .links { display:flex; justify-content:center; gap:16px; font-size:11px; }
+                .links a { color:#667eea; text-decoration:none; transition:all 0.2s; }
+                .links a:hover { color:#764ba2; text-decoration:underline; }
+                @media (max-width:480px){ .panel-container { top:10px; right:10px; left:10px; width:auto; } }
             `;
-
             this.shadow.appendChild(style);
 
             const panelHTML = `
@@ -361,15 +154,13 @@
                         <div class="panel-body" id="panel-body">
                             <div class="language-section">
                                 <div class="lang-toggle">
-                                    <button class="lang-btn ${currentLanguage === 'id' ? 'active' : ''}" lang="id">Bahasa Indonesia</button>
-                                    <button class="lang-btn ${currentLanguage === 'en' ? 'active' : ''}" lang="en">English</button>
+                                    <button class="lang-btn ${currentLanguage==='id'?'active':''}" lang="id">Bahasa Indonesia</button>
+                                    <button class="lang-btn ${currentLanguage==='en'?'active':''}" lang="en">English</button>
                                 </div>
                             </div>
                             <div class="info-section">
                                 <div class="version" id="version">${t('version')}</div>
-                                <div class="credit" id="credit">
-                                    ${t('madeBy')}
-                                </div>
+                                <div class="credit" id="credit">${t('madeBy')}</div>
                                 <div class="links">
                                     <a href="https://www.youtube.com/@dyydeptry" target="_blank">YouTube</a>
                                     <a href="https://discord.gg/DWyEfeBCzY" target="_blank">Discord</a>
@@ -379,7 +170,6 @@
                     </div>
                 </div>
             `;
-
             const wrapper = document.createElement('div');
             wrapper.innerHTML = panelHTML;
             this.shadow.appendChild(wrapper.firstElementChild);
@@ -412,42 +202,30 @@
         }
 
         updateLanguage() {
-            localStorage.setItem('lang', currentLanguage);
-
-            this.langBtns.forEach(btn => {
-                btn.classList.toggle('active', btn.lang === currentLanguage);
-            });
-
+            // localStorage tidak dipakai
+            this.langBtns.forEach(btn => btn.classList.toggle('active', btn.lang === currentLanguage));
             this.shadow.querySelector('.title').textContent = t('title');
             this.versionEl.textContent = t('version');
             this.creditEl.textContent = t('madeBy');
-
-            if (this.currentMessageKey) {
-                this.show(this.currentMessageKey, this.currentType, this.currentReplacements);
-            }
+            if (this.currentMessageKey) this.show(this.currentMessageKey, this.currentType, this.currentReplacements);
         }
 
-        show(messageKey, type = 'info', replacements = {}) {
+        show(messageKey, type='info', replacements={}) {
             this.currentMessageKey = messageKey;
             this.currentType = type;
             this.currentReplacements = replacements;
-
             const message = t(messageKey, replacements);
             this.statusText.textContent = message;
-            // perbaikan: gunakan template literal supaya class type benar
             this.statusDot.className = `status-dot ${type}`;
         }
     }
 
     let panel = null;
-    setTimeout(() => {
-        panel = new BypassPanel();
-        panel.show('pleaseSolveCaptcha', 'info');
-    }, 100);
+    setTimeout(()=>{ panel=new BypassPanel(); panel.show('pleaseSolveCaptcha','info'); },100);
 
-    if (host.includes("key.volcano.wtf")) handleVolcano();
-    else if (host.includes("ads.luarmor.net")) handleLuarmor();
-    else if (host.includes("work.ink")) handleWorkInk();
+    if(host.includes("key.volcano.wtf")) handleVolcano();
+    else if(host.includes("ads.luarmor.net")) handleLuarmor();
+    else if(host.includes("work.ink")) handleWorkInk();
 
     function handleVolcano() {
         const dtcAttempt = 40, poll = 700;
@@ -542,9 +320,17 @@
         if (debug) console.log('[Debug] Waiting Captcha');
     }
 
-    // ... fungsi handleLuarmor jika ada (tidak diubah) ...
-    // untuk menjaga panjang pesan, aku tidak menyentuh isi handleWorkInk di sini
-    // kecuali perbaikan minor yang sudah dilakukan pada statusDot class above
+    function handleLuarmor(){
+        if (panel) panel.show('pleaseSolveCaptcha','info');
+        const nextBtn = document.querySelector('#nextbtn');
+        if(nextBtn){
+            nextBtn.click();
+            if (panel) panel.show('clickingContinue','success');
+            if (debug) console.log('[Debug] Luarmor Next button clicked');
+        } else {
+            if (debug) console.log('[Debug] Luarmor Next button not found');
+        }
+    }
 
     function handleWorkInk() {
         if (panel) panel.show('pleaseSolveCaptcha', 'info');
