@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         Bypass Volcano
+// @name         Volcano + Work Ink Bypass
 // @namespace    http://tampermonkey.net/
 // @version      1.0.0.0
 // @description  Still a Alpha Testing
