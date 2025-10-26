@@ -3,6 +3,8 @@
 
     const host = location.hostname; // check host
     const debug = true // enable debug logs (console)
+    const volcanoTime = 37
+    const otherTime = 5
 
     let currentLanguage = localStorage.getItem('lang') || 'en'; // default language: vi/en
     let currentTheme = localStorage.getItem('theme') || 'orange';
@@ -10,28 +12,39 @@
     const themes = {
         orange: {
             primary: '#ff4500',
-            secondary: '#8b0000',
-            primaryRGB: '255,69,0',
-            secondaryRGB: '139,0,0'
+            secondary: '#cc1616ff',
+            primaryRGBA: '255, 69, 0, 1',
+            secondaryRGBA: '204, 22, 22, 1',
+            background: 'linear-gradient(415deg, #000000 0%, #ff4500 100%)'
         },
         purple: {
             primary: '#800080',
             secondary: '#4b0082',
-            primaryRGB: '128,0,128',
-            secondaryRGB: '75,0,130'
+            primaryRGBA: '128, 0, 128, 1',
+            secondaryRGBA: '75, 0, 130, 1',
+            background: 'radial-gradient(circle, #800080 0%, #000000 100%)'
         },
         blue: {
             primary: '#0080ffff',
             secondary: '#005a8bff',
-            primaryRGB: '0,0,255',
-            secondaryRGB: '0,0,139'
+            primaryRGBA: '0, 128, 255, 1',
+            secondaryRGBA: '0, 90, 139, 1',
+            background: 'linear-gradient(415deg, #0080ffff 0%, #000000 100%)'
+        },
+        rgb: {
+            primary: '#ff4500',
+            secondary: '#cc1616ff',
+            primaryRGBA: '255, 69, 0, 1',
+            secondaryRGBA: '204, 22, 22, 1',
+            background: 'linear-gradient(415deg, #000000 0%, #ff4500 100%)',
+            isRGB: true
         }
     };
 
     // Translations
     const translations = {
         vi: {
-            title: "Difz25x Bypass",
+            title: "Difz25x Bypass ( Kiểm tra )",
             pleaseSolveCaptcha: "Vui lòng giải CAPTCHA để tiếp tục",
             captchaSuccess: "CAPTCHA đã thành công",
             redirectingToWork: "Đang qua Work.ink...",
@@ -50,7 +63,7 @@
             madeBy: "Được tạo bởi Difz25x (dựa trên IHaxU)"
         },
         en: {
-            title: "Difz25x Bypass",
+            title: "Difz25x Bypass ( Testing )",
             pleaseSolveCaptcha: "Please solve the CAPTCHA to continue",
             captchaSuccess: "CAPTCHA solved successfully",
             redirectingToWork: "Redirecting to Work.ink...",
@@ -69,7 +82,7 @@
             madeBy: "Made by Difz25x (based on IHaxU)"
         },
         id: {
-            title: "Bypass Difz25x",
+            title: "Bypass Difz25x ( Pengujian )",
             pleaseSolveCaptcha: "Silakan selesaikan CAPTCHA untuk melanjutkan",
             captchaSuccess: "CAPTCHA berhasil dipecahkan",
             redirectingToWork: "Mengalihkan ke Work.ink...",
@@ -110,6 +123,7 @@
             this.creditEl = null;
             this.langBtns = [];
             this.themeBtns = [];
+            this.cycleBtns = [];
             this.currentMessageKey = null;
             this.currentType = 'info';
             this.currentReplacements = {};
@@ -117,19 +131,24 @@
             this.body = null;
             this.minimizeBtn = null;
             this.theme = currentTheme;
+            this.rgbInterval = null; // For RGB animation
             this.init();
         }
 
         init() {
             this.createPanel();
             this.setupEventListeners();
+            // Start RGB animation if RGB theme is selected
+            if (currentTheme === 'rgb') {
+                this.startRGBAnimation();
+            }
         }
 
         createPanel() {
             this.container = document.createElement('div');
             this.shadow = this.container.attachShadow({ mode: 'closed' });
 
-            const currentThemeData = themes[currentTheme];
+            const currentThemeData = themes[currentTheme] || themes['orange']; // Fallback to orange if theme is invalid
 
             const style = document.createElement('style');
             style.textContent = `
@@ -145,12 +164,12 @@
                 }
 
                 .panel {
-                    background: linear-gradient(135deg, #000000 0%, var(--primary) 100%);
+                    background: var(--background);
                     border-radius: 16px;
                     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
                     overflow: hidden;
                     animation: slideIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-                    transition: all 0.3s ease;
+                    transition: background 0.5s ease, border-color 0.5s ease;
                     border: 2px solid var(--primary);
                 }
 
@@ -223,7 +242,7 @@
                 }
 
                 .minimize-btn:hover {
-                    background: rgba(var(--primary-rgb), 0.3);
+                    background: rgba(var(--primary-rgba));
                     transform: scale(1.1);
                 }
 
@@ -238,7 +257,7 @@
                     padding: 16px;
                     position: relative;
                     overflow: hidden;
-                    border: 1px solid rgba(var(--primary-rgb), 0.3);
+                    border: 1px solid rgba(var(--primary-rgba));
                 }
 
                 .status-box::before {
@@ -248,7 +267,7 @@
                     left: 0;
                     width: 100%;
                     height: 100%;
-                    background: linear-gradient(90deg, transparent, rgba(var(--primary-rgb), 0.1), transparent);
+                    background: linear-gradient(90deg, transparent, rgba(var(--primary-rgba)), transparent);
                     animation: shimmer 2s infinite;
                 }
 
@@ -319,7 +338,7 @@
                 .theme-btn {
                     flex: 1;
                     background: rgba(255,255,255,0.05);
-                    border: 2px solid rgba(var(--primary-rgb), 0.3);
+                    border: 2px solid rgba(var(--primary-rgba));
                     color: #fff;
                     padding: 10px;
                     border-radius: 10px;
@@ -332,14 +351,42 @@
                 }
 
                 .theme-btn:hover {
-                    background: rgba(var(--primary-rgb), 0.1);
+                    background: rgba(var(--primary-rgba));
                     transform: translateY(-2px);
                 }
 
                 .theme-btn.active {
                     background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
                     border-color: var(--primary);
-                    box-shadow: 0 4px 15px rgba(var(--primary-rgb), 0.4);
+                    box-shadow: 0 4px 15px rgba(var(--primary-rgba));
+                }
+
+                .cycle-btn {
+                    flex: 1;
+                    border: 2px solid rgba(var(--primary-rgba));
+                    color: #fff;
+                    padding: 10px;
+                    border-radius: 10px;
+                    cursor: pointer;
+                    font-weight: 600;
+                    font-size: 14px;
+                    transition: all 0.2s;
+                    text-transform: uppercase;
+                    letter-spacing: 1px;
+                    background: linear-gradient(45deg, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000);
+                    background-size: 600% 600%;
+                    animation: rgb-cycle 3s linear infinite;
+                    border-color: #ff0000;
+                }
+
+                @keyframes rgb-cycle {
+                    0% { background-position: 0% 50%; }
+                    16.67% { background-position: 100% 50%; }
+                    33.33% { background-position: 200% 50%; }
+                    50% { background-position: 300% 50%; }
+                    66.67% { background-position: 400% 50%; }
+                    83.33% { background-position: 500% 50%; }
+                    100% { background-position: 600% 50%; }
                 }
 
                 .language-section {
@@ -355,7 +402,7 @@
                 .lang-btn {
                     flex: 1;
                     background: rgba(255,255,255,0.05);
-                    border: 2px solid rgba(var(--primary-rgb), 0.3);
+                    border: 2px solid rgba(var(--primary-rgba));
                     color: #fff;
                     padding: 10px;
                     border-radius: 10px;
@@ -368,14 +415,14 @@
                 }
 
                 .lang-btn:hover {
-                    background: rgba(var(--primary-rgb), 0.1);
+                    background: rgba(var(--primary-rgba));
                     transform: translateY(-2px);
                 }
 
                 .lang-btn.active {
                     background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
                     border-color: var(--primary);
-                    box-shadow: 0 4px 15px rgba(var(--primary-rgb), 0.4);
+                    box-shadow: 0 4px 15px rgba(var(--primary-rgba));
                 }
 
                 .info-section {
@@ -436,8 +483,9 @@
             // Set initial theme variables on shadow root for closed shadow DOM
             document.documentElement.style.setProperty('--primary', currentThemeData.primary);
             document.documentElement.style.setProperty('--secondary', currentThemeData.secondary);
-            document.documentElement.style.setProperty('--primary-rgb', currentThemeData.primaryRGB);
-            document.documentElement.style.setProperty('--secondary-rgb', currentThemeData.secondaryRGB);
+            document.documentElement.style.setProperty('--primary-rgba', currentThemeData.primaryRGBA);
+            document.documentElement.style.setProperty('--secondary-rgba', currentThemeData.secondaryRGBA);
+            document.documentElement.style.setProperty('--background', currentThemeData.background);
 
             const panelHTML = `
                 <div class="panel-container">
@@ -460,6 +508,7 @@
                                     <button class="theme-btn ${currentTheme === 'orange' ? 'active' : ''}" data-theme="orange">Orange</button>
                                     <button class="theme-btn ${currentTheme === 'purple' ? 'active' : ''}" data-theme="purple">Purple</button>
                                     <button class="theme-btn ${currentTheme === 'blue' ? 'active' : ''}" data-theme="blue">Blue</button>
+                                    <button class="cycle-btn ${currentTheme === 'rgb' ? 'active' : ''}" data-theme="rgb">RGB</button>
                                 </div>
                             </div>
                             <div class="language-section">
@@ -495,8 +544,11 @@
             this.creditEl = this.shadow.querySelector('#credit');
             this.langBtns = Array.from(this.shadow.querySelectorAll('.lang-btn'));
             this.themeBtns = Array.from(this.shadow.querySelectorAll('.theme-btn'));
+            this.cycleBtns = Array.from(this.shadow.querySelectorAll('.cycle-btn'));
+
             this.body = this.shadow.querySelector('#panel-body');
             this.minimizeBtn = this.shadow.querySelector('#minimize-btn');
+
 
             document.documentElement.appendChild(this.container);
         }
@@ -510,6 +562,13 @@
             });
 
             this.themeBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    currentTheme = btn.dataset.theme;
+                    this.updateTheme();
+                });
+            });
+
+            this.cycleBtns.forEach(btn => {
                 btn.addEventListener('click', () => {
                     currentTheme = btn.dataset.theme;
                     this.updateTheme();
@@ -546,19 +605,59 @@
             this.themeBtns.forEach(btn => {
                 btn.classList.toggle('active', btn.dataset.theme === currentTheme);
             });
+            this.cycleBtns.forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.theme === currentTheme);
+            });
 
-            const currentThemeData = themes[this.theme];
-            document.documentElement.style.setProperty('--primary', currentThemeData.primary);
-            document.documentElement.style.setProperty('--secondary', currentThemeData.secondary);
-            document.documentElement.style.setProperty('--primary-rgb', currentThemeData.primaryRGB);
-            document.documentElement.style.setProperty('--secondary-rgb', currentThemeData.secondaryRGB);
+            const currentThemeData = themes[this.theme] || themes['orange']; // Fallback to orange if theme is invalid
+
+            if (currentThemeData.isRGB) {
+                this.startRGBAnimation();
+            } else {
+                this.stopRGBAnimation();
+                document.documentElement.style.setProperty('--primary', currentThemeData.primary);
+                document.documentElement.style.setProperty('--secondary', currentThemeData.secondary);
+                document.documentElement.style.setProperty('--primary-rgba', currentThemeData.primaryRGBA);
+                document.documentElement.style.setProperty('--secondary-rgba', currentThemeData.secondaryRGBA);
+                document.documentElement.style.setProperty('--background', currentThemeData.background);
+            }
+        }
+
+        startRGBAnimation() {
+            if (this.rgbInterval) return; // Already running
+
+            const colors = [
+                { primary: '#ff0000', secondary: '#590d0dff', primaryRGBA: '255, 0, 0, 1', secondaryRGBA: '0, 255, 0, 1', background: 'linear-gradient(415deg, #000000 0%, #ff0000 100%)' },
+                { primary: '#ffff00', secondary: '#5e500aff', primaryRGBA: '255, 255, 0, 1', secondaryRGBA: '0, 0, 255, 1', background: 'linear-gradient(415deg, #000000 0%, #ffff00 100%)' },
+                { primary: '#00ff00', secondary: '#1b460bff', primaryRGBA: '0, 255, 0, 1', secondaryRGBA: '255, 0, 255, 1', background: 'linear-gradient(415deg, #000000 0%, #00ff00 100%)' },
+                { primary: '#00ffff', secondary: '#0a4349ff', primaryRGBA: '0, 255, 255, 1', secondaryRGBA: '255, 0, 0, 1', background: 'linear-gradient(415deg, #000000 0%, #00ffff 100%)' },
+                { primary: '#0000ff', secondary: '#0a0d51ff', primaryRGBA: '0, 0, 255, 1', secondaryRGBA: '255, 255, 0, 1', background: 'linear-gradient(415deg, #000000 0%, #0000ff 100%)' },
+                { primary: '#ff00ff', secondary: '#580c53ff', primaryRGBA: '255, 0, 255, 1', secondaryRGBA: '0, 255, 255, 1', background: 'linear-gradient(415deg, #000000 0%, #ff00ff 100%)' }
+            ];
+
+            let index = 0;
+            this.rgbInterval = setInterval(() => {
+                const color = colors[index];
+                document.documentElement.style.setProperty('--primary', color.primary);
+                document.documentElement.style.setProperty('--secondary', color.secondary);
+                document.documentElement.style.setProperty('--primary-rgba', color.primaryRGBA);
+                document.documentElement.style.setProperty('--secondary-rgba', color.secondaryRGBA);
+                document.documentElement.style.setProperty('--background', color.background);
+                index = (index + 1) % colors.length;
+            }, 500); // Change every 500ms
+        }
+
+        stopRGBAnimation() {
+            if (this.rgbInterval) {
+                clearInterval(this.rgbInterval);
+                this.rgbInterval = null;
+            }
         }
 
         show(messageKey, type = 'info', replacements = {}) {
             this.currentMessageKey = messageKey;
             this.currentType = type;
             this.currentReplacements = replacements;
-
             const message = t(messageKey, replacements);
             this.statusText.textContent = message;
             this.statusDot.className = `status-dot ${type}`;
@@ -724,23 +823,25 @@
             bypassTriggered = true;
             if (debug) console.log('[Debug] trigger Bypass via:', reason);
             if (panel) panel.show('captchaSuccessBypassing', 'success');
-            
+
             if (debug) console.log('[Debug] Phase 1: Firing initial 5x spoof burst');
             for (let i = 0; i < 5; i++) {
                 spoofWorkink();
             }
-            
+
             setTimeout(() => {
-                const dest = getFunction(sessionController, map.onLD);
-                if (dest.fn && !sessionController?.linkDestination) {
-                    if (debug) console.log('[Debug] Phase 2: 5s passed, no destination. Firing fallback burst');
-                    for (let i = 0; i < 5; i++) {
-                        spoofWorkink();
+                for (let i = 2; i <= 5; i++) {
+                    const dest = getFunction(sessionController, map.onLD);
+                    if (dest.fn && !sessionController?.linkDestination) {
+                        if (debug) console.log(`[Debug] Phase ${i}: 5s passed, no destination. Firing fallback burst`);
+                        for (let j = 0; j < 5; j++) {
+                            spoofWorkink();
+                        }
+                    } else {
+                        if (debug) console.log(`[Debug] Phase ${i}: Destination already received, skipping fallback`);
                     }
-                } else {
-                    if (debug) console.log('[Debug] Phase 2: Destination already received, skipping fallback');
                 }
-            }, 5000);         
+            }, 5000);
             if (debug) console.log('[Debug] Waiting for server to send destination data...');
         }
 
@@ -861,10 +962,10 @@
                 const secondsPassed = (Date.now() - startTime) / 1000;
                 if (debug) console.log('[Debug] Destination data:', data);
 
-                let waitTimeSeconds = 5;
+                let waitTimeSeconds = otherTime;
                 const url = location.href;
                 if (url.includes('42rk6hcq') || url.includes('ito4wckq') || url.includes('pzarvhq1')) {
-                    waitTimeSeconds = 38;
+                    waitTimeSeconds = volcanoTime;
                 }
 
                 if (secondsPassed >= waitTimeSeconds) {
