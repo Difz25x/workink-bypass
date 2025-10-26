@@ -5,6 +5,28 @@
     const host = location.hostname;
 
     let currentLanguage = localStorage.getItem('lang') || 'en';
+    let currentTheme = localStorage.getItem('theme') || 'orange';
+
+    const themes = {
+        orange: {
+            primary: '#ff4500',
+            secondary: '#8b0000',
+            primaryRGB: '255,69,0',
+            secondaryRGB: '139,0,0'
+        },
+        purple: {
+            primary: '#800080',
+            secondary: '#4b0082',
+            primaryRGB: '128,0,128',
+            secondaryRGB: '75,0,130'
+        },
+        blue: {
+            primary: '#0080ffff',
+            secondary: '#005a8bff',
+            primaryRGB: '0,0,255',
+            secondaryRGB: '0,0,139'
+        }
+    };
 
     const translations = {
         vi: {
@@ -84,12 +106,14 @@
             this.versionEl = null;
             this.creditEl = null;
             this.langBtns = [];
+            this.themeBtns = [];
             this.currentMessageKey = null;
             this.currentType = 'info';
             this.currentReplacements = {};
             this.isMinimized = false;
             this.body = null;
             this.minimizeBtn = null;
+            this.theme = currentTheme;
             this.init();
         }
 
@@ -101,6 +125,8 @@
         createPanel() {
             this.container = document.createElement('div');
             this.shadow = this.container.attachShadow({ mode: 'closed' });
+
+            const currentThemeData = themes[currentTheme];
 
             const style = document.createElement('style');
             style.textContent = `
@@ -116,13 +142,13 @@
                 }
 
                 .panel {
-                    background: linear-gradient(135deg, #000000 0%, #ff4500 100%);
+                    background: linear-gradient(135deg, #000000 0%, var(--primary) 100%);
                     border-radius: 16px;
                     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
                     overflow: hidden;
                     animation: slideIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
                     transition: all 0.3s ease;
-                    border: 2px solid #ff4500;
+                    border: 2px solid var(--primary);
                 }
 
                 @keyframes slideIn {
@@ -137,7 +163,7 @@
                 }
 
                 .header {
-                    background: linear-gradient(135deg, #ff4500 0%, #8b0000 100%);
+                    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
                     padding: 16px 20px;
                     position: relative;
                     overflow: hidden;
@@ -194,7 +220,7 @@
                 }
 
                 .minimize-btn:hover {
-                    background: rgba(255,69,0,0.3);
+                    background: rgba(var(--primary-rgb), 0.3);
                     transform: scale(1.1);
                 }
 
@@ -209,7 +235,7 @@
                     padding: 16px;
                     position: relative;
                     overflow: hidden;
-                    border: 1px solid rgba(255,69,0,0.3);
+                    border: 1px solid rgba(var(--primary-rgb), 0.3);
                 }
 
                 .status-box::before {
@@ -219,7 +245,7 @@
                     left: 0;
                     width: 100%;
                     height: 100%;
-                    background: linear-gradient(90deg, transparent, rgba(255,69,0,0.1), transparent);
+                    background: linear-gradient(90deg, transparent, rgba(var(--primary-rgb), 0.1), transparent);
                     animation: shimmer 2s infinite;
                 }
 
@@ -254,7 +280,7 @@
                 .status-dot.success { background: #4ade80; }
                 .status-dot.warning { background: #facc15; }
                 .status-dot.error { background: #f87171; }
-                .status-dot.waiting { background: #8124fbff; }
+                .status-dot.waiting { background: #d66515ff; }
                 .status-dot.bypassing { background: #f65cf1ff; }
 
                 .status-text {
@@ -277,6 +303,42 @@
                     opacity: 0;
                 }
 
+                .theme-section {
+                    padding: 16px 20px;
+                    border-bottom: 1px solid rgba(255,255,255,0.1);
+                }
+
+                .theme-toggle {
+                    display: flex;
+                    gap: 10px;
+                }
+
+                .theme-btn {
+                    flex: 1;
+                    background: rgba(255,255,255,0.05);
+                    border: 2px solid rgba(var(--primary-rgb), 0.3);
+                    color: #fff;
+                    padding: 10px;
+                    border-radius: 10px;
+                    cursor: pointer;
+                    font-weight: 600;
+                    font-size: 14px;
+                    transition: all 0.2s;
+                    text-transform: uppercase;
+                    letter-spacing: 1px;
+                }
+
+                .theme-btn:hover {
+                    background: rgba(var(--primary-rgb), 0.1);
+                    transform: translateY(-2px);
+                }
+
+                .theme-btn.active {
+                    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+                    border-color: var(--primary);
+                    box-shadow: 0 4px 15px rgba(var(--primary-rgb), 0.4);
+                }
+
                 .language-section {
                     padding: 16px 20px;
                     border-bottom: 1px solid rgba(255,255,255,0.1);
@@ -290,7 +352,7 @@
                 .lang-btn {
                     flex: 1;
                     background: rgba(255,255,255,0.05);
-                    border: 2px solid rgba(255,69,0,0.3);
+                    border: 2px solid rgba(var(--primary-rgb), 0.3);
                     color: #fff;
                     padding: 10px;
                     border-radius: 10px;
@@ -303,14 +365,14 @@
                 }
 
                 .lang-btn:hover {
-                    background: rgba(255,69,0,0.1);
+                    background: rgba(var(--primary-rgb), 0.1);
                     transform: translateY(-2px);
                 }
 
                 .lang-btn.active {
-                    background: linear-gradient(135deg, #ff4500 0%, #8b0000 100%);
-                    border-color: #ff4500;
-                    box-shadow: 0 4px 15px rgba(255, 69, 0, 0.4);
+                    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+                    border-color: var(--primary);
+                    box-shadow: 0 4px 15px rgba(var(--primary-rgb), 0.4);
                 }
 
                 .info-section {
@@ -335,7 +397,7 @@
                 }
 
                 .credit-author {
-                    color: #ff4500;
+                    color: var(--primary);
                     font-weight: 700;
                 }
 
@@ -347,13 +409,13 @@
                 }
 
                 .links a {
-                    color: #ff4500;
+                    color: var(--primary);
                     text-decoration: none;
                     transition: all 0.2s;
                 }
 
                 .links a:hover {
-                    color: #8b0000;
+                    color: var(--secondary);
                 }
 
                 @media (max-width: 480px) {
@@ -367,6 +429,12 @@
             `;
 
             this.shadow.appendChild(style);
+
+            // Set initial theme variables on shadow root for closed shadow DOM
+            document.documentElement.style.setProperty('--primary', currentThemeData.primary);
+            document.documentElement.style.setProperty('--secondary', currentThemeData.secondary);
+            document.documentElement.style.setProperty('--primary-rgb', currentThemeData.primaryRGB);
+            document.documentElement.style.setProperty('--secondary-rgb', currentThemeData.secondaryRGB);
 
             const panelHTML = `
                 <div class="panel-container">
@@ -384,6 +452,13 @@
                             </div>
                         </div>
                         <div class="panel-body" id="panel-body">
+                            <div class="theme-section">
+                                <div class="theme-toggle">
+                                    <button class="theme-btn ${currentTheme === 'orange' ? 'active' : ''}" data-theme="orange">Orange</button>
+                                    <button class="theme-btn ${currentTheme === 'purple' ? 'active' : ''}" data-theme="purple">Purple</button>
+                                    <button class="theme-btn ${currentTheme === 'blue' ? 'active' : ''}" data-theme="blue">Blue</button>
+                                </div>
+                            </div>
                             <div class="language-section">
                                 <div class="lang-toggle">
                                     <button class="lang-btn ${currentLanguage === 'en' ? 'active' : ''}" data-lang="en">English</button>
@@ -416,6 +491,7 @@
             this.versionEl = this.shadow.querySelector('#version');
             this.creditEl = this.shadow.querySelector('#credit');
             this.langBtns = Array.from(this.shadow.querySelectorAll('.lang-btn'));
+            this.themeBtns = Array.from(this.shadow.querySelectorAll('.theme-btn'));
             this.body = this.shadow.querySelector('#panel-body');
             this.minimizeBtn = this.shadow.querySelector('#minimize-btn');
 
@@ -427,6 +503,13 @@
                 btn.addEventListener('click', () => {
                     currentLanguage = btn.dataset.lang;
                     this.updateLanguage();
+                });
+            });
+
+            this.themeBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    currentTheme = btn.dataset.theme;
+                    this.updateTheme();
                 });
             });
 
@@ -451,6 +534,21 @@
             if (this.currentMessageKey) {
                 this.show(this.currentMessageKey, this.currentType, this.currentReplacements);
             }
+        }
+
+        updateTheme() {
+            localStorage.setItem('theme', currentTheme);
+            this.theme = currentTheme;
+
+            this.themeBtns.forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.theme === currentTheme);
+            });
+
+            const currentThemeData = themes[this.theme];
+            document.documentElement.style.setProperty('--primary', currentThemeData.primary);
+            document.documentElement.style.setProperty('--secondary', currentThemeData.secondary);
+            document.documentElement.style.setProperty('--primary-rgb', currentThemeData.primaryRGB);
+            document.documentElement.style.setProperty('--secondary-rgb', currentThemeData.secondaryRGB);
         }
 
         show(messageKey, type = 'info', replacements = {}) {
