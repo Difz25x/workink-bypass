@@ -1,13 +1,26 @@
-(function () {
-    'use strict';
+// ==UserScript==
+// @name         Volcano & Work.ink Bypass
+// @namespace    http://tampermonkey.net/
+// @version      1.0.0.0
+// @description  Bypass Volcano and Work.ink links with unified panel
+// @author       Difz25x + Remake
+// @match        https://key.volcano.wtf/*
+// @match        https://work.ink/*
+// @run-at       document-start
+// @grant        unsafeWindow
+// ==/UserScript==
 
+(function() {
+    "use strict";
+
+    const DEBUG = true;
     const host = location.hostname;
 
     let currentLanguage = localStorage.getItem('lang') || 'en';
-    
+
     const translations = {
         vi: {
-            title: "Dyrian Bypass",
+            title: "Difz25x Bypass",
             pleaseSolveCaptcha: "Vui lòng giải CAPTCHA để tiếp tục",
             captchaSuccess: "CAPTCHA đã thành công",
             redirectingToWork: "Đang qua Work.ink...",
@@ -22,11 +35,11 @@
             bypassSuccess: "Bypass thành công, chờ {time}s...",
             backToCheckpoint: "Đang về lại Checkpoint...",
             captchaSuccessBypassing: "CAPTCHA đã thành công, đang bypass...",
-            version: "Phiên bản v1.6.0.3",
-            madeBy: "Được tạo bởi DyRian (dựa trên IHaxU)"
+            version: "Phiên bản v1.0.0.0",
+            madeBy: "Được tạo bởi Difz25x"
         },
         en: {
-            title: "Dyrian Bypass",
+            title: "Difz25x Bypass",
             pleaseSolveCaptcha: "Please solve the CAPTCHA to continue",
             captchaSuccess: "CAPTCHA solved successfully",
             redirectingToWork: "Redirecting to Work.ink...",
@@ -41,8 +54,27 @@
             bypassSuccess: "Bypass successful, waiting {time}s...",
             backToCheckpoint: "Returning to checkpoint...",
             captchaSuccessBypassing: "CAPTCHA solved successfully, bypassing...",
-            version: "Version v1.6.0.3",
-            madeBy: "Made by DyRian (based on IHaxU)"
+            version: "Version v1.0.0.0",
+            madeBy: "Made by Difz25x"
+        },
+        id: {
+            title: "Difz25x Bypass",
+            pleaseSolveCaptcha: "Silakan selesaikan CAPTCHA untuk melanjutkan",
+            captchaSuccess: "CAPTCHA berhasil dipecahkan",
+            redirectingToWork: "Mengalihkan ke Work.ink...",
+            clickingContinue: "Tombol Lanjutkan diklik",
+            errorClickingContinue: "Kesalahan saat mengklik tombol Lanjutkan",
+            autoClickCopy: "Otomatis mengklik tombol salin kunci",
+            bypassSuccessCopy: "Bypass berhasil! Kunci disalin (klik 'Izinkan' jika diminta)",
+            errorCopy: "Kesalahan saat menyalin kunci",
+            copyButtonNotFound: "Tombol salin tidak ditemukan",
+            waitingCaptcha: "Menunggu CAPTCHA...",
+            successDetected: "Keberhasilan terdeteksi, bersiap untuk mengklik...",
+            bypassSuccess: "Bypass berhasil, menunggu {time}s...",
+            backToCheckpoint: "Kembali ke titik pemeriksaan...",
+            captchaSuccessBypassing: "CAPTCHA berhasil dipecahkan, melewati...",
+            version: "Versi v1.0.0.0",
+            madeBy: "Dibuat oleh Difz25x"
         }
     };
 
@@ -85,7 +117,7 @@
             const style = document.createElement('style');
             style.textContent = `
                 * { margin: 0; padding: 0; box-sizing: border-box; }
-                
+
                 .panel-container {
                     position: fixed;
                     top: 20px;
@@ -96,12 +128,13 @@
                 }
 
                 .panel {
-                    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+                    background: linear-gradient(135deg, #000000 0%, #ff4500 100%);
                     border-radius: 16px;
-                    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+                    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
                     overflow: hidden;
                     animation: slideIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
                     transition: all 0.3s ease;
+                    border: 2px solid #ff4500;
                 }
 
                 @keyframes slideIn {
@@ -116,7 +149,7 @@
                 }
 
                 .header {
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    background: linear-gradient(135deg, #ff4500 0%, #8b0000 100%);
                     padding: 16px 20px;
                     position: relative;
                     overflow: hidden;
@@ -126,26 +159,30 @@
                 }
 
                 .header::before {
-                    content: '';
+                    content: '🎃';
                     position: absolute;
-                    top: -50%;
-                    left: -50%;
-                    width: 200%;
-                    height: 200%;
-                    background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
-                    animation: shine 3s infinite;
+                    top: 10px;
+                    left: 10px;
+                    font-size: 24px;
+                    opacity: 0.7;
+                    z-index: 1;
                 }
 
-                @keyframes shine {
-                    0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
-                    100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+                .header::after {
+                    content: '👻';
+                    position: absolute;
+                    top: 10px;
+                    right: 50px;
+                    font-size: 24px;
+                    opacity: 0.7;
+                    z-index: 1;
                 }
 
                 .title {
                     font-size: 20px;
                     font-weight: 700;
                     color: #fff;
-                    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+                    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
                     position: relative;
                     z-index: 1;
                 }
@@ -169,13 +206,13 @@
                 }
 
                 .minimize-btn:hover {
-                    background: rgba(255,255,255,0.3);
+                    background: rgba(255,69,0,0.3);
                     transform: scale(1.1);
                 }
 
                 .status-section {
                     padding: 20px;
-                    border-bottom: 1px solid rgba(255,255,255,0.05);
+                    border-bottom: 1px solid rgba(255,255,255,0.1);
                 }
 
                 .status-box {
@@ -184,6 +221,7 @@
                     padding: 16px;
                     position: relative;
                     overflow: hidden;
+                    border: 1px solid rgba(255,69,0,0.3);
                 }
 
                 .status-box::before {
@@ -193,7 +231,7 @@
                     left: 0;
                     width: 100%;
                     height: 100%;
-                    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.03), transparent);
+                    background: linear-gradient(90deg, transparent, rgba(255,69,0,0.1), transparent);
                     animation: shimmer 2s infinite;
                 }
 
@@ -228,6 +266,8 @@
                 .status-dot.success { background: #4ade80; }
                 .status-dot.warning { background: #facc15; }
                 .status-dot.error { background: #f87171; }
+                .status-dot.waiting { background: #8124fbff; }
+                .status-dot.bypassing { background: #f65cf1ff; }
 
                 .status-text {
                     color: #fff;
@@ -251,7 +291,7 @@
 
                 .language-section {
                     padding: 16px 20px;
-                    border-bottom: 1px solid rgba(255,255,255,0.05);
+                    border-bottom: 1px solid rgba(255,255,255,0.1);
                 }
 
                 .lang-toggle {
@@ -262,7 +302,7 @@
                 .lang-btn {
                     flex: 1;
                     background: rgba(255,255,255,0.05);
-                    border: 2px solid rgba(255,255,255,0.1);
+                    border: 2px solid rgba(255,69,0,0.3);
                     color: #fff;
                     padding: 10px;
                     border-radius: 10px;
@@ -275,23 +315,23 @@
                 }
 
                 .lang-btn:hover {
-                    background: rgba(255,255,255,0.1);
+                    background: rgba(255,69,0,0.1);
                     transform: translateY(-2px);
                 }
 
                 .lang-btn.active {
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                    border-color: #667eea;
-                    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+                    background: linear-gradient(135deg, #ff4500 0%, #8b0000 100%);
+                    border-color: #ff4500;
+                    box-shadow: 0 4px 15px rgba(255, 69, 0, 0.4);
                 }
 
                 .info-section {
                     padding: 16px 20px;
-                    background: rgba(0,0,0,0.2);
+                    background: rgba(0,0,0,0.3);
                 }
 
                 .version {
-                    color: rgba(255,255,255,0.6);
+                    color: rgba(255,255,255,0.7);
                     font-size: 12px;
                     font-weight: 500;
                     margin-bottom: 8px;
@@ -299,7 +339,7 @@
                 }
 
                 .credit {
-                    color: rgba(255,255,255,0.6);
+                    color: rgba(255,255,255,0.7);
                     font-size: 12px;
                     font-weight: 500;
                     text-align: center;
@@ -307,7 +347,7 @@
                 }
 
                 .credit-author {
-                    color: #667eea;
+                    color: #ff4500;
                     font-weight: 700;
                 }
 
@@ -319,14 +359,13 @@
                 }
 
                 .links a {
-                    color: #667eea;
+                    color: #ff4500;
                     text-decoration: none;
                     transition: all 0.2s;
                 }
 
                 .links a:hover {
-                    color: #764ba2;
-                    text-decoration: underline;
+                    color: #8b0000;
                 }
 
                 @media (max-width: 480px) {
@@ -359,8 +398,9 @@
                         <div class="panel-body" id="panel-body">
                             <div class="language-section">
                                 <div class="lang-toggle">
-                                    <button class="lang-btn ${currentLanguage === 'vi' ? 'active' : ''}" data-lang="vi">Tiếng Việt</button>
                                     <button class="lang-btn ${currentLanguage === 'en' ? 'active' : ''}" data-lang="en">English</button>
+                                    <button class="lang-btn ${currentLanguage === 'vi' ? 'active' : ''}" data-lang="vi">Tiếng Việt</button>
+                                    <button class="lang-btn ${currentLanguage === 'id' ? 'active' : ''}" data-lang="id">Indonesia</button>
                                 </div>
                             </div>
                             <div class="info-section">
@@ -369,8 +409,8 @@
                                     ${t('madeBy')}
                                 </div>
                                 <div class="links">
-                                    <a href="https://www.youtube.com/@dyydeptry" target="_blank">YouTube</a>
-                                    <a href="https://discord.gg/DWyEfeBCzY" target="_blank">Discord</a>
+                                    <a>YouTube</a>
+                                    <a>Discord</a>
                                 </div>
                             </div>
                         </div>
@@ -442,10 +482,21 @@
         panel.show('pleaseSolveCaptcha', 'info');
     }, 100);
 
-    if (host.includes("key.volcano.wtf")) handleVolcano();
-    else if (host.includes("ads.luarmor.net")) handleLuarmor();
-    else if (host.includes("work.ink")) handleWorkInk();
+    // ---------------------------
+    // Debug logging wrapper
+    // ---------------------------
+    const oldLog = unsafeWindow.console.log;
+    const oldWarn = unsafeWindow.console.warn;
+    const oldError = unsafeWindow.console.error;
 
+    // Wrapper functions prepend a tag and only log when DEBUG is true
+    function log(...args) { if (DEBUG) oldLog("[BYPASS]", ...args); }
+    function warn(...args) { if (DEBUG) oldWarn("[BYPASS]", ...args); }
+    function error(...args) { if (DEBUG) oldError("[BYPASS]", ...args); }
+
+    // ---------------------------
+    // Volcano handler
+    // ---------------------------
     function handleVolcano() {
         const dtcAttempt = 40, poll = 700;
         if (panel) panel.show('pleaseSolveCaptcha', 'info');
@@ -479,15 +530,15 @@
                 if (btn) {
                     alreadyDoneContinue = true;
                     if (panel) panel.show('captchaSuccess', 'success');
-                    console.log('[Debug] Captcha Solved');
+                    if (DEBUG) console.log('[Debug] Captcha Solved');
 
                     setTimeout(() => {
                         try {
                             btn.click();
                             if (panel) panel.show('redirectingToWork', 'info');
-                            console.log('[Debug] Clicking Continue');
+                            if (DEBUG) console.log('[Debug] Clicking Continue');
                         } catch (err) {
-                            console.log('[Debug] No Continue Found', err);
+                            if (DEBUG) console.log('[Debug] No Continue Found', err);
                         }
                     }, 300);
                 }
@@ -499,9 +550,9 @@
                     try {
                         copyBtn.click();
                         if (panel) panel.show('bypassSuccessCopy', 'success');
-                        console.log('[Debug] Copy button clicked (spam)');
+                        if (DEBUG) console.log('[Debug] Copy button clicked (spam)');
                     } catch (err) {
-                        console.log('[Debug] No Copy Found', err);
+                        if (DEBUG) console.log('[Debug] No Copy Found', err);
                     }
                 }, 150);
             }
@@ -513,13 +564,13 @@
             const copyBtn = getCopy();
 
             if (btn || copyBtn) {
-                console.log(`[Debug] Detect success (attempt ${attempts})`);
+                if (DEBUG) console.log(`[Debug] Detect success (attempt ${attempts})`);
                 actOnCheckpoint();
                 return true;
             }
 
             if (attempts >= dtcAttempt) {
-                console.log('[Debug] No more poll attempts.');
+                if (DEBUG) console.log('[Debug] No more poll attempts.');
                 return false;
             }
             return false;
@@ -536,392 +587,449 @@
         });
         mo.observe(document.documentElement, { childList: true, subtree: true, attributes: true });
 
-        console.log('[Debug] Waiting Captcha');
+        if (DEBUG) console.log('[Debug] Waiting Captcha');
     }
 
-
-
-
+    // ---------------------------
+    // Work.ink handler
+    // ---------------------------
     function handleWorkInk() {
-        if (panel) panel.show('pleaseSolveCaptcha', 'info');
-        
-        const startTime = Date.now();
-        let sessionController = null;
-        let sendMessageA = null;
-        let onLinkInfoA = null;
-        let onLinkDestinationA = null;
-        let captchaDone = false;
+        const NAME_MAP = {
+        onLinkInfo: ["onLinkInfo"],
+        onLinkDestination: ["onLinkDestination"]
+    };
 
-        const map = {
-            sendM: ['sendMessage', 'sendMsg', 'writeMessage', 'writeMsg', 'writMessage'],
-            onLI: ['onLinkInfo'],
-            onLD: ['onLinkDestination']
+    function resolveName(obj, candidates) {
+        for (let i = 0; i < candidates.length; i++) {
+            const name = candidates[i];
+            if (typeof obj[name] === "function") {
+                return { fn: obj[name], index: i, name };
+            }
+        }
+        return { fn: null, index: -1, name: null };
+    }
+
+    function resolveWriteFunction(obj) {
+        for (let i in obj) {
+            if (typeof obj[i] == "function" && obj[i].length == 2) {
+                return { fn: obj[i], name: i };
+            }
+        }
+        return { fn: null, index: -1, name: null };
+    }
+
+    // Global state
+    let _sessionController = undefined;
+    let _sendMessage = undefined;
+    let _onLinkInfo = undefined;
+    let _onLinkDestination = undefined;
+
+    // Constants
+    function getClientPacketTypes() {
+        return {
+            ANNOUNCE: "c_announce",
+            MONETIZATION: "c_monetization",
+            SOCIAL_STARTED: "c_social_started",
+            RECAPTCHA_RESPONSE: "c_recaptcha_response",
+            HCAPTCHA_RESPONSE: "c_hcaptcha_response",
+            TURNSTILE_RESPONSE: "c_turnstile_response",
+            ADBLOCKER_DETECTED: "c_adblocker_detected",
+            FOCUS_LOST: "c_focus_lost",
+            OFFERS_SKIPPED: "c_offers_skipped",
+            FOCUS: "c_focus",
+            WORKINK_PASS_AVAILABLE: "c_workink_pass_available",
+            WORKINK_PASS_USE: "c_workink_pass_use",
+            PING: "c_ping"
         };
-        const types = {
-            mo: 'c_monetization',
-            ss: 'c_social_started',
-            tr: 'c_turnstile_response',
-            ad: 'c_adblocker_detected'
-        };
+    }
 
-        (function main() {
-            setupInterception();
-            removeAds();
-        })();
+    const startTime = Date.now();
 
-        function findMethod(obj, names) {
-            for (const name of names) if (typeof obj[name] === 'function') return { fn: obj[name], name };
-            return { fn: null, name: null };
-        }
+    function createSendMessageProxy() {
+        const clientPacketTypes = getClientPacketTypes();
 
-        function spoofWorkink() {
-            if (!sessionController?.linkInfo) return;
-            sessionController.linkInfo.socials.forEach(social => {
-                sendMessageA.call(this, types.ss, { url: social.url });
-            });
+        return function(...args) {
+            const packet_type = args[0];
+            const packet_data = args[1];
 
-            for (const idx in sessionController.linkInfo.monetizations) {
-                const monetization = sessionController.linkInfo.monetizations[idx];
-                switch (monetization) {
-                    case 22:
-                        sendMessageA.call(this, types.mo, {
-                            type: 'readArticles2',
-                            payload: { event: 'read' }
-                        });
-                        break;
-                    case 25:
-                        sendMessageA.call(this, types.mo, {
-                            type: 'operaGX',
-                            payload: { event: 'start' }
-                        });
-                        sendMessageA.call(this, types.mo, {
-                            type: 'operaGX',
-                            payload: { event: 'installClicked' }
-                        });
-                        fetch('https://work.ink/_api/v2/callback/operaGX', {
-                            method: 'POST',
-                            mode: 'no-cors',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ noteligible: true })
-                        }).catch(() => {});
-                        break;
-                    case 34:
-                        sendMessageA.call(this, types.mo, {
-                            type: 'norton',
-                            payload: { event: 'start' }
-                        });
-                        sendMessageA.call(this, types.mo, {
-                            type: 'norton',
-                            payload: { event: 'installClicked' }
-                        });
-                        break;
-                    case 71:
-                        sendMessageA.call(this, types.mo, {
-                            type: 'externalArticles',
-                            payload: { event: 'start' }
-                        });
-                        sendMessageA.call(this, types.mo, {
-                            type: 'externalArticles',
-                            payload: { event: 'installClicked' }
-                        });
-                        break;
-                    case 45:
-                        sendMessageA.call(this, types.mo, {
-                            type: 'pdfeditor',
-                            payload: { event: 'installed' }
-                        });
-                        break;
-                    case 57:
-                        sendMessageA.call(this, types.mo, {
-                            type: 'betterdeals',
-                            payload: { event: 'installed' }
-                        });
-                        break;
-                    default:
-                        console.log('[Debug] Unknown monetization:', monetization);
-                }
+            if (packet_type !== clientPacketTypes.PING) {
+                log("Sent message:", packet_type, packet_data);
             }
-        }
 
-        // watchdog counters
-        let captchaRetryCount = 0;      // tổng số lần timeout (cumulative, optional)
-        let consecutiveStuck = 0;       // số lần timeout liên tiếp (>=2 => clear cookies + reload)
-
-        // Xoá cookies của domain hiện tại (chỉ cookies)
-        function clearSiteCookies() {
-            const cookies = document.cookie ? document.cookie.split('; ') : [];
-            for (const cookie of cookies) {
-                const [name] = cookie.split('=');
-                // xóa cho path root
-                document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
-                // xóa cho path hiện tại (phòng trường hợp khác)
-                document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=${location.pathname}`;
+            if (packet_type === clientPacketTypes.ADBLOCKER_DETECTED) {
+                warn("Blocked adblocker detected message to avoid false positive.");
+                return;
             }
-            console.log(`[Debug] Cleared cookies for ${location.hostname}`);
-        }
 
-        function createSendProxy() {
-            return function (...args) {
-                const [msgType] = args;
-                if (msgType !== types.ad)
-                    console.log('[Debug] Sent:', msgType, args[1]);
+            if (_sessionController.linkInfo && packet_type === clientPacketTypes.TURNSTILE_RESPONSE) {
+                const ret = _sendMessage.apply(this, args);
 
-                // Nếu captcha đã done thì gửi bình thường
-                if (captchaDone) return sendMessageA.apply(this, args);
+                panel.show('captchaSuccessBypassing', 'bypassing');
 
-                const start = Date.now();
-
-                const interval = setInterval(() => {
-                    if (captchaDone) {
-                        clearInterval(interval);
-                        // reset counters on success
-                        captchaRetryCount = 0;
-                        consecutiveStuck = 0;
-                        return;
-                    }
-
-                    // Nếu server gửi turnstile response (thành công)
-                    if (msgType === types.tr) {
-                        captchaDone = true;
-                        clearInterval(interval);
-                        console.log('[Debug] Captcha bypassed via tr');
-                        if (panel) panel.show('captchaSuccessBypassing', 'success');
-                        spoofWorkink.call(this);
-                        // reset counters
-                        captchaRetryCount = 0;
-                        consecutiveStuck = 0;
-                        return sendMessageA.apply(this, args);
-                    }
-
-                    // kiểm tra nút DOM "Go To Destination"
-                    const btn = document.querySelector('.button.large.accessBtn.svelte-bv7qlp');
-                    const elapsed = (Date.now() - start) / 1000;
-
-                    if (btn && btn.textContent.includes('Go To Destination')) {
-                        captchaDone = true;
-                        clearInterval(interval);
-                        console.log('[Debug] Captcha bypassed via DOM');
-                        if (panel) panel.show('captchaSuccessBypassing', 'success');
-                        spoofWorkink.call(this);
-                        // reset counters
-                        captchaRetryCount = 0;
-                        consecutiveStuck = 0;
-                        return sendMessageA.apply(this, args);
-                    }
-
-                    // timeout -> retry logic
-                    if (elapsed > 5) {
-                        clearInterval(interval);
-                        captchaRetryCount++;
-                        consecutiveStuck++;
-
-                        console.warn(`[Debug] Captcha timeout — retrying (#${captchaRetryCount}), consecutive stuck: ${consecutiveStuck}`);
-                        if (panel)
-                            panel.show('pleaseSolveCaptcha', 'warning', {
-                                text: `Captcha not detected, retrying... (#${captchaRetryCount})`
-                            });
-
-                        // Nếu lặp 2 lần liên tiếp mà vẫn chưa qua => clear cookies + reload
-                        if (consecutiveStuck >= 2) {
-                            console.warn('[Debug] Captcha stuck twice — clearing cookies and reloading...');
-                            clearSiteCookies();
-                            // delay 1s để cookie kịp bị xóa
-                            setTimeout(() => window.location.reload(), 1000);
-                            return;
-                        }
-
-                        // Nếu chưa tới ngưỡng stuck, thì gọi lại sau 300ms để retry (không đệ quy sâu)
-                        setTimeout(() => {
-                            try {
-                                createSendProxy().call(this, ...args);
-                            } catch (e) {
-                                console.error('[Debug] Error retrying send proxy', e);
-                            }
-                        }, 300);
-                    }
-                }, 500);
-
-                // gửi message ban đầu (vẫn gửi cho server)
-                return sendMessageA.apply(this, args);
-            };
-        }
-
-        function createLinkInfoProxy() {
-            return function (...args) {
-                const [info] = args;
-                console.log('[Debug] Link info:', info);
-                Object.defineProperty(info, 'isAdblockEnabled', {
-                    get: () => false,
-                    set: () => {},
-                    configurable: false,
-                    enumerable: true
-                });
-                return onLinkInfoA.apply(this, args);
-            };
-        }
-
-        function redirect(url) {
-            window.location.href = url;
-        }
-
-        function startCountdown(url, waitLeft) {
-            console.log('[Debug] Countdown started:', waitLeft, 'seconds');
-            if (panel) panel.show('bypassSuccess', 'warning', { time: Math.ceil(waitLeft) });
-            
-            const interval = setInterval(() => {
-                waitLeft -= 1;
-                if (waitLeft > 0) {
-                    console.log('[Debug] Time remaining:', waitLeft);
-                    if (panel) panel.show('bypassSuccess', 'warning', { time: Math.ceil(waitLeft) });
-                } else {
-                    clearInterval(interval);
-                    redirect(url);
-                }
-            }, 1000);
-        }
-
-        function createDestinationProxy() {
-            return function (...args) {
-                const [data] = args;
-                console.log('[Debug] Destination:', data);
-                const secondsPassed = (Date.now() - startTime) / 1000;
-
-                const currentUrl = window.location.href;
-                let waitTimeSeconds;
-
-                if (currentUrl.includes('42rk6hcq')) {
-                    waitTimeSeconds = 21;
-                } else if (currentUrl.includes('ito4wckq')) {
-                    waitTimeSeconds = 21;
-                } else if (currentUrl.includes('pzarvhq1')) {
-                    waitTimeSeconds = 21;
-                } else {
-                    waitTimeSeconds = 5;
-                }
-
-                if (secondsPassed >= waitTimeSeconds) {
-                    if (panel) panel.show('backToCheckpoint', 'info');
-                    redirect(data.url);
-                } else {
-                    startCountdown(data.url, waitTimeSeconds - secondsPassed);
-                }
-                return onLinkDestinationA.apply(this, args);
-            };
-        }
-
-        function setupProxies() {
-            const send = findMethod(sessionController, map.sendM),
-                info = findMethod(sessionController, map.onLI),
-                dest = findMethod(sessionController, map.onLD);
-
-            if (!send.fn || !info.fn || !dest.fn) return;
-
-            sendMessageA = send.fn;
-            onLinkInfoA = info.fn;
-            onLinkDestinationA = dest.fn;
-
-            Object.defineProperty(sessionController, send.name, {
-                get: createSendProxy,
-                set: v => sendMessageA = v,
-                configurable: false
-            });
-            Object.defineProperty(sessionController, info.name, {
-                get: createLinkInfoProxy,
-                set: v => onLinkInfoA = v,
-                configurable: false
-            });
-            Object.defineProperty(sessionController, dest.name, {
-                get: createDestinationProxy,
-                set: v => onLinkDestinationA = v,
-                configurable: false
-            });
-        }
-
-        function checkController(target, prop, value) {
-            console.log('[Debug] Checking:', prop, value);
-            if (value &&
-                typeof value === 'object' &&
-                findMethod(value, map.sendM).fn &&
-                findMethod(value, map.onLI).fn &&
-                findMethod(value, map.onLD).fn &&
-                !sessionController) {
-                sessionController = value;
-                console.log('[Debug] Controller detected:', sessionController);
-                setupProxies();
-            }
-            return Reflect.set(target, prop, value);
-        }
-
-        function createComponentProxy(comp) {
-            return new Proxy(comp, {
-                construct(target, args) {
-                    const instance = Reflect.construct(target, args);
-                    if (instance.$$.ctx) instance.$$.ctx = new Proxy(instance.$$.ctx, { set: checkController });
-                    return instance;
-                }
-            });
-        }
-
-        function createNodeProxy(node) {
-            return async (...args) => {
-                const result = await node(...args);
-                return new Proxy(result, {
-                    get: (t, p) => p === 'component' ?
-                        createComponentProxy(t.component) : Reflect.get(t, p)
-                });
-            };
-        }
-
-        function createKitProxy(kit) {
-            if (!kit?.start) return [false, kit];
-            return [true, new Proxy(kit, {
-                get(target, prop) {
-                    if (prop === 'start') {
-                        return function (...args) {
-                            const [nodes, , opts] = args;
-                            if (nodes?.nodes && opts?.node_ids) {
-                                const idx = opts.node_ids[1];
-                                if (nodes.nodes[idx]) nodes.nodes[idx] = createNodeProxy(nodes.nodes[idx]);
-                            }
-                            return kit.start.apply(this, args);
-                        };
-                    }
-                    return Reflect.get(target, prop);
-                }
-            })];
-        }
-
-        function setupInterception() {
-            const origPromise = Promise.all;
-            let intercepted = false;
-            Promise.all = async function (promises) {
-                const result = origPromise.call(this, promises);
-                if (!intercepted) {
-                    intercepted = true;
-                    return await new Promise(resolve => {
-                        result.then(([kit, app, ...rest]) => {
-                            const [success, created] = createKitProxy(kit);
-                            if (success) Promise.all = origPromise;
-                            resolve([created, app, ...rest]);
-                        });
+                // Send bypass messages
+                for (const social of _sessionController.linkInfo.socials) {
+                    _sendMessage.call(this, clientPacketTypes.SOCIAL_STARTED, {
+                        url: social.url
                     });
                 }
-                return result;
-            };
-        }
 
-        function removeAds() {
-            const observer = new MutationObserver(mutations => {
-                for (const mutation of mutations) {
-                    for (const node of mutation.addedNodes) {
-                        if (node.nodeType === 1) {
-                            if (node.classList?.contains('adsbygoogle') || node.id.match(/ad|container/)) node.remove();
-                            node.querySelectorAll?.('.adsbygoogle, [id*=ad], [id*=container]').forEach(ad => ad.remove());
+                for (const monetizationIdx in _sessionController.linkInfo.monetizations) {
+                    const monetization = _sessionController.linkInfo.monetizations[monetizationIdx];
+
+                    switch (monetization) {
+                        case 22: { // readArticles2
+                            _sendMessage.call(this, clientPacketTypes.MONETIZATION, {
+                                type: "readArticles2",
+                                payload: {
+                                    event: "read"
+                                }
+                            });
+                            break;
+                        }
+
+                        case 25: { // operaGX
+                            _sendMessage.call(this, clientPacketTypes.MONETIZATION, {
+                                type: "operaGX",
+                                payload: {
+                                    event: "start"
+                                }
+                            });
+                            _sendMessage.call(this, clientPacketTypes.MONETIZATION, {
+                                type: "operaGX",
+                                payload: {
+                                    event: "installClicked"
+                                }
+                            });
+                            fetch('https://work.ink/_api/v2/callback/operaGX', {
+                                method: 'POST',
+                                mode: 'no-cors',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    'noteligible': true
+                                })
+                            });
+                            break;
+                        }
+
+                        case 34: { // norton
+                            _sendMessage.call(this, clientPacketTypes.MONETIZATION, {
+                                type: "norton",
+                                payload: {
+                                    event: "start"
+                                }
+                            });
+                            _sendMessage.call(this, clientPacketTypes.MONETIZATION, {
+                                type: "norton",
+                                payload: {
+                                    event: "installClicked"
+                                }
+                            });
+                            break;
+                        }
+
+                        case 71: { // externalArticles
+                            _sendMessage.call(this, clientPacketTypes.MONETIZATION, {
+                                type: "externalArticles",
+                                payload: {
+                                    event: "start"
+                                }
+                            });
+                            _sendMessage.call(this, clientPacketTypes.MONETIZATION, {
+                                type: "externalArticles",
+                                payload: {
+                                    event: "installClicked"
+                                }
+                            });
+                            break;
+                        }
+
+                        case 45: { // pdfeditor
+                            _sendMessage.call(this, clientPacketTypes.MONETIZATION, {
+                                type: "pdfeditor",
+                                payload: {
+                                    event: "installed"
+                                }
+                            });
+                            break;
+                        }
+
+                        case 57: { // betterdeals
+                            _sendMessage.call(this, clientPacketTypes.MONETIZATION, {
+                                type: "betterdeals",
+                                payload: {
+                                    event: "installed"
+                                }
+                            });
+                            break;
+                        }
+
+                        default: {
+                            log("Unknown monetization type:", typeof monetization, monetization);
+                            break;
                         }
                     }
                 }
-            });
-            observer.observe(document.documentElement, { childList: true, subtree: true });
-        }
+
+                return ret;
+            }
+
+            return _sendMessage.apply(this, args);
+        };
     }
+
+    function createOnLinkInfoProxy() {
+        return function(...args) {
+            const linkInfo = args[0];
+
+            log("Link info received:", linkInfo);
+
+            Object.defineProperty(linkInfo, "isAdblockEnabled", {
+                get() { return false },
+                set(newValue) {
+                    log("Attempted to set isAdblockEnabled to:", newValue);
+                },
+                configurable: false,
+                enumerable: true
+            });
+
+            return _onLinkInfo.apply(this, args);
+        };
+    }
+
+    function updateHint(waitLeft) {
+        panel.show(`bypassSuccess`, 'waiting', { time: Math.ceil(waitLeft) });
+    }
+
+    function redirect(url) {
+        panel.show('backToCheckpoint', 'info');
+        window.location.href = url;
+    }
+
+    function startCountdown(url, waitLeft) {
+        if (DEBUG) console.log('[Debug] startCountdown: Started with', waitLeft, 'seconds');
+        updateHint(waitLeft);
+
+        const interval = setInterval(() => {
+            waitLeft -= 1;
+            if (waitLeft > 0) {
+                if (DEBUG) console.log('[Debug] startCountdown: Time remaining:', waitLeft);
+                updateHint(waitLeft);
+            } else {
+                clearInterval(interval);
+                redirect(url);
+            }
+        }, 1000);
+    }
+
+    function createOnLinkDestinationProxy() {
+            return function(...args) {
+            const [data] = args;
+            const secondsPassed = (Date.now() - startTime) / 1000;
+            if (DEBUG) console.log('[Debug] Destination data:', data);
+
+            let waitTimeSeconds = 5;
+            const url = location.href;
+            if (url.includes('42rk6hcq') || url.includes('ito4wckq') || url.includes('pzarvhq1')) {
+                waitTimeSeconds = 38;
+            }
+
+            if (secondsPassed >= waitTimeSeconds) {
+                if (panel) panel.show('backToCheckpoint', 'info');
+                redirect(data.url);
+            } else {
+                startCountdown(data.url, waitTimeSeconds - secondsPassed);
+            }
+            return _onLinkDestination ? _onLinkDestination.apply(this, args): undefined;
+        };
+     }
+
+    function setupSessionControllerProxy() {
+        const sendMessage = resolveWriteFunction(_sessionController);
+        const onLinkInfo = resolveName(_sessionController, NAME_MAP.onLinkInfo);
+        const onLinkDestination = resolveName(_sessionController, NAME_MAP.onLinkDestination);
+
+        _sendMessage = sendMessage.fn;
+        _onLinkInfo = onLinkInfo.fn;
+        _onLinkDestination = onLinkDestination.fn;
+
+        const sendMessageProxy = createSendMessageProxy();
+        const onLinkInfoProxy = createOnLinkInfoProxy();
+        const onLinkDestinationProxy = createOnLinkDestinationProxy();
+
+        // Patch the actual property name that exists
+        Object.defineProperty(_sessionController, sendMessage.name, {
+            get() { return sendMessageProxy },
+            set(newValue) { _sendMessage = newValue },
+            configurable: false,
+            enumerable: true
+        });
+
+        Object.defineProperty(_sessionController, onLinkInfo.name, {
+            get() { return onLinkInfoProxy },
+            set(newValue) { _onLinkInfo = newValue },
+            configurable: false,
+            enumerable: true
+        });
+
+        Object.defineProperty(_sessionController, onLinkDestination.name, {
+            get() { return onLinkDestinationProxy },
+            set(newValue) { _onLinkDestination = newValue },
+            configurable: false,
+            enumerable: true
+        });
+
+        log(`SessionController proxies installed: ${sendMessage.name}, ${onLinkInfo.name}, ${onLinkDestination.name}`);
+    }
+
+    function checkForSessionController(target, prop, value, receiver) {
+        log("Checking property set:", prop, value);
+
+        if (
+            value &&
+            typeof value === "object" &&
+            resolveWriteFunction(value).fn &&
+            resolveName(value, NAME_MAP.onLinkInfo).fn &&
+            resolveName(value, NAME_MAP.onLinkDestination).fn &&
+            !_sessionController
+        ) {
+            _sessionController = value;
+            log("Intercepted session controller:", _sessionController);
+            setupSessionControllerProxy();
+        }
+
+        return Reflect.set(target, prop, value, receiver);
+    }
+
+    function createComponentProxy(component) {
+        return new Proxy(component, {
+            construct(target, args) {
+                const result = Reflect.construct(target, args);
+                log("Intercepted SvelteKit component construction:", target, args, result);
+
+                result.$$.ctx = new Proxy(result.$$.ctx, {
+                    set: checkForSessionController
+                });
+
+                return result;
+            }
+        });
+    }
+
+    function createNodeResultProxy(result) {
+        return new Proxy(result, {
+            get(target, prop, receiver) {
+                if (prop === "component") {
+                    return createComponentProxy(target.component);
+                }
+                return Reflect.get(target, prop, receiver);
+            }
+        });
+    }
+
+    function createNodeProxy(oldNode) {
+        return async (...args) => {
+            const result = await oldNode(...args);
+            log("Intercepted SvelteKit node result:", result);
+            return createNodeResultProxy(result);
+        };
+    }
+
+    function createKitProxy(kit) {
+      	if (typeof kit !== "object" || !kit) return [false, kit];
+
+        const originalStart = "start" in kit && kit.start;
+        if (!originalStart) return [false, kit];
+
+        const kitProxy = new Proxy(kit, {
+            get(target, prop, receiver) {
+                if (prop === "start") {
+                    return function(...args) {
+                        const appModule = args[0];
+                        const options = args[2];
+
+                        if (typeof appModule === "object" &&
+                            typeof appModule.nodes === "object" &&
+                            typeof options === "object" &&
+                            typeof options.node_ids === "object") {
+
+                            const oldNode = appModule.nodes[options.node_ids[1]];
+                            appModule.nodes[options.node_ids[1]] = createNodeProxy(oldNode);
+                        }
+
+                        log("kit.start intercepted!", options);
+                        return originalStart.apply(this, args);
+                    };
+                }
+                return Reflect.get(target, prop, receiver);
+            }
+        });
+
+        return [true, kitProxy];
+    }
+
+    function setupSvelteKitInterception() {
+        const originalPromiseAll = unsafeWindow.Promise.all;
+        let intercepted = false;
+
+        unsafeWindow.Promise.all = async function(promises) {
+            const result = originalPromiseAll.call(this, promises);
+
+            if (!intercepted) {
+                intercepted = true;
+
+                return await new Promise((resolve) => {
+                    result.then(([kit, app, ...args]) => {
+                        log("SvelteKit modules loaded");
+
+                        const [success, wrappedKit] = createKitProxy(kit);
+                        if (success) {
+                            // Restore original Promise.all
+                            unsafeWindow.Promise.all = originalPromiseAll;
+
+                            log("Wrapped kit ready:", wrappedKit, app);
+                        }
+
+                        resolve([wrappedKit, app, ...args]);
+                    });
+                });
+            }
+
+            return await result;
+        };
+    }
+
+    // Initialize the bypass
+    setupSvelteKitInterception();
+
+    // Remove injected ads
+    const observer = new MutationObserver((mutations) => {
+        for (const m of mutations) {
+            for (const node of m.addedNodes) {
+                if (node.nodeType === 1) {
+                    // Direct match
+                    if (node.classList?.contains("adsbygoogle")) {
+                        node.remove();
+                        log("Removed injected ad:", node);
+                    }
+                    // Or children inside the node
+                    node.querySelectorAll?.(".adsbygoogle").forEach((el) => {
+                        el.remove();
+                        log("Removed nested ad:", el);
+                    });
+                }
+            }
+        }
+    });
+
+    // Start observing the document for changes
+    observer.observe(unsafeWindow.document.documentElement, { childList: true, subtree: true });
+    }
+
+    // ---------------------------
+    // Auto-detect host
+    // ---------------------------
+    if(host.includes("key.volcano.wtf")) handleVolcano();
+    else if(host.includes("work.ink")) handleWorkInk();
 })();
