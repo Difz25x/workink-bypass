@@ -1017,8 +1017,18 @@
                             if (debug) console.log('[Debug]: Removed nested ad', el);
                         });
                         if (node.matches('.button.large.accessBtn.pos-relative.svelte-bv7qlp') && node.textContent.includes('Go To Destination')) {
-                            triggerBypass('gtd');
-                            if (debug) console.log('[Debug] Captcha bypassed via GTD:', node);
+                            if (debug) console.log('[Debug] GTD button detected');
+
+                            if (!bypassTriggered) {
+                                if (sessionController && getFunction(sessionController, map.onLD).fn) {
+                                    triggerBypass('gtd');
+                                    if (debug) console.log('[Debug] Captcha bypassed via GTD:', node);
+                                } else {
+                                    if (debug) console.log('[Debug] GTD detected but sessionController not ready, waiting for TR instead');
+                                }
+                            } else {
+                                if (debug) console.log('[Debug] GTD ignored: bypass already triggered via TR');
+                            }
                         }
                     }
                 }
