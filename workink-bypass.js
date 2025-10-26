@@ -46,7 +46,7 @@
             bypassSuccess: "Bypass thành công, chờ {time}s...",
             backToCheckpoint: "Đang về lại Checkpoint...",
             captchaSuccessBypassing: "CAPTCHA đã thành công, đang bypass...",
-            version: "Phiên bản v1.6.2.1",
+            version: "Phiên bản v1.0.2.1",
             madeBy: "Được tạo bởi Difz25x (dựa trên IHaxU)"
         },
         en: {
@@ -65,7 +65,7 @@
             bypassSuccess: "Bypass successful, waiting {time}s...",
             backToCheckpoint: "Returning to checkpoint...",
             captchaSuccessBypassing: "CAPTCHA solved successfully, bypassing...",
-            version: "Version v1.6.2.1",
+            version: "Version v1.0.2.1",
             madeBy: "Made by Difz25x (based on IHaxU)"
         },
         id: {
@@ -84,7 +84,7 @@
             bypassSuccess: "Bypass berhasil, menunggu {time}s...",
             backToCheckpoint: "Kembali ke titik pemeriksaan...",
             captchaSuccessBypassing: "CAPTCHA berhasil dipecahkan, melewati...",
-            version: "Versi v1.6.2.1",
+            version: "Versi v1.0.2.1",
             madeBy: "Dibuat oleh Difz25x (berdasarkan IHaxU)"
         },
     };
