@@ -1,10 +1,22 @@
-(function() {
-    "use strict";
+// ==UserScript==
+// @name         Volcano & Work.ink Bypass
+// @namespace    http://tampermonkey.net/
+// @version      1.0.1.0
+// @description  Bypass Volcano and Work.ink links with unified panel
+// @author       Difz25x + Remake
+// @match        https://key.volcano.wtf/*
+// @match        https://work.ink/*
+// @run-at       document-start
+// @grant        unsafeWindow
+// ==/UserScript==
 
-    const DEBUG = true;
-    const host = location.hostname;
+(function () {
+    'use strict';
 
-    let currentLanguage = localStorage.getItem('lang') || 'en';
+    const host = location.hostname; // check host
+    const debug = true // enable debug logs (console)
+
+    let currentLanguage = localStorage.getItem('lang') || 'en'; // default language: vi/en
     let currentTheme = localStorage.getItem('theme') || 'orange';
 
     const themes = {
@@ -28,6 +40,7 @@
         }
     };
 
+    // Translations
     const translations = {
         vi: {
             title: "Difz25x Bypass",
@@ -45,8 +58,8 @@
             bypassSuccess: "Bypass thành công, chờ {time}s...",
             backToCheckpoint: "Đang về lại Checkpoint...",
             captchaSuccessBypassing: "CAPTCHA đã thành công, đang bypass...",
-            version: "Phiên bản v1.0.0.0",
-            madeBy: "Được tạo bởi Difz25x"
+            version: "Phiên bản v1.6.2.1",
+            madeBy: "Được tạo bởi Difz25x (dựa trên IHaxU)"
         },
         en: {
             title: "Difz25x Bypass",
@@ -64,11 +77,11 @@
             bypassSuccess: "Bypass successful, waiting {time}s...",
             backToCheckpoint: "Returning to checkpoint...",
             captchaSuccessBypassing: "CAPTCHA solved successfully, bypassing...",
-            version: "Version v1.0.0.0",
-            madeBy: "Made by Difz25x"
+            version: "Version v1.6.2.1",
+            madeBy: "Made by Difz25x (based on IHaxU)"
         },
         id: {
-            title: "Difz25x Bypass",
+            title: "Bypass Difz25x",
             pleaseSolveCaptcha: "Silakan selesaikan CAPTCHA untuk melanjutkan",
             captchaSuccess: "CAPTCHA berhasil dipecahkan",
             redirectingToWork: "Mengalihkan ke Work.ink...",
@@ -83,11 +96,12 @@
             bypassSuccess: "Bypass berhasil, menunggu {time}s...",
             backToCheckpoint: "Kembali ke titik pemeriksaan...",
             captchaSuccessBypassing: "CAPTCHA berhasil dipecahkan, melewati...",
-            version: "Versi v1.0.0.0",
-            madeBy: "Dibuat oleh Difz25x"
-        }
+            version: "Versi v1.6.2.1",
+            madeBy: "Dibuat oleh Difz25x (berdasarkan IHaxU)"
+        },
     };
 
+    // Translation function
     function t(key, replacements = {}) {
         let text = translations[currentLanguage][key] || key;
         Object.keys(replacements).forEach(placeholder => {
@@ -96,6 +110,7 @@
         return text;
     }
 
+    // Bypass Panel (UI)
     class BypassPanel {
         constructor() {
             this.container = null;
@@ -568,554 +583,459 @@
         panel.show('pleaseSolveCaptcha', 'info');
     }, 100);
 
-    // ---------------------------
-    // Debug logging wrapper
-    // ---------------------------
-    const oldLog = unsafeWindow.console.log;
-    const oldWarn = unsafeWindow.console.warn;
-    const oldError = unsafeWindow.console.error;
+    // Check host and run corresponding handlers
+    if (host.includes("key.volcano.wtf")) handleVolcano();
+    else if (host.includes("work.ink")) handleWorkInk();
 
-    // Wrapper functions prepend a tag and only log when DEBUG is true
-    function log(...args) { if (DEBUG) oldLog("[BYPASS]", ...args); }
-    function warn(...args) { if (DEBUG) oldWarn("[BYPASS]", ...args); }
-    function error(...args) { if (DEBUG) oldError("[BYPASS]", ...args); }
-
-    // ---------------------------
-    // Volcano handler
-    // ---------------------------
+    // Handler for VOLCANO
     function handleVolcano() {
-        const dtcAttempt = 40, poll = 700;
         if (panel) panel.show('pleaseSolveCaptcha', 'info');
-
-        function getContinue() {
-            const buttons = document.querySelectorAll(
-                '#primaryButton[type="submit"], button[type="submit"], a, input[type=button], input[type=submit]'
-            );
-            for (const btn of buttons) {
-                const text = (btn.innerText || btn.value || "").trim().toLowerCase();
-                if (text.includes("continue") || text.includes("next step")) {
-                    const disabled = btn.disabled || btn.getAttribute("aria-disabled") === "true";
-                    const style = getComputedStyle(btn);
-                    const visible = style.display !== "none" && style.visibility !== "hidden" && btn.offsetParent;
-                    if (visible && !disabled) return btn;
-                }
-            }
-            return null;
-        }
-
-        function getCopy() {
-            return document.querySelector("#copy-key-btn, .copy-btn, [aria-label='Copy']");
-        }
+        if (debug) console.log('[Debug] Waiting Captcha');
 
         let alreadyDoneContinue = false;
-        let attempts = 0;
+        let alreadyDoneCopy = false;
 
-        function actOnCheckpoint() {
+        function actOnCheckpoint(node) {
             if (!alreadyDoneContinue) {
-                const btn = getContinue();
-                if (btn) {
-                    alreadyDoneContinue = true;
-                    if (panel) panel.show('captchaSuccess', 'success');
-                    if (DEBUG) console.log('[Debug] Captcha Solved');
+                const buttons = node && node.nodeType === 1
+                    ? node.matches('#primaryButton[type="submit"], button[type="submit"], a, input[type=button], input[type=submit]')
+                        ? [node]
+                        : node.querySelectorAll('#primaryButton[type="submit"], button[type="submit"], a, input[type=button], input[type=submit]')
+                    : document.querySelectorAll('#primaryButton[type="submit"], button[type="submit"], a, input[type=button], input[type=submit]');
+                for (const btn of buttons) {
+                    const text = (btn.innerText || btn.value || "").trim().toLowerCase();
+                    if (text.includes("continue") || text.includes("next step")) {
+                        const disabled = btn.disabled || btn.getAttribute("aria-disabled") === "true";
+                        const style = getComputedStyle(btn);
+                        const visible = style.display !== "none" && style.visibility !== "hidden" && btn.offsetParent !== null;
+                        if (visible && !disabled) {
+                            alreadyDoneContinue = true;
+                            if (panel) panel.show('captchaSuccess', 'success');
+                            if (debug) console.log('[Debug] Captcha Solved');
 
-                    setTimeout(() => {
-                        try {
-                            btn.click();
-                            if (panel) panel.show('redirectingToWork', 'info');
-                            if (DEBUG) console.log('[Debug] Clicking Continue');
-                        } catch (err) {
-                            if (DEBUG) console.log('[Debug] No Continue Found', err);
+                            for (const btn of buttons) {
+                                const currentBtn = btn;
+                                const currentPanel = panel;
+
+                                setTimeout(() => {
+                                    try {
+                                        currentBtn.click();
+                                        if (currentPanel) currentPanel.show('redirectingToWork', 'info');
+                                        if (debug) console.log('[Debug] Clicking Continue');
+                                    } catch (err) {
+                                        if (debug) console.log('[Debug] No Continue Found', err);
+                                    }
+                                }, 300);
+                            }
+                            return true;
                         }
-                    }, 300);
+                    }
                 }
             }
 
-            const copyBtn = getCopy();
+            const copyBtn = node && node.nodeType === 1
+                ? node.matches("#copy-key-btn, .copy-btn, [aria-label='Copy']")
+                    ? node
+                    : node.querySelector("#copy-key-btn, .copy-btn, [aria-label='Copy']")
+                : document.querySelector("#copy-key-btn, .copy-btn, [aria-label='Copy']");
             if (copyBtn) {
-                setTimeout(() => {
+                setInterval(() => {
                     try {
                         copyBtn.click();
+                        if (debug) console.log('[Debug] Copy button spam click');
                         if (panel) panel.show('bypassSuccessCopy', 'success');
-                        if (DEBUG) console.log('[Debug] Copy button clicked (spam)');
                     } catch (err) {
-                        if (DEBUG) console.log('[Debug] No Copy Found', err);
+                        if (debug) console.log('[Debug] No Copy Found', err);
                     }
-                }, 150);
-            }
-        }
-
-        function tryDetect() {
-            attempts++;
-            const btn = getContinue();
-            const copyBtn = getCopy();
-
-            if (btn || copyBtn) {
-                if (DEBUG) console.log(`[Debug] Detect success (attempt ${attempts})`);
-                actOnCheckpoint();
+                }, 500);
                 return true;
             }
 
-            if (attempts >= dtcAttempt) {
-                if (DEBUG) console.log('[Debug] No more poll attempts.');
-                return false;
-            }
             return false;
         }
 
-        setTimeout(tryDetect, 300);
-
-        const pollInterval = setInterval(() => {
-            tryDetect();
-        }, poll);
-
-        const mo = new MutationObserver(() => {
-            tryDetect();
+        const mo = new MutationObserver((mutations) => {
+            for (const mutation of mutations) {
+                if (mutation.type === 'childList') {
+                    for (const node of mutation.addedNodes) {
+                        if (node.nodeType === 1) {
+                            if (actOnCheckpoint(node)) {
+                                if (alreadyDoneCopy) {
+                                    mo.disconnect();
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                }
+                if (mutation.type === 'attributes' && mutation.target.nodeType === 1) {
+                    if (actOnCheckpoint(mutation.target)) {
+                        if (alreadyDoneCopy) {
+                            mo.disconnect();
+                            return;
+                        }
+                    }
+                }
+            }
         });
-        mo.observe(document.documentElement, { childList: true, subtree: true, attributes: true });
 
-        if (DEBUG) console.log('[Debug] Waiting Captcha');
+        mo.observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ['disabled', 'aria-disabled', 'style'] });
+
+        if (actOnCheckpoint()) {
+            if (alreadyDoneCopy) {
+                mo.disconnect();
+            }
+        }
     }
-
-    // ---------------------------
-    // Work.ink handler
-    // ---------------------------
+    // Handler for WORK.INK
     function handleWorkInk() {
-        const NAME_MAP = {
-        onLinkInfo: ["onLinkInfo"],
-        onLinkDestination: ["onLinkDestination"]
-    };
+        if (panel) panel.show('pleaseSolveCaptcha', 'info');
 
-    function resolveName(obj, candidates) {
-        for (let i = 0; i < candidates.length; i++) {
-            const name = candidates[i];
-            if (typeof obj[name] === "function") {
-                return { fn: obj[name], index: i, name };
-            }
-        }
-        return { fn: null, index: -1, name: null };
-    }
-
-    function resolveWriteFunction(obj) {
-        for (let i in obj) {
-            if (typeof obj[i] == "function" && obj[i].length == 2) {
-                return { fn: obj[i], name: i };
-            }
-        }
-        return { fn: null, index: -1, name: null };
-    }
-
-    // Global state
-    let _sessionController = undefined;
-    let _sendMessage = undefined;
-    let _onLinkInfo = undefined;
-    let _onLinkDestination = undefined;
-
-    // Constants
-    function getClientPacketTypes() {
-        return {
-            ANNOUNCE: "c_announce",
-            MONETIZATION: "c_monetization",
-            SOCIAL_STARTED: "c_social_started",
-            RECAPTCHA_RESPONSE: "c_recaptcha_response",
-            HCAPTCHA_RESPONSE: "c_hcaptcha_response",
-            TURNSTILE_RESPONSE: "c_turnstile_response",
-            ADBLOCKER_DETECTED: "c_adblocker_detected",
-            FOCUS_LOST: "c_focus_lost",
-            OFFERS_SKIPPED: "c_offers_skipped",
-            FOCUS: "c_focus",
-            WORKINK_PASS_AVAILABLE: "c_workink_pass_available",
-            WORKINK_PASS_USE: "c_workink_pass_use",
-            PING: "c_ping"
+        const startTime = Date.now();
+        let sessionController = undefined;
+        let sendMessageA = undefined;
+        let onLinkInfoA = undefined;
+        let onLinkDestinationA = undefined;
+        let bypassTriggered = false;
+        //
+        const map = {
+            onLI: ["onLinkInfo"],
+            onLD: ["onLinkDestination"]
         };
-    }
 
-    const startTime = Date.now();
-
-    function createSendMessageProxy() {
-        const clientPacketTypes = getClientPacketTypes();
-
-        return function(...args) {
-            const packet_type = args[0];
-            const packet_data = args[1];
-
-            if (packet_type !== clientPacketTypes.PING) {
-                log("Sent message:", packet_type, packet_data);
+        function getFunction(obj, candidates = null) {
+            if (candidates) {
+                for (let i = 0; i < candidates.length; i++) {
+                    const name = candidates[i];
+                    if (typeof obj[name] === "function") {
+                        return { fn: obj[name], index: i, name };
+                    }
+                }
+            } else {
+                for (let i in obj) {
+                    if (typeof obj[i] == "function" && obj[i].length == 2) {
+                        return { fn: obj[i], name: i };
+                    }
+                }
             }
+            return { fn: null, index: -1, name: null };
+        }
 
-            if (packet_type === clientPacketTypes.ADBLOCKER_DETECTED) {
-                warn("Blocked adblocker detected message to avoid false positive.");
+        const types = {
+            mo: 'c_monetization',
+            ss: 'c_social_started',
+            tr: 'c_turnstile_response',
+            ad: 'c_adblocker_detected'
+        };
+
+        function triggerBypass(reason) {
+            if (bypassTriggered) {
+                if (debug) console.log('[Debug] trigger Bypass skipped, already triggered');
                 return;
             }
-
-            if (_sessionController.linkInfo && packet_type === clientPacketTypes.TURNSTILE_RESPONSE) {
-                const ret = _sendMessage.apply(this, args);
-
-                panel.show('captchaSuccessBypassing', 'bypassing');
-
-                // Send bypass messages
-                for (const social of _sessionController.linkInfo.socials) {
-                    _sendMessage.call(this, clientPacketTypes.SOCIAL_STARTED, {
-                        url: social.url
-                    });
-                }
-
-                for (const monetizationIdx in _sessionController.linkInfo.monetizations) {
-                    const monetization = _sessionController.linkInfo.monetizations[monetizationIdx];
-
-                    switch (monetization) {
-                        case 22: { // readArticles2
-                            _sendMessage.call(this, clientPacketTypes.MONETIZATION, {
-                                type: "readArticles2",
-                                payload: {
-                                    event: "read"
-                                }
-                            });
-                            break;
-                        }
-
-                        case 25: { // operaGX
-                            _sendMessage.call(this, clientPacketTypes.MONETIZATION, {
-                                type: "operaGX",
-                                payload: {
-                                    event: "start"
-                                }
-                            });
-                            _sendMessage.call(this, clientPacketTypes.MONETIZATION, {
-                                type: "operaGX",
-                                payload: {
-                                    event: "installClicked"
-                                }
-                            });
-                            fetch('https://work.ink/_api/v2/callback/operaGX', {
-                                method: 'POST',
-                                mode: 'no-cors',
-                                headers: {
-                                    'Content-Type': 'application/json'
-                                },
-                                body: JSON.stringify({
-                                    'noteligible': true
-                                })
-                            });
-                            break;
-                        }
-
-                        case 34: { // norton
-                            _sendMessage.call(this, clientPacketTypes.MONETIZATION, {
-                                type: "norton",
-                                payload: {
-                                    event: "start"
-                                }
-                            });
-                            _sendMessage.call(this, clientPacketTypes.MONETIZATION, {
-                                type: "norton",
-                                payload: {
-                                    event: "installClicked"
-                                }
-                            });
-                            break;
-                        }
-
-                        case 71: { // externalArticles
-                            _sendMessage.call(this, clientPacketTypes.MONETIZATION, {
-                                type: "externalArticles",
-                                payload: {
-                                    event: "start"
-                                }
-                            });
-                            _sendMessage.call(this, clientPacketTypes.MONETIZATION, {
-                                type: "externalArticles",
-                                payload: {
-                                    event: "installClicked"
-                                }
-                            });
-                            break;
-                        }
-
-                        case 45: { // pdfeditor
-                            _sendMessage.call(this, clientPacketTypes.MONETIZATION, {
-                                type: "pdfeditor",
-                                payload: {
-                                    event: "installed"
-                                }
-                            });
-                            break;
-                        }
-
-                        case 57: { // betterdeals
-                            _sendMessage.call(this, clientPacketTypes.MONETIZATION, {
-                                type: "betterdeals",
-                                payload: {
-                                    event: "installed"
-                                }
-                            });
-                            break;
-                        }
-
-                        default: {
-                            log("Unknown monetization type:", typeof monetization, monetization);
-                            break;
-                        }
+            bypassTriggered = true;
+            if (debug) console.log('[Debug] trigger Bypass via:', reason);
+            if (panel) panel.show('captchaSuccessBypassing', 'success');
+            
+            if (debug) console.log('[Debug] Phase 1: Firing initial 5x spoof burst');
+            for (let i = 0; i < 5; i++) {
+                spoofWorkink();
+            }
+            
+            setTimeout(() => {
+                const dest = getFunction(sessionController, map.onLD);
+                if (dest.fn && !sessionController?.linkDestination) {
+                    if (debug) console.log('[Debug] Phase 2: 5s passed, no destination. Firing fallback burst');
+                    for (let i = 0; i < 5; i++) {
+                        spoofWorkink();
                     }
+                } else {
+                    if (debug) console.log('[Debug] Phase 2: Destination already received, skipping fallback');
                 }
+            }, 5000);         
+            if (debug) console.log('[Debug] Waiting for server to send destination data...');
+        }
 
-                return ret;
+        function spoofWorkink() {
+            if (!sessionController?.linkInfo) {
+                if (debug) console.log('[Debug] spoof Workink skipped: no sessionController.linkInfo');
+                return;
             }
-
-            return _sendMessage.apply(this, args);
-        };
-    }
-
-    function createOnLinkInfoProxy() {
-        return function(...args) {
-            const linkInfo = args[0];
-
-            log("Link info received:", linkInfo);
-
-            Object.defineProperty(linkInfo, "isAdblockEnabled", {
-                get() { return false },
-                set(newValue) {
-                    log("Attempted to set isAdblockEnabled to:", newValue);
-                },
-                configurable: false,
-                enumerable: true
-            });
-
-            return _onLinkInfo.apply(this, args);
-        };
-    }
-
-    function updateHint(waitLeft) {
-        panel.show(`bypassSuccess`, 'waiting', { time: Math.ceil(waitLeft) });
-    }
-
-    function redirect(url) {
-        panel.show('backToCheckpoint', 'info');
-        window.location.href = url;
-    }
-
-    function startCountdown(url, waitLeft) {
-        if (DEBUG) console.log('[Debug] startCountdown: Started with', waitLeft, 'seconds');
-        updateHint(waitLeft);
-
-        const interval = setInterval(() => {
-            waitLeft -= 1;
-            if (waitLeft > 0) {
-                if (DEBUG) console.log('[Debug] startCountdown: Time remaining:', waitLeft);
-                updateHint(waitLeft);
-            } else {
-                clearInterval(interval);
-                redirect(url);
+            if (debug) console.log('[Debug] spoof Workink starting, linkInfo:', sessionController.linkInfo);
+            for (const soc of sessionController.linkInfo.socials || []) {
+                if (sendMessageA) {
+                    sendMessageA.call(this, types.ss, { url: soc.url });
+                    if (debug) console.log('[Debug] Faked social:', soc.url);
+                } else {
+                    if (debug) console.warn('[Debug] No send message for social:', soc.url);
+                }
             }
-        }, 1000);
-    }
+            for (const monetization of sessionController.linkInfo.monetizations || []) {
+                let type, payload;
+                switch (monetization) {
+                    case 22:
+                        sendMessageA && sendMessageA.call(this, types.mo, { type: 'readArticles2', payload: { event: 'read' } });
+                        if (debug) console.log('[Debug] Faked readArticles2');
+                        break;
+                    case 25:
+                        type = 'operaGX'; payload = { event: 'installClicked' };
+                        sendMessageA && sendMessageA.call(this, types.mo, { type: 'operaGX', payload: { event: 'start' } });
+                        fetch('https://work.ink/_api/v2/callback/operaGX', {
+                            method: 'POST',
+                            mode: 'no-cors',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ noteligible: true })
+                        }).catch((e) => { if (debug) console.warn('[Debug] operaGX fetch failed:', e); });
+                        if (debug) console.log('[Debug] Faked operaGX');
+                        break;
+                    case 34:
+                        type = 'norton'; payload = { event: 'installClicked' };
+                        sendMessageA && sendMessageA.call(this, types.mo, { type: 'norton', payload: { event: 'start' } });
+                        if (debug) console.log('[Debug] Faked norton install');
+                        break;
+                    case 71:
+                        type = 'externalArticles'; payload = { event: 'installClicked' };
+                        sendMessageA && sendMessageA.call(this, types.mo, { type: 'externalArticles', payload: { event: 'start' } });
+                        if (debug) console.log('[Debug] Faked externalArticles');
+                        break;
+                    case 45:
+                        sendMessageA && sendMessageA.call(this, types.mo, { type: 'pdfeditor', payload: { event: 'installed' } });
+                        if (debug) console.log('[Debug] Faked pdfeditor install');
+                        break;
+                    case 57:
+                        sendMessageA && sendMessageA.call(this, types.mo, { type: 'betterdeals', payload: { event: 'installed' } });
+                        if (debug) console.log('[Debug] Faked betterdeals install');
+                        break;
+                    default:
+                        if (debug) console.log('[Debug] Unknown monetization:', monetization);
+                }
+            }
+        }
 
-    function createOnLinkDestinationProxy() {
+        function trm() {
+            return function(...a) {
+                const [msgType] = a;
+                if (msgType === types.ad) {
+                    if (debug) console.log('[Debug] trm: Skipping adblocker message');
+                    return;
+                }
+                if (sessionController?.linkInfo && msgType === types.tr) {
+                    if (debug) console.log('[Debug] Captcha bypassed via TR');
+                    triggerBypass('tr');
+                }
+                return sendMessageA ? sendMessageA.apply(this, a): undefined;
+            };
+        }
+
+        function createLinkInfoProxy() {
             return function(...args) {
-            const [data] = args;
-            const secondsPassed = (Date.now() - startTime) / 1000;
-            if (DEBUG) console.log('[Debug] Destination data:', data);
+                const [info] = args;
+                if (debug) console.log('[Debug] Link info:', info);
+                try {
+                    Object.defineProperty(info, 'isAdblockEnabled', {
+                        get: () => false,
+                        set: () => {},
+                        configurable: false,
+                        enumerable: true
+                    });
+                    if (debug) console.log('[Debug] Adblock disabled in linkInfo');
+                } catch (e) {
+                    if (debug) console.warn('[Debug] Define Property failed:', e);
+                }
+                return onLinkInfoA ? onLinkInfoA.apply(this, args): undefined;
+            };
+        }
 
-            let waitTimeSeconds = 5;
-            const url = location.href;
-            if (url.includes('42rk6hcq') || url.includes('ito4wckq') || url.includes('pzarvhq1')) {
-                waitTimeSeconds = 38;
+        function redirect(url) {
+            if (debug) console.log('[Debug] Redirecting to:', url);
+            window.location.href = url;
+        }
+
+        function startCountdown(url, waitLeft) {
+            if (debug) console.log('[Debug] startCountdown: Started with', waitLeft, 'seconds');
+            if (panel) panel.show('bypassSuccess', 'warning', { time: Math.ceil(waitLeft) });
+
+            const interval = setInterval(() => {
+                waitLeft -= 1;
+                if (waitLeft > 0) {
+                    if (debug) console.log('[Debug] startCountdown: Time remaining:', waitLeft);
+                    if (panel) panel.show('bypassSuccess', 'warning', { time: Math.ceil(waitLeft) });
+                } else {
+                    clearInterval(interval);
+                    redirect(url);
+                }
+            }, 1000);
+        }
+
+        function createDestinationProxy() {
+            return function(...args) {
+                const [data] = args;
+                const secondsPassed = (Date.now() - startTime) / 1000;
+                if (debug) console.log('[Debug] Destination data:', data);
+
+                let waitTimeSeconds = 5;
+                const url = location.href;
+                if (url.includes('42rk6hcq') || url.includes('ito4wckq') || url.includes('pzarvhq1')) {
+                    waitTimeSeconds = 38;
+                }
+
+                if (secondsPassed >= waitTimeSeconds) {
+                    if (panel) panel.show('backToCheckpoint', 'info');
+                    redirect(data.url);
+                } else {
+                    startCountdown(data.url, waitTimeSeconds - secondsPassed);
+                }
+                return onLinkDestinationA ? onLinkDestinationA.apply(this, args): undefined;
+            };
+        }
+
+        function triggerBp() {
+            if (sessionController?.linkDestination) {
+                createDestinationProxy().call(sessionController, sessionController.linkDestination);
             }
+        }
 
-            if (secondsPassed >= waitTimeSeconds) {
-                if (panel) panel.show('backToCheckpoint', 'info');
-                redirect(data.url);
+        function setupProxies() {
+            const send = getFunction(sessionController);
+            const info = getFunction(sessionController, map.onLI);
+            const dest = getFunction(sessionController, map.onLD);
+
+            if (!send.fn || !info.fn || !dest.fn) return;
+
+            sendMessageA = send.fn;
+            onLinkInfoA = info.fn;
+            onLinkDestinationA = dest.fn;
+
+            try {
+                Object.defineProperty(sessionController, send.name, {
+                    get: trm,
+                    set: v => (sendMessageA = v),
+                    configurable: true
+                });
+                Object.defineProperty(sessionController, info.name, {
+                    get: createLinkInfoProxy,
+                    set: v => (onLinkInfoA = v),
+                    configurable: true
+                });
+                Object.defineProperty(sessionController, dest.name, {
+                    get: createDestinationProxy,
+                    set: v => (onLinkDestinationA = v),
+                    configurable: true
+                });
+                if (debug) console.log('[Debug] setupProxies: Proxies set successfully');
+            } catch (e) {
+                if (debug) console.warn('[Debug] setupProxies: Failed to set proxies:', e);
+            }
+        }
+
+        function checkController(target, prop, value) {
+            if (value &&
+                typeof value === 'object' &&
+                getFunction(value).fn &&
+                getFunction(value, map.onLI).fn &&
+                getFunction(value, map.onLD).fn &&
+                !sessionController) {
+                sessionController = value;
+                if (debug) console.log('[Debug] Controller detected:', sessionController);
+                setupProxies();
             } else {
-                startCountdown(data.url, waitTimeSeconds - secondsPassed);
+                if (debug) console.log('[Debug] checkController: No controller found for prop:', prop);
             }
-            return _onLinkDestination ? _onLinkDestination.apply(this, args): undefined;
-        };
-     }
-
-    function setupSessionControllerProxy() {
-        const sendMessage = resolveWriteFunction(_sessionController);
-        const onLinkInfo = resolveName(_sessionController, NAME_MAP.onLinkInfo);
-        const onLinkDestination = resolveName(_sessionController, NAME_MAP.onLinkDestination);
-
-        _sendMessage = sendMessage.fn;
-        _onLinkInfo = onLinkInfo.fn;
-        _onLinkDestination = onLinkDestination.fn;
-
-        const sendMessageProxy = createSendMessageProxy();
-        const onLinkInfoProxy = createOnLinkInfoProxy();
-        const onLinkDestinationProxy = createOnLinkDestinationProxy();
-
-        // Patch the actual property name that exists
-        Object.defineProperty(_sessionController, sendMessage.name, {
-            get() { return sendMessageProxy },
-            set(newValue) { _sendMessage = newValue },
-            configurable: false,
-            enumerable: true
-        });
-
-        Object.defineProperty(_sessionController, onLinkInfo.name, {
-            get() { return onLinkInfoProxy },
-            set(newValue) { _onLinkInfo = newValue },
-            configurable: false,
-            enumerable: true
-        });
-
-        Object.defineProperty(_sessionController, onLinkDestination.name, {
-            get() { return onLinkDestinationProxy },
-            set(newValue) { _onLinkDestination = newValue },
-            configurable: false,
-            enumerable: true
-        });
-
-        log(`SessionController proxies installed: ${sendMessage.name}, ${onLinkInfo.name}, ${onLinkDestination.name}`);
-    }
-
-    function checkForSessionController(target, prop, value, receiver) {
-        log("Checking property set:", prop, value);
-
-        if (
-            value &&
-            typeof value === "object" &&
-            resolveWriteFunction(value).fn &&
-            resolveName(value, NAME_MAP.onLinkInfo).fn &&
-            resolveName(value, NAME_MAP.onLinkDestination).fn &&
-            !_sessionController
-        ) {
-            _sessionController = value;
-            log("Intercepted session controller:", _sessionController);
-            setupSessionControllerProxy();
+            return Reflect.set(target, prop, value);
         }
 
-        return Reflect.set(target, prop, value, receiver);
-    }
-
-    function createComponentProxy(component) {
-        return new Proxy(component, {
-            construct(target, args) {
-                const result = Reflect.construct(target, args);
-                log("Intercepted SvelteKit component construction:", target, args, result);
-
-                result.$$.ctx = new Proxy(result.$$.ctx, {
-                    set: checkForSessionController
-                });
-
-                return result;
-            }
-        });
-    }
-
-    function createNodeResultProxy(result) {
-        return new Proxy(result, {
-            get(target, prop, receiver) {
-                if (prop === "component") {
-                    return createComponentProxy(target.component);
-                }
-                return Reflect.get(target, prop, receiver);
-            }
-        });
-    }
-
-    function createNodeProxy(oldNode) {
-        return async (...args) => {
-            const result = await oldNode(...args);
-            log("Intercepted SvelteKit node result:", result);
-            return createNodeResultProxy(result);
-        };
-    }
-
-    function createKitProxy(kit) {
-      	if (typeof kit !== "object" || !kit) return [false, kit];
-
-        const originalStart = "start" in kit && kit.start;
-        if (!originalStart) return [false, kit];
-
-        const kitProxy = new Proxy(kit, {
-            get(target, prop, receiver) {
-                if (prop === "start") {
-                    return function(...args) {
-                        const appModule = args[0];
-                        const options = args[2];
-
-                        if (typeof appModule === "object" &&
-                            typeof appModule.nodes === "object" &&
-                            typeof options === "object" &&
-                            typeof options.node_ids === "object") {
-
-                            const oldNode = appModule.nodes[options.node_ids[1]];
-                            appModule.nodes[options.node_ids[1]] = createNodeProxy(oldNode);
-                        }
-
-                        log("kit.start intercepted!", options);
-                        return originalStart.apply(this, args);
-                    };
-                }
-                return Reflect.get(target, prop, receiver);
-            }
-        });
-
-        return [true, kitProxy];
-    }
-
-    function setupSvelteKitInterception() {
-        const originalPromiseAll = unsafeWindow.Promise.all;
-        let intercepted = false;
-
-        unsafeWindow.Promise.all = async function(promises) {
-            const result = originalPromiseAll.call(this, promises);
-
-            if (!intercepted) {
-                intercepted = true;
-
-                return await new Promise((resolve) => {
-                    result.then(([kit, app, ...args]) => {
-                        log("SvelteKit modules loaded");
-
-                        const [success, wrappedKit] = createKitProxy(kit);
-                        if (success) {
-                            // Restore original Promise.all
-                            unsafeWindow.Promise.all = originalPromiseAll;
-
-                            log("Wrapped kit ready:", wrappedKit, app);
-                        }
-
-                        resolve([wrappedKit, app, ...args]);
-                    });
-                });
-            }
-
-            return await result;
-        };
-    }
-
-    // Initialize the bypass
-    setupSvelteKitInterception();
-
-    // Remove injected ads
-    const observer = new MutationObserver((mutations) => {
-        for (const m of mutations) {
-            for (const node of m.addedNodes) {
-                if (node.nodeType === 1) {
-                    // Direct match
-                    if (node.classList?.contains("adsbygoogle")) {
-                        node.remove();
-                        log("Removed injected ad:", node);
+        function createComponentProxy(comp) {
+            return new Proxy(comp, {
+                construct(target, args) {
+                    const instance = Reflect.construct(target, args);
+                    if (instance.$$.ctx) {
+                        instance.$$.ctx = new Proxy(instance.$$.ctx, { set: checkController });
                     }
-                    // Or children inside the node
-                    node.querySelectorAll?.(".adsbygoogle").forEach((el) => {
-                        el.remove();
-                        log("Removed nested ad:", el);
+                    return instance;
+                }
+            });
+        }
+
+        function createNodeProxy(node) {
+            return async (...args) => {
+                const result = await node(...args);
+                return new Proxy(result, {
+                    get: (t, p) => p === 'component' ? createComponentProxy(t.component) : Reflect.get(t, p)
+                });
+            };
+        }
+
+        function createKitProxy(kit) {
+            if (!kit?.start) return [false, kit];
+            return [
+                true,
+                new Proxy(kit, {
+                    get(target, prop) {
+                        if (prop === 'start') {
+                            return function(...args) {
+                                const [nodes, , opts] = args;
+                                if (nodes?.nodes && opts?.node_ids) {
+                                    const idx = opts.node_ids[1];
+                                    if (nodes.nodes[idx]) {
+                                        nodes.nodes[idx] = createNodeProxy(nodes.nodes[idx]);
+                                    }
+                                }
+                                return kit.start.apply(this, args);
+                            };
+                        }
+                        return Reflect.get(target, prop);
+                    }
+                })
+            ];
+        }
+
+        function setupInterception() {
+            const origPromiseAll = unsafeWindow.Promise.all;
+            let intercepted = false;
+
+            unsafeWindow.Promise.all = async function(promises) {
+                const result = origPromiseAll.call(this, promises);
+                if (!intercepted) {
+                    intercepted = true;
+                    return await new Promise((resolve) => {
+                        result.then(([kit, app, ...args]) => {
+                            if (debug) console.log('[Debug]: Set up Interception!');
+
+                            const [success, created] = createKitProxy(kit);
+                            if (success) {
+                                unsafeWindow.Promise.all = origPromiseAll;
+                                if (debug) console.log('[Debug]: Kit ready', created, app);
+                            }
+                            resolve([created, app, ...args]);
+                        });
                     });
                 }
-            }
+                return await result;
+            };
         }
-    });
 
-    // Start observing the document for changes
-    observer.observe(unsafeWindow.document.documentElement, { childList: true, subtree: true });
+        setupInterception();
+
+        const ob = new MutationObserver(mutations => {
+            for (const m of mutations) {
+                for (const node of m.addedNodes) {
+                    if (node.nodeType === 1) {
+                        if (node.classList?.contains("adsbygoogle")) {
+                            node.remove();
+                            if (debug) console.log('[Debug]: Removed injected ad', node);
+                        }
+                        node.querySelectorAll?.('.adsbygoogle, [id*=ad], [id*=container]').forEach((el) => {
+                            el.remove();
+                            if (debug) console.log('[Debug]: Removed nested ad', el);
+                        });
+                        if (node.matches('.button.large.accessBtn.pos-relative.svelte-bv7qlp') && node.textContent.includes('Go To Destination')) {
+                            triggerBypass('gtd');
+                            if (debug) console.log('[Debug] Captcha bypassed via GTD:', node);
+                        }
+                    }
+                }
+            }
+        });
+        ob.observe(document.documentElement, { childList: true, subtree: true });
     }
-
-    // ---------------------------
-    // Auto-detect host
-    // ---------------------------
-    if(host.includes("key.volcano.wtf")) handleVolcano();
-    else if(host.includes("work.ink")) handleWorkInk();
 })();
