@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Volcano & Work.ink Bypass
 // @namespace    http://tampermonkey.net/
-// @version      1.0.1.0
+// @version      1.0.2.0
 // @description  Bypass Volcano and Work.ink links with unified panel
 // @author       Difz25x + Remake
 // @match        https://key.volcano.wtf/*
