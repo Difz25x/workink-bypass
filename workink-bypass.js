@@ -122,23 +122,33 @@
             this.versionEl = null;
             this.creditEl = null;
             this.langBtns = [];
+            this.themeBtns = [];
+            this.cycleBtns = [];
             this.currentMessageKey = null;
             this.currentType = 'info';
             this.currentReplacements = {};
             this.isMinimized = false;
             this.body = null;
             this.minimizeBtn = null;
+            this.theme = currentTheme;
+            this.rgbInterval = null; // For RGB animation
             this.init();
         }
 
         init() {
             this.createPanel();
             this.setupEventListeners();
+            // Start RGB animation if RGB theme is selected
+            if (currentTheme === 'rgb') {
+                this.startRGBAnimation();
+            }
         }
 
         createPanel() {
             this.container = document.createElement('div');
             this.shadow = this.container.attachShadow({ mode: 'closed' });
+
+            const currentThemeData = themes[currentTheme] || themes['orange']; // Fallback to orange if theme is invalid
 
             const style = document.createElement('style');
             style.textContent = `
@@ -154,12 +164,13 @@
                 }
 
                 .panel {
-                    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+                    background: var(--background);
                     border-radius: 16px;
-                    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+                    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
                     overflow: hidden;
                     animation: slideIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-                    transition: all 0.3s ease;
+                    transition: background 0.5s ease, border-color 0.5s ease;
+                    border: 2px solid var(--primary);
                 }
 
                 @keyframes slideIn {
@@ -174,7 +185,7 @@
                 }
 
                 .header {
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
                     padding: 16px 20px;
                     position: relative;
                     overflow: hidden;
@@ -184,26 +195,30 @@
                 }
 
                 .header::before {
-                    content: '';
+                    content: '🎃';
                     position: absolute;
-                    top: -50%;
-                    left: -50%;
-                    width: 200%;
-                    height: 200%;
-                    background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
-                    animation: shine 3s infinite;
+                    top: 10px;
+                    left: 10px;
+                    font-size: 24px;
+                    opacity: 0.7;
+                    z-index: 1;
                 }
 
-                @keyframes shine {
-                    0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
-                    100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+                .header::after {
+                    content: '👻';
+                    position: absolute;
+                    top: 10px;
+                    right: 50px;
+                    font-size: 24px;
+                    opacity: 0.7;
+                    z-index: 1;
                 }
 
                 .title {
                     font-size: 20px;
                     font-weight: 700;
                     color: #fff;
-                    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+                    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
                     position: relative;
                     z-index: 1;
                 }
@@ -227,13 +242,13 @@
                 }
 
                 .minimize-btn:hover {
-                    background: rgba(255,255,255,0.3);
+                    background: rgba(var(--primary-rgba));
                     transform: scale(1.1);
                 }
 
                 .status-section {
                     padding: 20px;
-                    border-bottom: 1px solid rgba(255,255,255,0.05);
+                    border-bottom: 1px solid rgba(255,255,255,0.1);
                 }
 
                 .status-box {
@@ -242,6 +257,7 @@
                     padding: 16px;
                     position: relative;
                     overflow: hidden;
+                    border: 1px solid rgba(var(--primary-rgba));
                 }
 
                 .status-box::before {
@@ -251,7 +267,7 @@
                     left: 0;
                     width: 100%;
                     height: 100%;
-                    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.03), transparent);
+                    background: linear-gradient(90deg, transparent, rgba(var(--primary-rgba)), transparent);
                     animation: shimmer 2s infinite;
                 }
 
@@ -286,6 +302,8 @@
                 .status-dot.success { background: #4ade80; }
                 .status-dot.warning { background: #facc15; }
                 .status-dot.error { background: #f87171; }
+                .status-dot.waiting { background: #d66515ff; }
+                .status-dot.bypassing { background: #f65cf1ff; }
 
                 .status-text {
                     color: #fff;
@@ -307,9 +325,73 @@
                     opacity: 0;
                 }
 
+                .theme-section {
+                    padding: 16px 20px;
+                    border-bottom: 1px solid rgba(255,255,255,0.1);
+                }
+
+                .theme-toggle {
+                    display: flex;
+                    gap: 10px;
+                }
+
+                .theme-btn {
+                    flex: 1;
+                    background: rgba(255,255,255,0.05);
+                    border: 2px solid rgba(var(--primary-rgba));
+                    color: #fff;
+                    padding: 10px;
+                    border-radius: 10px;
+                    cursor: pointer;
+                    font-weight: 600;
+                    font-size: 14px;
+                    transition: all 0.2s;
+                    text-transform: uppercase;
+                    letter-spacing: 1px;
+                }
+
+                .theme-btn:hover {
+                    background: rgba(var(--primary-rgba));
+                    transform: translateY(-2px);
+                }
+
+                .theme-btn.active {
+                    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+                    border-color: var(--primary);
+                    box-shadow: 0 4px 15px rgba(var(--primary-rgba));
+                }
+
+                .cycle-btn {
+                    flex: 1;
+                    border: 2px solid rgba(var(--primary-rgba));
+                    color: #fff;
+                    padding: 10px;
+                    border-radius: 10px;
+                    cursor: pointer;
+                    font-weight: 600;
+                    font-size: 14px;
+                    transition: all 0.2s;
+                    text-transform: uppercase;
+                    letter-spacing: 1px;
+                    background: linear-gradient(45deg, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000);
+                    background-size: 600% 600%;
+                    animation: rgb-cycle 3s linear infinite;
+                    border-color: #ff0000;
+                }
+
+                @keyframes rgb-cycle {
+                    0% { background-position: 0% 50%; }
+                    16.67% { background-position: 100% 50%; }
+                    33.33% { background-position: 200% 50%; }
+                    50% { background-position: 300% 50%; }
+                    66.67% { background-position: 400% 50%; }
+                    83.33% { background-position: 500% 50%; }
+                    100% { background-position: 600% 50%; }
+                }
+
                 .language-section {
                     padding: 16px 20px;
-                    border-bottom: 1px solid rgba(255,255,255,0.05);
+                    border-bottom: 1px solid rgba(255,255,255,0.1);
                 }
 
                 .lang-toggle {
@@ -320,7 +402,7 @@
                 .lang-btn {
                     flex: 1;
                     background: rgba(255,255,255,0.05);
-                    border: 2px solid rgba(255,255,255,0.1);
+                    border: 2px solid rgba(var(--primary-rgba));
                     color: #fff;
                     padding: 10px;
                     border-radius: 10px;
@@ -333,23 +415,23 @@
                 }
 
                 .lang-btn:hover {
-                    background: rgba(255,255,255,0.1);
+                    background: rgba(var(--primary-rgba));
                     transform: translateY(-2px);
                 }
 
                 .lang-btn.active {
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                    border-color: #667eea;
-                    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+                    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+                    border-color: var(--primary);
+                    box-shadow: 0 4px 15px rgba(var(--primary-rgba));
                 }
 
                 .info-section {
                     padding: 16px 20px;
-                    background: rgba(0,0,0,0.2);
+                    background: rgba(0,0,0,0.3);
                 }
 
                 .version {
-                    color: rgba(255,255,255,0.6);
+                    color: rgba(255,255,255,0.7);
                     font-size: 12px;
                     font-weight: 500;
                     margin-bottom: 8px;
@@ -357,7 +439,7 @@
                 }
 
                 .credit {
-                    color: rgba(255,255,255,0.6);
+                    color: rgba(255,255,255,0.7);
                     font-size: 12px;
                     font-weight: 500;
                     text-align: center;
@@ -365,7 +447,7 @@
                 }
 
                 .credit-author {
-                    color: #667eea;
+                    color: var(--primary);
                     font-weight: 700;
                 }
 
@@ -377,14 +459,13 @@
                 }
 
                 .links a {
-                    color: #667eea;
+                    color: var(--primary);
                     text-decoration: none;
                     transition: all 0.2s;
                 }
 
                 .links a:hover {
-                    color: #764ba2;
-                    text-decoration: underline;
+                    color: var(--secondary);
                 }
 
                 @media (max-width: 480px) {
@@ -398,6 +479,13 @@
             `;
 
             this.shadow.appendChild(style);
+
+            // Set initial theme variables on shadow root for closed shadow DOM
+            document.documentElement.style.setProperty('--primary', currentThemeData.primary);
+            document.documentElement.style.setProperty('--secondary', currentThemeData.secondary);
+            document.documentElement.style.setProperty('--primary-rgba', currentThemeData.primaryRGBA);
+            document.documentElement.style.setProperty('--secondary-rgba', currentThemeData.secondaryRGBA);
+            document.documentElement.style.setProperty('--background', currentThemeData.background);
 
             const panelHTML = `
                 <div class="panel-container">
@@ -415,10 +503,19 @@
                             </div>
                         </div>
                         <div class="panel-body" id="panel-body">
+                            <div class="theme-section">
+                                <div class="theme-toggle">
+                                    <button class="theme-btn ${currentTheme === 'orange' ? 'active' : ''}" data-theme="orange">Orange</button>
+                                    <button class="theme-btn ${currentTheme === 'purple' ? 'active' : ''}" data-theme="purple">Purple</button>
+                                    <button class="theme-btn ${currentTheme === 'blue' ? 'active' : ''}" data-theme="blue">Blue</button>
+                                    <button class="cycle-btn ${currentTheme === 'rgb' ? 'active' : ''}" data-theme="rgb">RGB</button>
+                                </div>
+                            </div>
                             <div class="language-section">
                                 <div class="lang-toggle">
-                                    <button class="lang-btn ${currentLanguage === 'vi' ? 'active' : ''}" data-lang="vi">Tiếng Việt</button>
                                     <button class="lang-btn ${currentLanguage === 'en' ? 'active' : ''}" data-lang="en">English</button>
+                                    <button class="lang-btn ${currentLanguage === 'vi' ? 'active' : ''}" data-lang="vi">Tiếng Việt</button>
+                                    <button class="lang-btn ${currentLanguage === 'id' ? 'active' : ''}" data-lang="id">Indonesia</button>
                                 </div>
                             </div>
                             <div class="info-section">
@@ -427,8 +524,8 @@
                                     ${t('madeBy')}
                                 </div>
                                 <div class="links">
-                                    <a href="https://www.youtube.com/@dyydeptry" target="_blank">YouTube</a>
-                                    <a href="https://discord.gg/DWyEfeBCzY" target="_blank">Discord</a>
+                                    <a>YouTube</a>
+                                    <a>Discord</a>
                                 </div>
                             </div>
                         </div>
@@ -446,8 +543,12 @@
             this.versionEl = this.shadow.querySelector('#version');
             this.creditEl = this.shadow.querySelector('#credit');
             this.langBtns = Array.from(this.shadow.querySelectorAll('.lang-btn'));
+            this.themeBtns = Array.from(this.shadow.querySelectorAll('.theme-btn'));
+            this.cycleBtns = Array.from(this.shadow.querySelectorAll('.cycle-btn'));
+
             this.body = this.shadow.querySelector('#panel-body');
             this.minimizeBtn = this.shadow.querySelector('#minimize-btn');
+
 
             document.documentElement.appendChild(this.container);
         }
@@ -457,6 +558,20 @@
                 btn.addEventListener('click', () => {
                     currentLanguage = btn.dataset.lang;
                     this.updateLanguage();
+                });
+            });
+
+            this.themeBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    currentTheme = btn.dataset.theme;
+                    this.updateTheme();
+                });
+            });
+
+            this.cycleBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    currentTheme = btn.dataset.theme;
+                    this.updateTheme();
                 });
             });
 
@@ -483,11 +598,66 @@
             }
         }
 
+        updateTheme() {
+            localStorage.setItem('theme', currentTheme);
+            this.theme = currentTheme;
+
+            this.themeBtns.forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.theme === currentTheme);
+            });
+            this.cycleBtns.forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.theme === currentTheme);
+            });
+
+            const currentThemeData = themes[this.theme] || themes['orange']; // Fallback to orange if theme is invalid
+
+            if (currentThemeData.isRGB) {
+                this.startRGBAnimation();
+            } else {
+                this.stopRGBAnimation();
+                document.documentElement.style.setProperty('--primary', currentThemeData.primary);
+                document.documentElement.style.setProperty('--secondary', currentThemeData.secondary);
+                document.documentElement.style.setProperty('--primary-rgba', currentThemeData.primaryRGBA);
+                document.documentElement.style.setProperty('--secondary-rgba', currentThemeData.secondaryRGBA);
+                document.documentElement.style.setProperty('--background', currentThemeData.background);
+            }
+        }
+
+        startRGBAnimation() {
+            if (this.rgbInterval) return; // Already running
+
+            const colors = [
+                { primary: '#ff0000', secondary: '#590d0dff', primaryRGBA: '255, 0, 0, 1', secondaryRGBA: '0, 255, 0, 1', background: 'linear-gradient(415deg, #000000 0%, #ff0000 100%)' },
+                { primary: '#ffff00', secondary: '#5e500aff', primaryRGBA: '255, 255, 0, 1', secondaryRGBA: '0, 0, 255, 1', background: 'linear-gradient(415deg, #000000 0%, #ffff00 100%)' },
+                { primary: '#00ff00', secondary: '#1b460bff', primaryRGBA: '0, 255, 0, 1', secondaryRGBA: '255, 0, 255, 1', background: 'linear-gradient(415deg, #000000 0%, #00ff00 100%)' },
+                { primary: '#00ffff', secondary: '#0a4349ff', primaryRGBA: '0, 255, 255, 1', secondaryRGBA: '255, 0, 0, 1', background: 'linear-gradient(415deg, #000000 0%, #00ffff 100%)' },
+                { primary: '#0000ff', secondary: '#0a0d51ff', primaryRGBA: '0, 0, 255, 1', secondaryRGBA: '255, 255, 0, 1', background: 'linear-gradient(415deg, #000000 0%, #0000ff 100%)' },
+                { primary: '#ff00ff', secondary: '#580c53ff', primaryRGBA: '255, 0, 255, 1', secondaryRGBA: '0, 255, 255, 1', background: 'linear-gradient(415deg, #000000 0%, #ff00ff 100%)' }
+            ];
+
+            let index = 0;
+            this.rgbInterval = setInterval(() => {
+                const color = colors[index];
+                document.documentElement.style.setProperty('--primary', color.primary);
+                document.documentElement.style.setProperty('--secondary', color.secondary);
+                document.documentElement.style.setProperty('--primary-rgba', color.primaryRGBA);
+                document.documentElement.style.setProperty('--secondary-rgba', color.secondaryRGBA);
+                document.documentElement.style.setProperty('--background', color.background);
+                index = (index + 1) % colors.length;
+            }, 500); // Change every 500ms
+        }
+
+        stopRGBAnimation() {
+            if (this.rgbInterval) {
+                clearInterval(this.rgbInterval);
+                this.rgbInterval = null;
+            }
+        }
+
         show(messageKey, type = 'info', replacements = {}) {
             this.currentMessageKey = messageKey;
             this.currentType = type;
             this.currentReplacements = replacements;
-
             const message = t(messageKey, replacements);
             this.statusText.textContent = message;
             this.statusDot.className = `status-dot ${type}`;
