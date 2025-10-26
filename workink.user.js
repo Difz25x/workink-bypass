@@ -1,13 +1,13 @@
 // ==UserScript==
-// @name         WorkInk Bypass Loader
-// @namespace    https://github.com/Difz25x
-// @version      1.3.0
-// @description  Try to fixing Captcha Detector
-// @author       Difz25x
+// @name         Volcano & Work.ink Bypass
+// @namespace    http://tampermonkey.net/
+// @version      1.0.0.0
+// @description  Bypass Volcano and Work.ink links with unified panel
+// @author       Difz25x + Remake
 // @match        https://key.volcano.wtf/*
 // @match        https://work.ink/*
-// @grant        none
-// @run-at       document-end
+// @run-at       document-start
+// @grant        unsafeWindow
 // @downloadURL  https://github.com/Difz25x/workink-bypass/raw/main/workink.user.js
 // @updateURL    https://github.com/Difz25x/workink-bypass/raw/main/workink.user.js
 // @require      https://github.com/Difz25x/workink-bypass/raw/main/workink-bypass.js
