@@ -44,7 +44,7 @@
     // Translations
     const translations = {
         vi: {
-            title: "Difz25x Bypass ( Kiểm tra )",
+            title: "Difz25x Bypass",
             pleaseSolveCaptcha: "Vui lòng giải CAPTCHA để tiếp tục",
             captchaSuccess: "CAPTCHA đã thành công",
             redirectingToWork: "Đang qua Work.ink...",
@@ -59,11 +59,11 @@
             bypassSuccess: "Bypass thành công, chờ {time}s...",
             backToCheckpoint: "Đang về lại Checkpoint...",
             captchaSuccessBypassing: "CAPTCHA đã thành công, đang bypass...",
-            version: "Phiên bản v1.0.2.1",
+            version: "Phiên bản v1.0.2.3",
             madeBy: "Được tạo bởi Difz25x (dựa trên IHaxU)"
         },
         en: {
-            title: "Difz25x Bypass ( Testing )",
+            title: "Difz25x Bypas",
             pleaseSolveCaptcha: "Please solve the CAPTCHA to continue",
             captchaSuccess: "CAPTCHA solved successfully",
             redirectingToWork: "Redirecting to Work.ink...",
@@ -78,11 +78,11 @@
             bypassSuccess: "Bypass successful, waiting {time}s...",
             backToCheckpoint: "Returning to checkpoint...",
             captchaSuccessBypassing: "CAPTCHA solved successfully, bypassing...",
-            version: "Version v1.0.2.1",
+            version: "Version v1.0.2.3",
             madeBy: "Made by Difz25x (based on IHaxU)"
         },
         id: {
-            title: "Bypass Difz25x ( Pengujian )",
+            title: "Bypass Difz25x",
             pleaseSolveCaptcha: "Silakan selesaikan CAPTCHA untuk melanjutkan",
             captchaSuccess: "CAPTCHA berhasil dipecahkan",
             redirectingToWork: "Mengalihkan ke Work.ink...",
@@ -97,7 +97,7 @@
             bypassSuccess: "Bypass berhasil, menunggu {time}s...",
             backToCheckpoint: "Kembali ke titik pemeriksaan...",
             captchaSuccessBypassing: "CAPTCHA berhasil dipecahkan, melewati...",
-            version: "Versi v1.0.2.1",
+            version: "Versi v1.0.2.3",
             madeBy: "Dibuat oleh Difz25x (berdasarkan IHaxU)"
         },
     };
@@ -122,33 +122,23 @@
             this.versionEl = null;
             this.creditEl = null;
             this.langBtns = [];
-            this.themeBtns = [];
-            this.cycleBtns = [];
             this.currentMessageKey = null;
             this.currentType = 'info';
             this.currentReplacements = {};
             this.isMinimized = false;
             this.body = null;
             this.minimizeBtn = null;
-            this.theme = currentTheme;
-            this.rgbInterval = null; // For RGB animation
             this.init();
         }
 
         init() {
             this.createPanel();
             this.setupEventListeners();
-            // Start RGB animation if RGB theme is selected
-            if (currentTheme === 'rgb') {
-                this.startRGBAnimation();
-            }
         }
 
         createPanel() {
             this.container = document.createElement('div');
             this.shadow = this.container.attachShadow({ mode: 'closed' });
-
-            const currentThemeData = themes[currentTheme] || themes['orange']; // Fallback to orange if theme is invalid
 
             const style = document.createElement('style');
             style.textContent = `
@@ -164,13 +154,12 @@
                 }
 
                 .panel {
-                    background: var(--background);
+                    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
                     border-radius: 16px;
-                    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+                    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
                     overflow: hidden;
                     animation: slideIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-                    transition: background 0.5s ease, border-color 0.5s ease;
-                    border: 2px solid var(--primary);
+                    transition: all 0.3s ease;
                 }
 
                 @keyframes slideIn {
@@ -185,7 +174,7 @@
                 }
 
                 .header {
-                    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
                     padding: 16px 20px;
                     position: relative;
                     overflow: hidden;
@@ -195,30 +184,26 @@
                 }
 
                 .header::before {
-                    content: '🎃';
+                    content: '';
                     position: absolute;
-                    top: 10px;
-                    left: 10px;
-                    font-size: 24px;
-                    opacity: 0.7;
-                    z-index: 1;
+                    top: -50%;
+                    left: -50%;
+                    width: 200%;
+                    height: 200%;
+                    background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+                    animation: shine 3s infinite;
                 }
 
-                .header::after {
-                    content: '👻';
-                    position: absolute;
-                    top: 10px;
-                    right: 50px;
-                    font-size: 24px;
-                    opacity: 0.7;
-                    z-index: 1;
+                @keyframes shine {
+                    0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+                    100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
                 }
 
                 .title {
                     font-size: 20px;
                     font-weight: 700;
                     color: #fff;
-                    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+                    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
                     position: relative;
                     z-index: 1;
                 }
@@ -242,13 +227,13 @@
                 }
 
                 .minimize-btn:hover {
-                    background: rgba(var(--primary-rgba));
+                    background: rgba(255,255,255,0.3);
                     transform: scale(1.1);
                 }
 
                 .status-section {
                     padding: 20px;
-                    border-bottom: 1px solid rgba(255,255,255,0.1);
+                    border-bottom: 1px solid rgba(255,255,255,0.05);
                 }
 
                 .status-box {
@@ -257,7 +242,6 @@
                     padding: 16px;
                     position: relative;
                     overflow: hidden;
-                    border: 1px solid rgba(var(--primary-rgba));
                 }
 
                 .status-box::before {
@@ -267,7 +251,7 @@
                     left: 0;
                     width: 100%;
                     height: 100%;
-                    background: linear-gradient(90deg, transparent, rgba(var(--primary-rgba)), transparent);
+                    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.03), transparent);
                     animation: shimmer 2s infinite;
                 }
 
@@ -302,8 +286,6 @@
                 .status-dot.success { background: #4ade80; }
                 .status-dot.warning { background: #facc15; }
                 .status-dot.error { background: #f87171; }
-                .status-dot.waiting { background: #d66515ff; }
-                .status-dot.bypassing { background: #f65cf1ff; }
 
                 .status-text {
                     color: #fff;
@@ -325,73 +307,9 @@
                     opacity: 0;
                 }
 
-                .theme-section {
-                    padding: 16px 20px;
-                    border-bottom: 1px solid rgba(255,255,255,0.1);
-                }
-
-                .theme-toggle {
-                    display: flex;
-                    gap: 10px;
-                }
-
-                .theme-btn {
-                    flex: 1;
-                    background: rgba(255,255,255,0.05);
-                    border: 2px solid rgba(var(--primary-rgba));
-                    color: #fff;
-                    padding: 10px;
-                    border-radius: 10px;
-                    cursor: pointer;
-                    font-weight: 600;
-                    font-size: 14px;
-                    transition: all 0.2s;
-                    text-transform: uppercase;
-                    letter-spacing: 1px;
-                }
-
-                .theme-btn:hover {
-                    background: rgba(var(--primary-rgba));
-                    transform: translateY(-2px);
-                }
-
-                .theme-btn.active {
-                    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-                    border-color: var(--primary);
-                    box-shadow: 0 4px 15px rgba(var(--primary-rgba));
-                }
-
-                .cycle-btn {
-                    flex: 1;
-                    border: 2px solid rgba(var(--primary-rgba));
-                    color: #fff;
-                    padding: 10px;
-                    border-radius: 10px;
-                    cursor: pointer;
-                    font-weight: 600;
-                    font-size: 14px;
-                    transition: all 0.2s;
-                    text-transform: uppercase;
-                    letter-spacing: 1px;
-                    background: linear-gradient(45deg, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000);
-                    background-size: 600% 600%;
-                    animation: rgb-cycle 3s linear infinite;
-                    border-color: #ff0000;
-                }
-
-                @keyframes rgb-cycle {
-                    0% { background-position: 0% 50%; }
-                    16.67% { background-position: 100% 50%; }
-                    33.33% { background-position: 200% 50%; }
-                    50% { background-position: 300% 50%; }
-                    66.67% { background-position: 400% 50%; }
-                    83.33% { background-position: 500% 50%; }
-                    100% { background-position: 600% 50%; }
-                }
-
                 .language-section {
                     padding: 16px 20px;
-                    border-bottom: 1px solid rgba(255,255,255,0.1);
+                    border-bottom: 1px solid rgba(255,255,255,0.05);
                 }
 
                 .lang-toggle {
@@ -402,7 +320,7 @@
                 .lang-btn {
                     flex: 1;
                     background: rgba(255,255,255,0.05);
-                    border: 2px solid rgba(var(--primary-rgba));
+                    border: 2px solid rgba(255,255,255,0.1);
                     color: #fff;
                     padding: 10px;
                     border-radius: 10px;
@@ -415,23 +333,23 @@
                 }
 
                 .lang-btn:hover {
-                    background: rgba(var(--primary-rgba));
+                    background: rgba(255,255,255,0.1);
                     transform: translateY(-2px);
                 }
 
                 .lang-btn.active {
-                    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-                    border-color: var(--primary);
-                    box-shadow: 0 4px 15px rgba(var(--primary-rgba));
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    border-color: #667eea;
+                    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
                 }
 
                 .info-section {
                     padding: 16px 20px;
-                    background: rgba(0,0,0,0.3);
+                    background: rgba(0,0,0,0.2);
                 }
 
                 .version {
-                    color: rgba(255,255,255,0.7);
+                    color: rgba(255,255,255,0.6);
                     font-size: 12px;
                     font-weight: 500;
                     margin-bottom: 8px;
@@ -439,7 +357,7 @@
                 }
 
                 .credit {
-                    color: rgba(255,255,255,0.7);
+                    color: rgba(255,255,255,0.6);
                     font-size: 12px;
                     font-weight: 500;
                     text-align: center;
@@ -447,7 +365,7 @@
                 }
 
                 .credit-author {
-                    color: var(--primary);
+                    color: #667eea;
                     font-weight: 700;
                 }
 
@@ -459,13 +377,14 @@
                 }
 
                 .links a {
-                    color: var(--primary);
+                    color: #667eea;
                     text-decoration: none;
                     transition: all 0.2s;
                 }
 
                 .links a:hover {
-                    color: var(--secondary);
+                    color: #764ba2;
+                    text-decoration: underline;
                 }
 
                 @media (max-width: 480px) {
@@ -479,13 +398,6 @@
             `;
 
             this.shadow.appendChild(style);
-
-            // Set initial theme variables on shadow root for closed shadow DOM
-            document.documentElement.style.setProperty('--primary', currentThemeData.primary);
-            document.documentElement.style.setProperty('--secondary', currentThemeData.secondary);
-            document.documentElement.style.setProperty('--primary-rgba', currentThemeData.primaryRGBA);
-            document.documentElement.style.setProperty('--secondary-rgba', currentThemeData.secondaryRGBA);
-            document.documentElement.style.setProperty('--background', currentThemeData.background);
 
             const panelHTML = `
                 <div class="panel-container">
@@ -503,19 +415,10 @@
                             </div>
                         </div>
                         <div class="panel-body" id="panel-body">
-                            <div class="theme-section">
-                                <div class="theme-toggle">
-                                    <button class="theme-btn ${currentTheme === 'orange' ? 'active' : ''}" data-theme="orange">Orange</button>
-                                    <button class="theme-btn ${currentTheme === 'purple' ? 'active' : ''}" data-theme="purple">Purple</button>
-                                    <button class="theme-btn ${currentTheme === 'blue' ? 'active' : ''}" data-theme="blue">Blue</button>
-                                    <button class="cycle-btn ${currentTheme === 'rgb' ? 'active' : ''}" data-theme="rgb">RGB</button>
-                                </div>
-                            </div>
                             <div class="language-section">
                                 <div class="lang-toggle">
-                                    <button class="lang-btn ${currentLanguage === 'en' ? 'active' : ''}" data-lang="en">English</button>
                                     <button class="lang-btn ${currentLanguage === 'vi' ? 'active' : ''}" data-lang="vi">Tiếng Việt</button>
-                                    <button class="lang-btn ${currentLanguage === 'id' ? 'active' : ''}" data-lang="id">Indonesia</button>
+                                    <button class="lang-btn ${currentLanguage === 'en' ? 'active' : ''}" data-lang="en">English</button>
                                 </div>
                             </div>
                             <div class="info-section">
@@ -524,8 +427,8 @@
                                     ${t('madeBy')}
                                 </div>
                                 <div class="links">
-                                    <a>YouTube</a>
-                                    <a>Discord</a>
+                                    <a href="https://www.youtube.com/@dyydeptry" target="_blank">YouTube</a>
+                                    <a href="https://discord.gg/DWyEfeBCzY" target="_blank">Discord</a>
                                 </div>
                             </div>
                         </div>
@@ -543,12 +446,8 @@
             this.versionEl = this.shadow.querySelector('#version');
             this.creditEl = this.shadow.querySelector('#credit');
             this.langBtns = Array.from(this.shadow.querySelectorAll('.lang-btn'));
-            this.themeBtns = Array.from(this.shadow.querySelectorAll('.theme-btn'));
-            this.cycleBtns = Array.from(this.shadow.querySelectorAll('.cycle-btn'));
-
             this.body = this.shadow.querySelector('#panel-body');
             this.minimizeBtn = this.shadow.querySelector('#minimize-btn');
-
 
             document.documentElement.appendChild(this.container);
         }
@@ -558,20 +457,6 @@
                 btn.addEventListener('click', () => {
                     currentLanguage = btn.dataset.lang;
                     this.updateLanguage();
-                });
-            });
-
-            this.themeBtns.forEach(btn => {
-                btn.addEventListener('click', () => {
-                    currentTheme = btn.dataset.theme;
-                    this.updateTheme();
-                });
-            });
-
-            this.cycleBtns.forEach(btn => {
-                btn.addEventListener('click', () => {
-                    currentTheme = btn.dataset.theme;
-                    this.updateTheme();
                 });
             });
 
@@ -598,66 +483,11 @@
             }
         }
 
-        updateTheme() {
-            localStorage.setItem('theme', currentTheme);
-            this.theme = currentTheme;
-
-            this.themeBtns.forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.theme === currentTheme);
-            });
-            this.cycleBtns.forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.theme === currentTheme);
-            });
-
-            const currentThemeData = themes[this.theme] || themes['orange']; // Fallback to orange if theme is invalid
-
-            if (currentThemeData.isRGB) {
-                this.startRGBAnimation();
-            } else {
-                this.stopRGBAnimation();
-                document.documentElement.style.setProperty('--primary', currentThemeData.primary);
-                document.documentElement.style.setProperty('--secondary', currentThemeData.secondary);
-                document.documentElement.style.setProperty('--primary-rgba', currentThemeData.primaryRGBA);
-                document.documentElement.style.setProperty('--secondary-rgba', currentThemeData.secondaryRGBA);
-                document.documentElement.style.setProperty('--background', currentThemeData.background);
-            }
-        }
-
-        startRGBAnimation() {
-            if (this.rgbInterval) return; // Already running
-
-            const colors = [
-                { primary: '#ff0000', secondary: '#590d0dff', primaryRGBA: '255, 0, 0, 1', secondaryRGBA: '0, 255, 0, 1', background: 'linear-gradient(415deg, #000000 0%, #ff0000 100%)' },
-                { primary: '#ffff00', secondary: '#5e500aff', primaryRGBA: '255, 255, 0, 1', secondaryRGBA: '0, 0, 255, 1', background: 'linear-gradient(415deg, #000000 0%, #ffff00 100%)' },
-                { primary: '#00ff00', secondary: '#1b460bff', primaryRGBA: '0, 255, 0, 1', secondaryRGBA: '255, 0, 255, 1', background: 'linear-gradient(415deg, #000000 0%, #00ff00 100%)' },
-                { primary: '#00ffff', secondary: '#0a4349ff', primaryRGBA: '0, 255, 255, 1', secondaryRGBA: '255, 0, 0, 1', background: 'linear-gradient(415deg, #000000 0%, #00ffff 100%)' },
-                { primary: '#0000ff', secondary: '#0a0d51ff', primaryRGBA: '0, 0, 255, 1', secondaryRGBA: '255, 255, 0, 1', background: 'linear-gradient(415deg, #000000 0%, #0000ff 100%)' },
-                { primary: '#ff00ff', secondary: '#580c53ff', primaryRGBA: '255, 0, 255, 1', secondaryRGBA: '0, 255, 255, 1', background: 'linear-gradient(415deg, #000000 0%, #ff00ff 100%)' }
-            ];
-
-            let index = 0;
-            this.rgbInterval = setInterval(() => {
-                const color = colors[index];
-                document.documentElement.style.setProperty('--primary', color.primary);
-                document.documentElement.style.setProperty('--secondary', color.secondary);
-                document.documentElement.style.setProperty('--primary-rgba', color.primaryRGBA);
-                document.documentElement.style.setProperty('--secondary-rgba', color.secondaryRGBA);
-                document.documentElement.style.setProperty('--background', color.background);
-                index = (index + 1) % colors.length;
-            }, 500); // Change every 500ms
-        }
-
-        stopRGBAnimation() {
-            if (this.rgbInterval) {
-                clearInterval(this.rgbInterval);
-                this.rgbInterval = null;
-            }
-        }
-
         show(messageKey, type = 'info', replacements = {}) {
             this.currentMessageKey = messageKey;
             this.currentType = type;
             this.currentReplacements = replacements;
+
             const message = t(messageKey, replacements);
             this.statusText.textContent = message;
             this.statusDot.className = `status-dot ${type}`;
@@ -774,6 +604,8 @@
             }
         }
     }
+
+
     // Handler for WORK.INK
     function handleWorkInk() {
         if (panel) panel.show('pleaseSolveCaptcha', 'info');
@@ -784,13 +616,19 @@
         let onLinkInfoA = undefined;
         let onLinkDestinationA = undefined;
         let bypassTriggered = false;
-        //
+        let destinationReceived = false;
+
         const map = {
             onLI: ["onLinkInfo"],
             onLD: ["onLinkDestination"]
         };
 
         function getFunction(obj, candidates = null) {
+            if (!obj) {
+                if (debug) console.log('[Debug] getFunction: obj is null/undefined');
+                return { fn: null, index: -1, name: null };
+            }
+
             if (candidates) {
                 for (let i = 0; i < candidates.length; i++) {
                     const name = candidates[i];
@@ -830,16 +668,14 @@
             }
 
             setTimeout(() => {
-                for (let i = 2; i <= 5; i++) {
-                    const dest = getFunction(sessionController, map.onLD);
-                    if (dest.fn && !sessionController?.linkDestination) {
-                        if (debug) console.log(`[Debug] Phase ${i}: 5s passed, no destination. Firing fallback burst`);
-                        for (let j = 0; j < 5; j++) {
-                            spoofWorkink();
-                        }
-                    } else {
-                        if (debug) console.log(`[Debug] Phase ${i}: Destination already received, skipping fallback`);
+                const dest = getFunction(sessionController, map.onLD);
+                if (!destinationReceived) {
+                    if (debug) console.log('[Debug] Phase 2: 5s passed, no destination. Firing fallback burst');
+                    for (let i = 0; i < 5; i++) {
+                        spoofWorkink();
                     }
+                } else {
+                    if (debug) console.log('[Debug] Phase 2: Destination already received, skipping fallback');
                 }
             }, 5000);
             if (debug) console.log('[Debug] Waiting for server to send destination data...');
@@ -851,54 +687,73 @@
                 return;
             }
             if (debug) console.log('[Debug] spoof Workink starting, linkInfo:', sessionController.linkInfo);
-            for (const soc of sessionController.linkInfo.socials || []) {
-                if (sendMessageA) {
-                    sendMessageA.call(this, types.ss, { url: soc.url });
-                    if (debug) console.log('[Debug] Faked social:', soc.url);
-                } else {
-                    if (debug) console.warn('[Debug] No send message for social:', soc.url);
+
+            const socials = sessionController.linkInfo.socials || [];
+            if (debug) console.log('[Debug] Total socials to fake:', socials.length);
+
+            for (let i = 0; i < socials.length; i++) {
+                const soc = socials[i];
+                try {
+                    if (sendMessageA) {
+                        sendMessageA.call(this, types.ss, { url: soc.url });
+                        if (debug) console.log(`[Debug] Faked social [${i+1}/${socials.length}]:`, soc.url);
+                    } else {
+                        if (debug) console.warn(`[Debug] No send message for social [${i+1}/${socials.length}]:`, soc.url);
+                    }
+                } catch (e) {
+                    if (debug) console.error(`[Debug] Error faking social [${i+1}/${socials.length}]:`, soc.url, e);
                 }
             }
-            for (const monetization of sessionController.linkInfo.monetizations || []) {
-                let type, payload;
-                switch (monetization) {
-                    case 22:
-                        sendMessageA && sendMessageA.call(this, types.mo, { type: 'readArticles2', payload: { event: 'read' } });
-                        if (debug) console.log('[Debug] Faked readArticles2');
-                        break;
-                    case 25:
-                        type = 'operaGX'; payload = { event: 'installClicked' };
-                        sendMessageA && sendMessageA.call(this, types.mo, { type: 'operaGX', payload: { event: 'start' } });
-                        fetch('https://work.ink/_api/v2/callback/operaGX', {
-                            method: 'POST',
-                            mode: 'no-cors',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ noteligible: true })
-                        }).catch((e) => { if (debug) console.warn('[Debug] operaGX fetch failed:', e); });
-                        if (debug) console.log('[Debug] Faked operaGX');
-                        break;
-                    case 34:
-                        type = 'norton'; payload = { event: 'installClicked' };
-                        sendMessageA && sendMessageA.call(this, types.mo, { type: 'norton', payload: { event: 'start' } });
-                        if (debug) console.log('[Debug] Faked norton install');
-                        break;
-                    case 71:
-                        type = 'externalArticles'; payload = { event: 'installClicked' };
-                        sendMessageA && sendMessageA.call(this, types.mo, { type: 'externalArticles', payload: { event: 'start' } });
-                        if (debug) console.log('[Debug] Faked externalArticles');
-                        break;
-                    case 45:
-                        sendMessageA && sendMessageA.call(this, types.mo, { type: 'pdfeditor', payload: { event: 'installed' } });
-                        if (debug) console.log('[Debug] Faked pdfeditor install');
-                        break;
-                    case 57:
-                        sendMessageA && sendMessageA.call(this, types.mo, { type: 'betterdeals', payload: { event: 'installed' } });
-                        if (debug) console.log('[Debug] Faked betterdeals install');
-                        break;
-                    default:
-                        if (debug) console.log('[Debug] Unknown monetization:', monetization);
+
+            const monetizations = sessionController.linkInfo.monetizations || [];
+            if (debug) console.log('[Debug] Total monetizations to fake:', monetizations.length);
+
+            for (let i = 0; i < monetizations.length; i++) {
+                const monetization = monetizations[i];
+                try {
+                    switch (monetization) {
+                        case 22:
+                            sendMessageA && sendMessageA.call(this, types.mo, { type: 'readArticles2', payload: { event: 'read' } });
+                            if (debug) console.log(`[Debug] Faked readArticles2 [${i+1}/${monetizations.length}]`);
+                            break;
+                        case 25:
+                            sendMessageA && sendMessageA.call(this, types.mo, { type: 'operaGX', payload: { event: 'start' } });
+                            sendMessageA && sendMessageA.call(this, types.mo, { type: 'operaGX', payload: { event: 'installClicked' } });
+                            fetch('https://work.ink/_api/v2/callback/operaGX', {
+                                method: 'POST',
+                                mode: 'no-cors',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ noteligible: true })
+                            }).catch((e) => { if (debug) console.warn('[Debug] operaGX fetch failed:', e); });
+                            if (debug) console.log(`[Debug] Faked operaGX [${i+1}/${monetizations.length}]`);
+                            break;
+                        case 34:
+                            sendMessageA && sendMessageA.call(this, types.mo, { type: 'norton', payload: { event: 'start' } });
+                            sendMessageA && sendMessageA.call(this, types.mo, { type: 'norton', payload: { event: 'installClicked' } });
+                            if (debug) console.log(`[Debug] Faked norton [${i+1}/${monetizations.length}]`);
+                            break;
+                        case 71:
+                            sendMessageA && sendMessageA.call(this, types.mo, { type: 'externalArticles', payload: { event: 'start' } });
+                            sendMessageA && sendMessageA.call(this, types.mo, { type: 'externalArticles', payload: { event: 'installClicked' } });
+                            if (debug) console.log(`[Debug] Faked externalArticles [${i+1}/${monetizations.length}]`);
+                            break;
+                        case 45:
+                            sendMessageA && sendMessageA.call(this, types.mo, { type: 'pdfeditor', payload: { event: 'installed' } });
+                            if (debug) console.log(`[Debug] Faked pdfeditor [${i+1}/${monetizations.length}]`);
+                            break;
+                        case 57:
+                            sendMessageA && sendMessageA.call(this, types.mo, { type: 'betterdeals', payload: { event: 'installed' } });
+                            if (debug) console.log(`[Debug] Faked betterdeals [${i+1}/${monetizations.length}]`);
+                            break;
+                        default:
+                            if (debug) console.log(`[Debug] Unknown monetization [${i+1}/${monetizations.length}]:`, monetization);
+                    }
+                } catch (e) {
+                    if (debug) console.error(`[Debug] Error faking monetization [${i+1}/${monetizations.length}]:`, monetization, e);
                 }
             }
+
+            if (debug) console.log('[Debug] spoof Workink completed');
         }
 
         function trm() {
@@ -960,6 +815,7 @@
             return function(...args) {
                 const [data] = args;
                 const secondsPassed = (Date.now() - startTime) / 1000;
+                destinationReceived = true;
                 if (debug) console.log('[Debug] Destination data:', data);
 
                 let waitTimeSeconds = otherTime;
@@ -976,12 +832,6 @@
                 }
                 return onLinkDestinationA ? onLinkDestinationA.apply(this, args): undefined;
             };
-        }
-
-        function triggerBp() {
-            if (sessionController?.linkDestination) {
-                createDestinationProxy().call(sessionController, sessionController.linkDestination);
-            }
         }
 
         function setupProxies() {
@@ -1103,30 +953,76 @@
             };
         }
 
+        window.googletag = {cmd: [], _loaded_: true};
+
+        const blockedClasses = [
+            "adsbygoogle",
+            "adsense-wrapper",
+            "inline-ad",
+            "gpt-billboard-container"
+        ];
+
+        const blockedIds = [
+            "billboard-1",
+            "billboard-2",
+            "billboard-3",
+            "sidebar-ad-1",
+            "skyscraper-ad-1"
+        ];
+
         setupInterception();
 
         const ob = new MutationObserver(mutations => {
             for (const m of mutations) {
                 for (const node of m.addedNodes) {
                     if (node.nodeType === 1) {
-                        if (node.classList?.contains("adsbygoogle")) {
-                            node.remove();
-                            if (debug) console.log('[Debug]: Removed injected ad', node);
-                        }
-                        node.querySelectorAll?.('.adsbygoogle, [id*=ad], [id*=container]').forEach((el) => {
-                            el.remove();
-                            if (debug) console.log('[Debug]: Removed nested ad', el);
+                        blockedClasses.forEach((cls) => {
+                            if (node.classList?.contains(cls)) {
+                                node.remove();
+                                if (debug) console.log('[Debug]: Removed ad by class:', cls, node);
+                            }
+                            node.querySelectorAll?.(`.${cls}`).forEach((el) => {
+                                el.remove();
+                                if (debug) console.log('[Debug]: Removed nested ad by class:', cls, el);
+                            });
                         });
+
+                        blockedIds.forEach((id) => {
+                            if (node.id === id) {
+                                node.remove();
+                                if (debug) console.log('[Debug]: Removed ad by id:', id, node);
+                            }
+                            node.querySelectorAll?.(`#${id}`).forEach((el) => {
+                                el.remove();
+                                if (debug) console.log('[Debug]: Removed nested ad by id:', id, el);
+                            });
+                        });
+
                         if (node.matches('.button.large.accessBtn.pos-relative.svelte-bv7qlp') && node.textContent.includes('Go To Destination')) {
                             if (debug) console.log('[Debug] GTD button detected');
 
                             if (!bypassTriggered) {
-                                if (sessionController && getFunction(sessionController, map.onLD).fn) {
-                                    triggerBypass('gtd');
-                                    if (debug) console.log('[Debug] Captcha bypassed via GTD:', node);
-                                } else {
-                                    if (debug) console.log('[Debug] GTD detected but sessionController not ready, waiting for TR instead');
+                                if (debug) console.log('[Debug] GTD: Waiting for linkInfo...');
+
+                                let gtdRetryCount = 0;
+
+                                function checkAndTriggerGTD() {
+                                    const ctrl = sessionController;
+                                    const dest = getFunction(ctrl, map.onLD);
+
+                                    if (ctrl && ctrl.linkInfo && dest.fn) {
+                                        triggerBypass('gtd');
+                                        if (debug) console.log('[Debug] Captcha bypassed via GTD after', gtdRetryCount, 'seconds');
+                                    } else {
+                                        gtdRetryCount++;
+                                        if (debug) console.log(`[Debug] GTD retry ${gtdRetryCount}s: Still waiting for linkInfo...`);
+                                        if (panel) panel.show('pleaseReload', 'info');
+                                        setTimeout(checkAndTriggerGTD, 1000);
+                                    }
                                 }
+
+                                checkAndTriggerGTD();
+
                             } else {
                                 if (debug) console.log('[Debug] GTD ignored: bypass already triggered via TR');
                             }
