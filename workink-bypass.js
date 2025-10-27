@@ -63,7 +63,7 @@
             madeBy: "Được tạo bởi Difz25x (dựa trên IHaxU)"
         },
         en: {
-            title: "Difz25x Bypas",
+            title: "Difz25x Bypass",
             pleaseSolveCaptcha: "Please solve the CAPTCHA to continue",
             captchaSuccess: "CAPTCHA solved successfully",
             redirectingToWork: "Redirecting to Work.ink...",
@@ -82,7 +82,7 @@
             madeBy: "Made by Difz25x (based on IHaxU)"
         },
         id: {
-            title: "Bypass Difz25x",
+            title: "Difz25x Bypass",
             pleaseSolveCaptcha: "Silakan selesaikan CAPTCHA untuk melanjutkan",
             captchaSuccess: "CAPTCHA berhasil dipecahkan",
             redirectingToWork: "Mengalihkan ke Work.ink...",
