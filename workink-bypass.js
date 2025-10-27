@@ -60,7 +60,7 @@
             backToCheckpoint: "Đang về lại Checkpoint...",
             captchaSuccessBypassing: "CAPTCHA đã thành công, đang bypass...",
             loaderBtn: "Nút không được tải, vui lòng tải lại trang",
-            version: "Phiên bản v1.0.3.2",
+            version: "Phiên bản v1.0.3.3",
             madeBy: "Được tạo bởi Difz25x (dựa trên IHaxU)"
         },
         en: {
@@ -80,7 +80,7 @@
             backToCheckpoint: "Returning to checkpoint...",
             captchaSuccessBypassing: "CAPTCHA solved successfully, bypassing...",
             loaderBtn: "Button not loaded, please reload page",
-            version: "Version v1.0.3.2",
+            version: "Version v1.0.3.3",
             madeBy: "Made by Difz25x (based on IHaxU)"
         },
         id: {
@@ -100,7 +100,7 @@
             backToCheckpoint: "Kembali ke titik pemeriksaan...",
             captchaSuccessBypassing: "CAPTCHA berhasil dipecahkan, melewati...",
             loaderBtn: "Button tidak terload, silahkan Reload Page",
-            version: "Versi v1.0.3.2",
+            version: "Versi v1.0.3.3",
             madeBy: "Dibuat oleh Difz25x (berdasarkan IHaxU)"
         },
     };
@@ -835,8 +835,8 @@
             if (debug) console.log('[Debug] trigger Bypass via:', reason);
             if (panel) panel.show('captchaSuccessBypassing', 'success');
 
-            if (debug) console.log('[Debug] Phase 1: Firing initial 5x spoof burst');
-            for (let i = 0; i < 5; i++) {
+            if (debug) console.log('[Debug] Phase 1: Firing initial 10x spoof burst');
+            for (let i = 0; i < 10; i++) {
                 spoofWorkink();
             }
 
@@ -844,7 +844,7 @@
                 const dest = getFunction(sessionController, map.onLD);
                 if (!destinationReceived) {
                     if (debug) console.log('[Debug] Phase 2: 5s passed, no destination. Firing fallback burst');
-                    for (let i = 0; i < 5; i++) {
+                    for (let i = 0; i < 10; i++) {
                         spoofWorkink();
                     }
                 } else {
