@@ -44,7 +44,7 @@
     // Translations
     const translations = {
         vi: {
-            title: "Difz25x Bypass",
+            title: "Difz25x Bypass ( Kiểm tra )",
             pleaseSolveCaptcha: "Vui lòng giải CAPTCHA để tiếp tục",
             captchaSuccess: "CAPTCHA đã thành công",
             redirectingToWork: "Đang qua Work.ink...",
@@ -59,11 +59,12 @@
             bypassSuccess: "Bypass thành công, chờ {time}s...",
             backToCheckpoint: "Đang về lại Checkpoint...",
             captchaSuccessBypassing: "CAPTCHA đã thành công, đang bypass...",
-            version: "Phiên bản v1.0.3.1",
+            loaderBtn: "Nút không được tải, vui lòng tải lại trang",
+            version: "Phiên bản v1.0.3.2",
             madeBy: "Được tạo bởi Difz25x (dựa trên IHaxU)"
         },
         en: {
-            title: "Difz25x Bypass",
+            title: "Difz25x Bypass ( Testing )",
             pleaseSolveCaptcha: "Please solve the CAPTCHA to continue",
             captchaSuccess: "CAPTCHA solved successfully",
             redirectingToWork: "Redirecting to Work.ink...",
@@ -78,11 +79,12 @@
             bypassSuccess: "Bypass successful, waiting {time}s...",
             backToCheckpoint: "Returning to checkpoint...",
             captchaSuccessBypassing: "CAPTCHA solved successfully, bypassing...",
-            version: "Version v1.0.3.1",
+            loaderBtn: "Button not loaded, please reload page",
+            version: "Version v1.0.3.2",
             madeBy: "Made by Difz25x (based on IHaxU)"
         },
         id: {
-            title: "Difz25x Bypass",
+            title: "Bypass Difz25x ( Pengujian )",
             pleaseSolveCaptcha: "Silakan selesaikan CAPTCHA untuk melanjutkan",
             captchaSuccess: "CAPTCHA berhasil dipecahkan",
             redirectingToWork: "Mengalihkan ke Work.ink...",
@@ -97,7 +99,8 @@
             bypassSuccess: "Bypass berhasil, menunggu {time}s...",
             backToCheckpoint: "Kembali ke titik pemeriksaan...",
             captchaSuccessBypassing: "CAPTCHA berhasil dipecahkan, melewati...",
-            version: "Versi v1.0.3.1",
+            loaderBtn: "Button tidak terload, silahkan Reload Page",
+            version: "Versi v1.0.3.2",
             madeBy: "Dibuat oleh Difz25x (berdasarkan IHaxU)"
         },
     };
@@ -1186,7 +1189,7 @@
                                     } else {
                                         gtdRetryCount++;
                                         if (debug) console.log(`[Debug] GTD retry ${gtdRetryCount}s: Still waiting for linkInfo...`);
-                                        if (panel) panel.show('pleaseReload', 'info');
+                                        if (panel) panel.show('loaderBtn', 'info');
                                         setTimeout(checkAndTriggerGTD, 1000);
                                     }
                                 }
