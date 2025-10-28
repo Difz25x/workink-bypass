@@ -44,28 +44,29 @@
     // Translations
     const translations = {
         vi: {
-            title: "Difz25x Bypass ( Kiểm tra )",
-            pleaseSolveCaptcha: "Vui lòng giải CAPTCHA để tiếp tục",
-            captchaSuccess: "CAPTCHA đã thành công",
-            redirectingToWork: "Đang qua Work.ink...",
-            clickingContinue: "Đã click nút Continue",
-            errorClickingContinue: "Lỗi khi click Continue",
-            autoClickCopy: "Đã auto click nút copy key",
-            bypassSuccessCopy: "Bypass thành công, đã Copy Key (bấm 'Cho Phép' nếu có)",
-            errorCopy: "Lỗi khi copy key",
-            copyButtonNotFound: "Không tìm thấy nút copy",
+            title: "Difz25x Bypass",
+            pleaseSolveCaptcha: "Vui lòng hoàn thành CAPTCHA để tiếp tục",
+            captchaSuccess: "CAPTCHA đã được xác minh thành công",
+            redirectingToWork: "Đang chuyển hướng đến Work.ink...",
+            clickingContinue: "Đã nhấp nút Tiếp tục",
+            errorClickingContinue: "Lỗi khi nhấp nút Tiếp tục",
+            autoClickCopy: "Đã tự động nhấp nút sao chép khóa",
+            bypassSuccessCopy: "Bypass thành công! Khóa đã được sao chép (nhấn 'Cho phép' nếu được yêu cầu)",
+            errorCopy: "Lỗi khi sao chép khóa",
+            copyButtonNotFound: "Không tìm thấy nút sao chép",
             waitingCaptcha: "Đang chờ CAPTCHA...",
-            successDetected: "Đã detect success, chuẩn bị click...",
-            bypassSuccess: "Bypass thành công, chờ {time}s...",
-            backToCheckpoint: "Đang về lại Checkpoint...",
-            captchaSuccessBypassing: "CAPTCHA đã thành công, đang bypass...",
-            loaderBtn: "Nút không được tải, vui lòng tải lại trang",
-            version: "Phiên bản v1.0.3.3",
+            successDetected: "Đã phát hiện thành công, chuẩn bị nhấp...",
+            bypassSuccess: "Bypass thành công, vui lòng đợi {time}s...",
+            backToCheckpoint: "Đang quay lại điểm kiểm tra...",
+            captchaSuccessBypassing: "CAPTCHA đã thành công, đang tiến hành bypass...",
+            loaderBtn: "Nút chưa tải, vui lòng tải lại trang",
+            expiredLink: "Liên kết của bạn không hợp lệ hoặc đã hết hạn, được chuyển hướng đến đây. Hãy lấy liên kết mới.",
+            version: "Phiên bản v1.0.3.4",
             madeBy: "Được tạo bởi Difz25x (dựa trên IHaxU)"
         },
         en: {
-            title: "Difz25x Bypass ( Testing )",
-            pleaseSolveCaptcha: "Please solve the CAPTCHA to continue",
+            title: "Difz25x Bypass",
+            pleaseSolveCaptcha: "Please complete the CAPTCHA to continue",
             captchaSuccess: "CAPTCHA solved successfully",
             redirectingToWork: "Redirecting to Work.ink...",
             clickingContinue: "Continue button clicked",
@@ -79,17 +80,18 @@
             bypassSuccess: "Bypass successful, waiting {time}s...",
             backToCheckpoint: "Returning to checkpoint...",
             captchaSuccessBypassing: "CAPTCHA solved successfully, bypassing...",
-            loaderBtn: "Button not loaded, please reload page",
-            version: "Version v1.0.3.3",
+            expiredLink: "Your link is invalid or expired, redirected here. Get a new one.",
+            loaderBtn: "Button not loaded, please reload the page",
+            version: "Version v1.0.3.4",
             madeBy: "Made by Difz25x (based on IHaxU)"
         },
         id: {
-            title: "Bypass Difz25x ( Pengujian )",
+            title: "Difz25x Bypass",
             pleaseSolveCaptcha: "Silakan selesaikan CAPTCHA untuk melanjutkan",
-            captchaSuccess: "CAPTCHA berhasil dipecahkan",
+            captchaSuccess: "CAPTCHA berhasil diselesaikan",
             redirectingToWork: "Mengalihkan ke Work.ink...",
             clickingContinue: "Tombol Lanjutkan diklik",
-            errorClickingContinue: "Kesalahan saat mengklik tombol Lanjutkan",
+            errorClickingContinue: "Terjadi kesalahan saat mengklik tombol Lanjutkan",
             autoClickCopy: "Otomatis mengklik tombol salin kunci",
             bypassSuccessCopy: "Bypass berhasil! Kunci disalin (klik 'Izinkan' jika diminta)",
             errorCopy: "Kesalahan saat menyalin kunci",
@@ -98,9 +100,10 @@
             successDetected: "Keberhasilan terdeteksi, bersiap untuk mengklik...",
             bypassSuccess: "Bypass berhasil, menunggu {time}s...",
             backToCheckpoint: "Kembali ke titik pemeriksaan...",
-            captchaSuccessBypassing: "CAPTCHA berhasil dipecahkan, melewati...",
-            loaderBtn: "Button tidak terload, silahkan Reload Page",
-            version: "Versi v1.0.3.3",
+            captchaSuccessBypassing: "CAPTCHA berhasil, sedang melakukan bypass...",
+            loaderBtn: "Tombol belum terload, silakan muat ulang halaman",
+            expiredLink: "Link kamu tidak valid atau sudah kedaluwarsa, diarahkan ke sini. Dapatkan yang baru.",
+            version: "Versi v1.0.3.4",
             madeBy: "Dibuat oleh Difz25x (berdasarkan IHaxU)"
         },
     };
@@ -149,7 +152,7 @@
 
         createPanel() {
             this.container = document.createElement('div');
-            this.shadow = this.container.attachShadow({ mode: 'closed' });
+            this.shadow = this.container.attachShadow({ mode: 'open' });
 
             const currentThemeData = themes[currentTheme] || themes['orange']; // Fallback to orange if theme is invalid
 
@@ -161,9 +164,10 @@
                     position: fixed;
                     top: 20px;
                     right: 20px;
-                    width: 400px;
+                    width: 500px;
                     z-index: 2147483647;
                     font-family: 'Segoe UI', Roboto, 'Noto Sans', Arial, sans-serif;
+                    cursor: move;
                 }
 
                 .panel {
@@ -251,7 +255,6 @@
 
                 .status-section {
                     padding: 20px;
-                    border-bottom: 1px solid rgba(255,255,255,0.1);
                 }
 
                 .status-box {
@@ -272,11 +275,6 @@
                     height: 100%;
                     background: linear-gradient(90deg, transparent, rgba(var(--primary-rgba)), transparent);
                     animation: shimmer 2s infinite;
-                }
-
-                @keyframes shimmer {
-                    0% { transform: translateX(-100%); }
-                    100% { transform: translateX(100%); }
                 }
 
                 .status-content {
@@ -314,6 +312,11 @@
                     font-weight: 500;
                     flex: 1;
                     line-height: 1.5;
+                }
+
+                @keyframes shimmer {
+                    0% { transform: translateX(-100%); }
+                    100% { transform: translateX(100%); }
                 }
 
                 .panel-body {
@@ -541,8 +544,10 @@
             this.shadow.appendChild(wrapper.firstElementChild);
 
             this.panel = this.shadow.querySelector('.panel');
+            this.panelContainer = this.shadow.querySelector('.panel-container');
             this.statusText = this.shadow.querySelector('#status-text');
             this.statusDot = this.shadow.querySelector('#status-dot');
+            this.bypassText = this.shadow.querySelector('#bypass-text');
             this.versionEl = this.shadow.querySelector('#version');
             this.creditEl = this.shadow.querySelector('#credit');
             this.langBtns = Array.from(this.shadow.querySelectorAll('.lang-btn'));
@@ -584,6 +589,8 @@
                 this.minimizeBtn.textContent = this.isMinimized ? '+' : '−';
             });
         }
+
+
 
         updateLanguage() {
             localStorage.setItem('lang', currentLanguage);
@@ -675,7 +682,12 @@
 
     // Check host and run corresponding handlers
     if (host.includes("key.volcano.wtf")) handleVolcano();
+    else if (host.includes("volcano.wtf/instruction")) handleVolcanoV2();
     else if (host.includes("work.ink")) handleWorkInk();
+
+    function handleVolcanoV2() {
+        if (panel) panel.show('expiredLink', 'info');
+    }
 
     // Handler for VOLCANO
     function handleVolcano() {
@@ -781,6 +793,7 @@
 
     // Handler for WORK.INK
     function handleWorkInk() {
+        if (panel) panel.bypassShow("Work Ink");
         if (panel) panel.show('pleaseSolveCaptcha', 'info');
 
         const startTime = Date.now();
@@ -984,6 +997,14 @@
             }, 1000);
         }
 
+        function checkUrl(url) {
+            if (url.includes('42rk6hcq') || url.includes('ito4wckq') || url.includes('pzarvhq1')) {
+                return true
+            } else {
+                return false
+            }
+        }
+
         function createDestinationProxy() {
             return function(...args) {
                 const [data] = args;
@@ -991,10 +1012,13 @@
                 destinationReceived = true;
                 if (debug) console.log('[Debug] Destination data:', data);
 
-                let waitTimeSeconds = otherTime;
+                let waitTimeSeconds = 0
                 const url = location.href;
-                if (url.includes('42rk6hcq') || url.includes('ito4wckq') || url.includes('pzarvhq1')) {
+                const isValidUrl = checkUrl(url)
+                if (isValidUrl) {
                     waitTimeSeconds = volcanoTime;
+                } else {
+                    waitTimeSeconds = otherTime;
                 }
 
                 if (secondsPassed >= waitTimeSeconds) {
@@ -1140,7 +1164,8 @@
             "billboard-2",
             "billboard-3",
             "sidebar-ad-1",
-            "skyscraper-ad-1"
+            "skyscraper-ad-1",
+            "google_image_div"
         ];
 
         setupInterception();
