@@ -61,7 +61,7 @@
             captchaSuccessBypassing: "CAPTCHA đã thành công, đang tiến hành bypass...",
             loaderBtn: "Nút chưa tải, vui lòng tải lại trang",
             expiredLink: "Liên kết của bạn không hợp lệ hoặc đã hết hạn, được chuyển hướng đến đây. Hãy lấy liên kết mới.",
-            version: "Phiên bản v1.0.3.4",
+            version: "Phiên bản v1.0.3.5",
             madeBy: "Được tạo bởi Difz25x (dựa trên IHaxU)"
         },
         en: {
@@ -82,7 +82,7 @@
             captchaSuccessBypassing: "CAPTCHA solved successfully, bypassing...",
             expiredLink: "Your link is invalid or expired, redirected here. Get a new one.",
             loaderBtn: "Button not loaded, please reload the page",
-            version: "Version v1.0.3.4",
+            version: "Version v1.0.3.5",
             madeBy: "Made by Difz25x (based on IHaxU)"
         },
         id: {
@@ -103,7 +103,7 @@
             captchaSuccessBypassing: "CAPTCHA berhasil, sedang melakukan bypass...",
             loaderBtn: "Tombol belum terload, silakan muat ulang halaman",
             expiredLink: "Link kamu tidak valid atau sudah kedaluwarsa, diarahkan ke sini. Dapatkan yang baru.",
-            version: "Versi v1.0.3.4",
+            version: "Versi v1.0.3.5",
             madeBy: "Dibuat oleh Difz25x (berdasarkan IHaxU)"
         },
     };
@@ -847,23 +847,19 @@
             bypassTriggered = true;
             if (debug) console.log('[Debug] trigger Bypass via:', reason);
             if (panel) panel.show('captchaSuccessBypassing', 'success');
-
-            if (debug) console.log('[Debug] Phase 1: Firing initial 10x spoof burst');
-            for (let i = 0; i < 10; i++) {
-                spoofWorkink();
-            }
-
-            setTimeout(() => {
-                const dest = getFunction(sessionController, map.onLD);
-                if (!destinationReceived) {
-                    if (debug) console.log('[Debug] Phase 2: 10s passed, no destination. Firing fallback burst');
-                    for (let i = 0; i < 10; i++) {
-                        spoofWorkink();
-                    }
-                } else {
-                    if (debug) console.log('[Debug] Phase 2: Destination already received, skipping fallback');
+            
+            let retryCount = 0;
+            function keepSpoofing() {
+                if (destinationReceived) {
+                    if (debug) console.log('[Debug] Destination received, stopping spoofing after', retryCount, 'attempts');
+                    return;
                 }
-            }, 10000);
+                retryCount++;
+                if (debug) console.log(`[Debug] Spoofing attempt #${retryCount}`);
+                spoofWorkink();
+                setTimeout(keepSpoofing, 3000);
+            }
+            keepSpoofing();
             if (debug) console.log('[Debug] Waiting for server to send destination data...');
         }
 
