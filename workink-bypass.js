@@ -3,7 +3,7 @@
 
     const host = location.hostname; // check host
     const debug = true // enable debug logs (console)
-    const volcanoTime = 37
+    const volcanoTime = 38
     const otherTime = 5
 
     let currentLanguage = localStorage.getItem('lang') || 'en'; // default language: vi/en
