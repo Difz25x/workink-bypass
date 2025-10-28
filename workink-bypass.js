@@ -843,14 +843,14 @@
             setTimeout(() => {
                 const dest = getFunction(sessionController, map.onLD);
                 if (!destinationReceived) {
-                    if (debug) console.log('[Debug] Phase 2: 5s passed, no destination. Firing fallback burst');
+                    if (debug) console.log('[Debug] Phase 2: 10s passed, no destination. Firing fallback burst');
                     for (let i = 0; i < 10; i++) {
                         spoofWorkink();
                     }
                 } else {
                     if (debug) console.log('[Debug] Phase 2: Destination already received, skipping fallback');
                 }
-            }, 5000);
+            }, 10000);
             if (debug) console.log('[Debug] Waiting for server to send destination data...');
         }
 
