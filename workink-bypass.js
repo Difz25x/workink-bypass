@@ -942,18 +942,26 @@
             if (debug) console.log('[Debug] spoof Workink completed');
         }
 
-        function trm() {
-            return function(...a) {
-                const [msgType] = a;
-                if (msgType === types.ad) {
-                    if (debug) console.log('[Debug] trm: Skipping adblocker message');
+        function createSendMessageProxy() {
+            return function(...args) {
+                const pt = args[0];
+                const pd = args[1];
+                
+                if (pt !== types.ping) {
+                    if (debug) console.log('[Debug] Message sent:', pt, pd);
+                }
+                
+                if (pt === types.ad) {
+                    if (debug) console.log('[Debug] Blocking adblocker message');
                     return;
                 }
-                if (sessionController?.linkInfo && msgType === types.tr) {
+                
+                if (sessionController?.linkInfo && pt == types.tr) {
                     if (debug) console.log('[Debug] Captcha bypassed via TR');
                     triggerBypass('tr');
                 }
-                return sendMessageA ? sendMessageA.apply(this, a): undefined;
+                
+                return sendMessageA ? sendMessageA.apply(this, args) : undefined;
             };
         }
 
@@ -1044,7 +1052,7 @@
 
             try {
                 Object.defineProperty(sessionController, send.name, {
-                    get: trm,
+                    get: createSendMessageProxy,
                     set: v => (sendMessageA = v),
                     configurable: true
                 });
