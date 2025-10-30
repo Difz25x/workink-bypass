@@ -8,6 +8,7 @@
 
     let currentLanguage = localStorage.getItem('lang') || 'en'; // default language: en/vi/id
     let currentTheme = localStorage.getItem('theme') || 'orange';
+    let currentTime = localStorage.getItem('waitTime') || 24;
 
     const themes = {
         orange: {
@@ -164,7 +165,7 @@
             this.attachEvents();
 
             // set default wait time based on host, but do not start timer yet
-            const defaultTime = otherTime;
+            const defaultTime = parseInt(localStorage.getItem('waitTime')) || otherTime;
             this.setWaitValue(defaultTime);
         }
 
@@ -404,13 +405,13 @@
                             </div>
 
                             <div class="slider-wrap">
-                                <input type="range" id="wait-slider" class="slider" min="1" max="30" step="1" value="15" />
-                                <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
                                 <div class="wait-footer">
                                     <div>0s</div>
                                     <div>30s</div>
                                 </div>
+                                <input type="range" id="wait-slider" class="slider" min="1" max="30" step="1" value="15" />
                             </div>
+                            <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
                         </div>
 
                         <div class="footer">
@@ -456,11 +457,15 @@
         }
 
         attachEvents() {
+
+            this.waitSlider.value = currentTime || 24;
+            this.setWaitValue(currentTime || 24);
             // slider change: update wait time and restart
             this.waitSlider.addEventListener('input', (e) => {
                 const sec = parseInt(e.target.value);
                 console.log('Slider input:', sec);
                 this.setWaitValue(sec);
+                localStorage.setItem('waitTime', sec);
             });
 
             this.langBtn.addEventListener('click', (e) => {
