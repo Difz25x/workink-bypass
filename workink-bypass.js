@@ -3,10 +3,10 @@
 
     const host = location.hostname; // check host
     const debug = true // enable debug logs (console)
-    const volcanoTime = 38
-    const otherTime = 5
+    const otherTime = 24
+    const normalTime = 60 // normal time if do without bypass
 
-    let currentLanguage = localStorage.getItem('lang') || 'en'; // default language: vi/en
+    let currentLanguage = localStorage.getItem('lang') || 'en'; // default language: en/vi/id
     let currentTheme = localStorage.getItem('theme') || 'orange';
 
     const themes = {
@@ -44,13 +44,15 @@
     // Translations
     const translations = {
         vi: {
-            title: "Difz25x Bypass",
+            title: "Difz25x",
             pleaseSolveCaptcha: "Vui lòng hoàn thành CAPTCHA để tiếp tục",
             captchaSuccess: "CAPTCHA đã được xác minh thành công",
             redirectingToWork: "Đang chuyển hướng đến Work.ink...",
             clickingContinue: "Đã nhấp nút Tiếp tục",
             errorClickingContinue: "Lỗi khi nhấp nút Tiếp tục",
             autoClickCopy: "Đã tự động nhấp nút sao chép khóa",
+            gettingLinkDestination: "Lấy đích liên kết thành công!",
+            gettingLinkInfo: "Lấy thông tin liên kết thành công!",
             bypassSuccessCopy: "Bypass thành công! Khóa đã được sao chép (nhấn 'Cho phép' nếu được yêu cầu)",
             errorCopy: "Lỗi khi sao chép khóa",
             copyButtonNotFound: "Không tìm thấy nút sao chép",
@@ -61,51 +63,55 @@
             captchaSuccessBypassing: "CAPTCHA đã thành công, đang tiến hành bypass...",
             loaderBtn: "Nút chưa tải, vui lòng tải lại trang",
             expiredLink: "Liên kết của bạn không hợp lệ hoặc đã hết hạn, được chuyển hướng đến đây. Hãy lấy liên kết mới.",
-            version: "Phiên bản v1.0.3.5",
+            version: "Phiên bản 1.0.4.0",
             madeBy: "Được tạo bởi Difz25x (dựa trên IHaxU)"
         },
         en: {
-            title: "Difz25x Bypass",
+            title: "Difz25x",
             pleaseSolveCaptcha: "Please complete the CAPTCHA to continue",
             captchaSuccess: "CAPTCHA solved successfully",
             redirectingToWork: "Redirecting to Work.ink...",
             clickingContinue: "Continue button clicked",
             errorClickingContinue: "Error clicking the Continue button",
             autoClickCopy: "Automatically clicked the copy key button",
+            gettingLinkDestination: "Getting link destination successful!",
+            gettingLinkInfo: "Getting link info successful!",
             bypassSuccessCopy: "Bypass successful! Key copied (click 'Allow' if prompted)",
             errorCopy: "Error copying the key",
             copyButtonNotFound: "Copy button not found",
             waitingCaptcha: "Waiting for CAPTCHA...",
             successDetected: "Success detected, preparing to click...",
-            bypassSuccess: "Bypass successful, waiting {time}s...",
+            bypassSuccess: "Bypass successful, bypassing waiting...",
             backToCheckpoint: "Returning to checkpoint...",
             captchaSuccessBypassing: "CAPTCHA solved successfully, bypassing...",
             expiredLink: "Your link is invalid or expired, redirected here. Get a new one.",
             loaderBtn: "Button not loaded, please reload the page",
-            version: "Version v1.0.3.5",
+            version: "Version 1.0.4.0",
             madeBy: "Made by Difz25x (based on IHaxU)"
         },
         id: {
-            title: "Difz25x Bypass",
-            pleaseSolveCaptcha: "Silakan selesaikan CAPTCHA untuk melanjutkan",
+            title: "Difz25x",
+            pleaseSolveCaptcha: "Harap lengkapi CAPTCHA untuk melanjutkan",
             captchaSuccess: "CAPTCHA berhasil diselesaikan",
             redirectingToWork: "Mengalihkan ke Work.ink...",
             clickingContinue: "Tombol Lanjutkan diklik",
-            errorClickingContinue: "Terjadi kesalahan saat mengklik tombol Lanjutkan",
+            errorClickingContinue: "Kesalahan mengklik tombol Lanjutkan",
             autoClickCopy: "Otomatis mengklik tombol salin kunci",
+            gettingLinkDestination: "Mendapatkan tujuan tautan berhasil!",
+            gettingLinkInfo: "Mendapatkan info tautan berhasil!",
             bypassSuccessCopy: "Bypass berhasil! Kunci disalin (klik 'Izinkan' jika diminta)",
-            errorCopy: "Kesalahan saat menyalin kunci",
+            errorCopy: "Kesalahan menyalin kunci",
             copyButtonNotFound: "Tombol salin tidak ditemukan",
             waitingCaptcha: "Menunggu CAPTCHA...",
-            successDetected: "Keberhasilan terdeteksi, bersiap untuk mengklik...",
-            bypassSuccess: "Bypass berhasil, menunggu {time}s...",
-            backToCheckpoint: "Kembali ke titik pemeriksaan...",
-            captchaSuccessBypassing: "CAPTCHA berhasil, sedang melakukan bypass...",
-            loaderBtn: "Tombol belum terload, silakan muat ulang halaman",
-            expiredLink: "Link kamu tidak valid atau sudah kedaluwarsa, diarahkan ke sini. Dapatkan yang baru.",
-            version: "Versi v1.0.3.5",
+            successDetected: "Keberhasilan terdeteksi, mempersiapkan klik...",
+            bypassSuccess: "Bypass berhasil, melewati waktu tunggu...",
+            backToCheckpoint: "Kembali ke checkpoint...",
+            captchaSuccessBypassing: "CAPTCHA berhasil diselesaikan, melewati...",
+            expiredLink: "Tautan Anda tidak valid atau kedaluwarsa, dialihkan ke sini. Dapatkan yang baru.",
+            loaderBtn: "Tombol belum dimuat, harap muat ulang halaman",
+            version: "Versi 1.0.4.0",
             madeBy: "Dibuat oleh Difz25x (berdasarkan IHaxU)"
-        },
+        }
     };
 
     // Translation function
@@ -117,551 +123,494 @@
         return text;
     }
 
+    function log(...args) {
+        if (debug) console.log('[DEBUG]', ...args);
+    }
+
     // Bypass Panel (UI)
     class BypassPanel {
         constructor() {
             this.container = null;
             this.shadow = null;
             this.panel = null;
+
             this.statusText = null;
             this.statusDot = null;
+
+            this.timeSavedEl = null;
+            this.redirectingEl = null;
+
+            this.waitSlider = null;
+            this.waitValueEl = null;
+            this.progressFill = null;
+
             this.versionEl = null;
             this.creditEl = null;
-            this.langBtns = [];
-            this.themeBtns = [];
-            this.cycleBtns = [];
-            this.currentMessageKey = null;
-            this.currentType = 'info';
-            this.currentReplacements = {};
-            this.isMinimized = false;
-            this.body = null;
-            this.minimizeBtn = null;
-            this.theme = currentTheme;
-            this.rgbInterval = null; // For RGB animation
+
+            // Timer state
+            this.timerStart = null;
+            this.timerDuration = null;
+            this.timerRAF = null;
+            this.remaining = 0;
+            this.isRunning = false;
+
+            this.savedTime = 0; // example "time saved" counter
+
             this.init();
         }
 
         init() {
             this.createPanel();
-            this.setupEventListeners();
-            // Start RGB animation if RGB theme is selected
-            if (currentTheme === 'rgb') {
-                this.startRGBAnimation();
-            }
+            this.attachEvents();
+
+            // set default wait time based on host, but do not start timer yet
+            const defaultTime = otherTime;
+            this.setWaitValue(defaultTime);
         }
 
         createPanel() {
+            // create host container + closed shadow to avoid clash
             this.container = document.createElement('div');
             this.shadow = this.container.attachShadow({ mode: 'open' });
 
-            const currentThemeData = themes[currentTheme] || themes['orange']; // Fallback to orange if theme is invalid
-
             const style = document.createElement('style');
             style.textContent = `
-                * { margin: 0; padding: 0; box-sizing: border-box; }
-
+                :host { all: initial; }
+                * { box-sizing: border-box; font-family: 'Inter', 'Segoe UI', Roboto, Arial, sans-serif; }
                 .panel-container {
                     position: fixed;
-                    top: 20px;
-                    right: 20px;
-                    width: 500px;
+                    bottom: 18px;
+                    right: 18px;
+                    width: 450px;
+                    max-height: 80vh;
                     z-index: 2147483647;
-                    font-family: 'Segoe UI', Roboto, 'Noto Sans', Arial, sans-serif;
-                    cursor: move;
+                    cursor: default;
                 }
-
                 .panel {
-                    background: var(--background);
+                    background: linear-gradient(135deg, #0f1113 0%, #1a1d20 100%);
                     border-radius: 16px;
-                    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
-                    overflow: hidden;
-                    animation: slideIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-                    transition: background 0.5s ease, border-color 0.5s ease;
-                    border: 2px solid var(--primary);
-                }
-
-                @keyframes slideIn {
-                    from {
-                        opacity: 0;
-                        transform: translateX(100px) scale(0.9);
-                    }
-                    to {
-                        opacity: 1;
-                        transform: translateX(0) scale(1);
-                    }
-                }
-
-                .header {
-                    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-                    padding: 16px 20px;
-                    position: relative;
-                    overflow: hidden;
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                }
-
-                .header::before {
-                    content: '🎃';
-                    position: absolute;
-                    top: 10px;
-                    left: 10px;
-                    font-size: 24px;
-                    opacity: 0.7;
-                    z-index: 1;
-                }
-
-                .header::after {
-                    content: '👻';
-                    position: absolute;
-                    top: 10px;
-                    right: 50px;
-                    font-size: 24px;
-                    opacity: 0.7;
-                    z-index: 1;
-                }
-
-                .title {
-                    font-size: 20px;
-                    font-weight: 700;
-                    color: #fff;
-                    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-                    position: relative;
-                    z-index: 1;
-                }
-
-                .minimize-btn {
-                    background: rgba(255,255,255,0.15);
-                    border: none;
-                    color: #fff;
-                    width: 32px;
-                    height: 32px;
-                    border-radius: 50%;
-                    cursor: pointer;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    transition: all 0.2s;
-                    font-size: 20px;
-                    font-weight: 700;
-                    position: relative;
-                    z-index: 1;
-                }
-
-                .minimize-btn:hover {
-                    background: rgba(var(--primary-rgba));
-                    transform: scale(1.1);
-                }
-
-                .status-section {
-                    padding: 20px;
-                }
-
-                .status-box {
-                    background: rgba(255,255,255,0.05);
-                    border-radius: 12px;
                     padding: 16px;
-                    position: relative;
+                    color: #e5e7eb;
+                    box-shadow: 0 12px 40px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.05);
+                    border: 1px solid rgba(255,255,255,0.08);
                     overflow: hidden;
-                    border: 1px solid rgba(var(--primary-rgba));
+                    backdrop-filter: blur(10px);
+                    -webkit-backdrop-filter: blur(10px);
                 }
-
-                .status-box::before {
-                    content: '';
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100%;
-                    background: linear-gradient(90deg, transparent, rgba(var(--primary-rgba)), transparent);
-                    animation: shimmer 2s infinite;
-                }
-
-                .status-content {
-                    display: flex;
+                .header {
+                    display:flex;
                     align-items: center;
-                    gap: 12px;
-                    position: relative;
-                    z-index: 1;
+                    justify-content: space-between;
+                    padding: 8px 6px;
+                    margin-bottom: 8px;
                 }
-
+                .title {
+                    font-weight: 700;
+                    font-size: 16px;
+                    color: #f3f4f6;
+                }
+                .controls {
+                    display: flex;
+                    gap: 8px;
+                }
+                .control-btn {
+                    background: rgba(255,255,255,0.1);
+                    border: 1px solid rgba(255,255,255,0.2);
+                    color: #d7d7d7;
+                    padding: 4px 8px;
+                    border-radius: 6px;
+                    font-size: 11px;
+                    cursor: pointer;
+                    transition: background 0.2s;
+                }
+                .control-btn:hover {
+                    background: rgba(255,255,255,0.2);
+                }
+                .version {
+                    font-size: 11px;
+                    color: rgba(255,255,255,0.45);
+                }
+                .status-section {
+                    margin: 6px 0 12px 0;
+                }
+                .status-box {
+                    background: #121418;
+                    border-radius: 10px;
+                    padding: 12px;
+                    border: 1px solid rgba(255,255,255,0.02);
+                    display:flex;
+                    gap:10px;
+                    align-items:center;
+                }
                 .status-dot {
-                    width: 14px;
-                    height: 14px;
+                    width: 12px;
+                    height: 12px;
                     border-radius: 50%;
-                    animation: pulse 2s ease-in-out infinite;
-                    box-shadow: 0 0 12px currentColor;
+                    background: #60a5fa;
+                    box-shadow: 0 0 8px rgba(58,130,247,0.18);
                     flex-shrink: 0;
                 }
-
-                @keyframes pulse {
-                    0%, 100% { opacity: 1; transform: scale(1); }
-                    50% { opacity: 0.7; transform: scale(1.15); }
-                }
-
-                .status-dot.info { background: #60a5fa; }
-                .status-dot.success { background: #4ade80; }
-                .status-dot.warning { background: #facc15; }
-                .status-dot.error { background: #f87171; }
-                .status-dot.waiting { background: #d66515ff; }
-                .status-dot.bypassing { background: #f65cf1ff; }
-
                 .status-text {
-                    color: #fff;
-                    font-size: 14px;
-                    font-weight: 500;
-                    flex: 1;
-                    line-height: 1.5;
+                    font-size: 13px;
+                    color: #e6e7e8;
+                    line-height: 1.3;
                 }
 
-                @keyframes shimmer {
-                    0% { transform: translateX(-100%); }
-                    100% { transform: translateX(100%); }
+                .grid-2 {
+                    display:flex;
+                    gap:12px;
+                    margin: 12px 0;
                 }
-
-                .panel-body {
-                    max-height: 500px;
-                    overflow: hidden;
-                    transition: all 0.3s ease;
-                    opacity: 1;
-                }
-
-                .panel-body.hidden {
-                    max-height: 0;
-                    opacity: 0;
-                }
-
-                .theme-section {
-                    padding: 16px 20px;
-                    border-bottom: 1px solid rgba(255,255,255,0.1);
-                }
-
-                .theme-toggle {
-                    display: flex;
-                    gap: 10px;
-                }
-
-                .theme-btn {
-                    flex: 1;
-                    background: rgba(255,255,255,0.05);
-                    border: 2px solid rgba(var(--primary-rgba));
-                    color: #fff;
-                    padding: 10px;
+                .info-card {
+                    flex:1;
+                    background: #0e1012;
                     border-radius: 10px;
-                    cursor: pointer;
-                    font-weight: 600;
-                    font-size: 14px;
-                    transition: all 0.2s;
-                    text-transform: uppercase;
-                    letter-spacing: 1px;
+                    padding: 12px;
+                    text-align:center;
+                    border: 1px solid rgba(255,255,255,0.02);
                 }
-
-                .theme-btn:hover {
-                    background: rgba(var(--primary-rgba));
-                    transform: translateY(-2px);
-                }
-
-                .theme-btn.active {
-                    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-                    border-color: var(--primary);
-                    box-shadow: 0 4px 15px rgba(var(--primary-rgba));
-                }
-
-                .cycle-btn {
-                    flex: 1;
-                    border: 2px solid rgba(var(--primary-rgba));
-                    color: #fff;
-                    padding: 10px;
-                    border-radius: 10px;
-                    cursor: pointer;
-                    font-weight: 600;
-                    font-size: 14px;
-                    transition: all 0.2s;
-                    text-transform: uppercase;
-                    letter-spacing: 1px;
-                    background: linear-gradient(45deg, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000);
-                    background-size: 600% 600%;
-                    animation: rgb-cycle 3s linear infinite;
-                    border-color: #ff0000;
-                }
-
-                @keyframes rgb-cycle {
-                    0% { background-position: 0% 50%; }
-                    16.67% { background-position: 100% 50%; }
-                    33.33% { background-position: 200% 50%; }
-                    50% { background-position: 300% 50%; }
-                    66.67% { background-position: 400% 50%; }
-                    83.33% { background-position: 500% 50%; }
-                    100% { background-position: 600% 50%; }
-                }
-
-                .language-section {
-                    padding: 16px 20px;
-                    border-bottom: 1px solid rgba(255,255,255,0.1);
-                }
-
-                .lang-toggle {
-                    display: flex;
-                    gap: 10px;
-                }
-
-                .lang-btn {
-                    flex: 1;
-                    background: rgba(255,255,255,0.05);
-                    border: 2px solid rgba(var(--primary-rgba));
-                    color: #fff;
-                    padding: 10px;
-                    border-radius: 10px;
-                    cursor: pointer;
-                    font-weight: 600;
-                    font-size: 14px;
-                    transition: all 0.2s;
-                    text-transform: uppercase;
-                    letter-spacing: 1px;
-                }
-
-                .lang-btn:hover {
-                    background: rgba(var(--primary-rgba));
-                    transform: translateY(-2px);
-                }
-
-                .lang-btn.active {
-                    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-                    border-color: var(--primary);
-                    box-shadow: 0 4px 15px rgba(var(--primary-rgba));
-                }
-
-                .info-section {
-                    padding: 16px 20px;
-                    background: rgba(0,0,0,0.3);
-                }
-
-                .version {
-                    color: rgba(255,255,255,0.7);
-                    font-size: 12px;
-                    font-weight: 500;
-                    margin-bottom: 8px;
-                    text-align: center;
-                }
-
-                .credit {
-                    color: rgba(255,255,255,0.7);
-                    font-size: 12px;
-                    font-weight: 500;
-                    text-align: center;
-                    margin-bottom: 8px;
-                }
-
-                .credit-author {
-                    color: var(--primary);
+                .info-value {
+                    font-size: 28px;
                     font-weight: 700;
+                    color: #dbeafe; /* slightly bluish for emphasis */
                 }
-
-                .links {
-                    display: flex;
-                    justify-content: center;
-                    gap: 16px;
+                .info-label {
                     font-size: 11px;
+                    color: rgba(255,255,255,0.45);
+                    margin-top:6px;
+                    letter-spacing: 1px;
                 }
 
-                .links a {
-                    color: var(--primary);
-                    text-decoration: none;
-                    transition: all 0.2s;
+                .wait-section {
+                    margin-top: 6px;
+                    background: transparent;
+                }
+                .wait-header {
+                    display:flex;
+                    justify-content:space-between;
+                    align-items:center;
+                    margin-bottom:8px;
+                }
+                .wait-title { font-size:13px; color:#d7d7d7; }
+                .wait-value { font-size:13px; color:rgba(255,255,255,0.55); }
+
+                /* slider main */
+                .slider-wrap {
+                    padding: 10px 6px 18px 6px;
+                    background: #0f1113;
+                    border-radius: 10px;
+                    border: 1px solid rgba(255,255,255,0.02);
+                }
+                .slider {
+                    -webkit-appearance: none;
+                    width: 100%;
+                    height: 8px;
+                    background: rgba(255,255,255,0.06);
+                    border-radius: 999px;
+                    outline: none;
+                    position: relative;
+                }
+                .slider::-webkit-slider-thumb {
+                    -webkit-appearance: none;
+                    width: 20px; height: 20px;
+                    border-radius: 50%;
+                    background: #cbd5e1;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+                    border: 3px solid #1f2937;
+                    margin-top: -6px;
+                }
+                .slider::-moz-range-thumb {
+                    width: 20px; height: 20px; border-radius:50%;
+                    background: #cbd5e1; border: 3px solid #1f2937;
                 }
 
-                .links a:hover {
-                    color: var(--secondary);
+                /* progress fill under slider (thin bar) */
+                .progress-track {
+                    height: 6px;
+                    background: rgba(255,255,255,0.03);
+                    border-radius: 6px;
+                    margin-top: 8px;
+                    position: relative;
+                    overflow: hidden;
+                }
+                .progress-fill {
+                    position: absolute;
+                    left: 0;
+                    top: 0;
+                    bottom: 0;
+                    width: 0%;
+                    background: linear-gradient(90deg, #131212ff 0% #111010 100%);
+                    box-shadow: 0 6px 18px rgba(18, 17, 17, 0.12);
+                    border-radius: 6px;
+                    transition: width 0.1s linear;
                 }
 
-                @media (max-width: 480px) {
-                    .panel-container {
-                        top: 10px;
-                        right: 10px;
-                        left: 10px;
-                        width: auto;
-                    }
+                .wait-footer {
+                    display:flex; justify-content:space-between; font-size:11px; color:rgba(255,255,255,0.35);
+                    margin-top:8px;
+                }
+
+                .footer {
+                    margin-top: 10px;
+                    display:flex;
+                    justify-content:space-between;
+                    align-items:center;
+                    font-size:11px;
+                    color:rgba(255,255,255,0.45);
+                }
+
+                @media (max-width: 460px) {
+                    .panel-container { left:12px; right:12px; width:auto; top:12px; }
                 }
             `;
 
             this.shadow.appendChild(style);
 
-            // Set initial theme variables on shadow root for closed shadow DOM
-            document.documentElement.style.setProperty('--primary', currentThemeData.primary);
-            document.documentElement.style.setProperty('--secondary', currentThemeData.secondary);
-            document.documentElement.style.setProperty('--primary-rgba', currentThemeData.primaryRGBA);
-            document.documentElement.style.setProperty('--secondary-rgba', currentThemeData.secondaryRGBA);
-            document.documentElement.style.setProperty('--background', currentThemeData.background);
-
-            const panelHTML = `
-                <div class="panel-container">
+            const html = `
+                <div class="panel-container" id="difz25x-panel">
                     <div class="panel">
                         <div class="header">
-                            <div class="title">${t('title')}</div>
-                            <button class="minimize-btn" id="minimize-btn">−</button>
+                            <div>
+                                <div class="title">${t('title')}</div>
+                            </div>
+                            <div class="controls">
+                                <button id="lang-btn" class="control-btn">EN</button>
+                                <button id="theme-btn" class="control-btn">GRAY</button>
+                            </div>
                         </div>
+
                         <div class="status-section">
                             <div class="status-box">
-                                <div class="status-content">
-                                    <div class="status-dot info" id="status-dot"></div>
-                                    <div class="status-text" id="status-text">${t('pleaseSolveCaptcha')}</div>
+                                <div class="status-dot" id="status-dot"></div>
+                                <div class="status-text" id="status-text">${t('pleaseSolveCaptcha')}</div>
+                            </div>
+                        </div>
+
+                        <div class="grid-2">
+                            <div class="info-card">
+                                <div class="info-value" id="time-saved">--</div>
+                                <div class="info-label">TIME SAVED</div>
+                            </div>
+                            <div class="info-card">
+                                <div class="info-value" id="redirecting-in">--</div>
+                                <div class="info-label">REDIRECTING IN</div>
+                            </div>
+                        </div>
+
+                        <div class="wait-section">
+                            <div class="wait-header">
+                                <div class="wait-title">Wait Time</div>
+                                <div class="wait-value" id="wait-value">15s</div>
+                            </div>
+
+                            <div class="slider-wrap">
+                                <input type="range" id="wait-slider" class="slider" min="1" max="30" step="1" value="15" />
+                                <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+                                <div class="wait-footer">
+                                    <div>0s</div>
+                                    <div>30s</div>
                                 </div>
                             </div>
                         </div>
-                        <div class="panel-body" id="panel-body">
-                            <div class="theme-section">
-                                <div class="theme-toggle">
-                                    <button class="theme-btn ${currentTheme === 'orange' ? 'active' : ''}" data-theme="orange">Orange</button>
-                                    <button class="theme-btn ${currentTheme === 'purple' ? 'active' : ''}" data-theme="purple">Purple</button>
-                                    <button class="theme-btn ${currentTheme === 'blue' ? 'active' : ''}" data-theme="blue">Blue</button>
-                                    <button class="cycle-btn ${currentTheme === 'rgb' ? 'active' : ''}" data-theme="rgb">RGB</button>
-                                </div>
-                            </div>
-                            <div class="language-section">
-                                <div class="lang-toggle">
-                                    <button class="lang-btn ${currentLanguage === 'en' ? 'active' : ''}" data-lang="en">English</button>
-                                    <button class="lang-btn ${currentLanguage === 'vi' ? 'active' : ''}" data-lang="vi">Tiếng Việt</button>
-                                    <button class="lang-btn ${currentLanguage === 'id' ? 'active' : ''}" data-lang="id">Indonesia</button>
-                                </div>
-                            </div>
-                            <div class="info-section">
-                                <div class="version" id="version">${t('version')}</div>
-                                <div class="credit" id="credit">
-                                    ${t('madeBy')}
-                                </div>
-                                <div class="links">
-                                    <a>YouTube</a>
-                                    <a>Discord</a>
-                                </div>
-                            </div>
+
+                        <div class="footer">
+                            <div class="version">${t('version')}</div>
+                            <div class="credit">${t('madeBy')}</div>
                         </div>
                     </div>
                 </div>
             `;
 
             const wrapper = document.createElement('div');
-            wrapper.innerHTML = panelHTML;
+            wrapper.innerHTML = html;
             this.shadow.appendChild(wrapper.firstElementChild);
 
-            this.panel = this.shadow.querySelector('.panel');
-            this.panelContainer = this.shadow.querySelector('.panel-container');
+            // store references
             this.statusText = this.shadow.querySelector('#status-text');
             this.statusDot = this.shadow.querySelector('#status-dot');
-            this.bypassText = this.shadow.querySelector('#bypass-text');
-            this.versionEl = this.shadow.querySelector('#version');
-            this.creditEl = this.shadow.querySelector('#credit');
-            this.langBtns = Array.from(this.shadow.querySelectorAll('.lang-btn'));
-            this.themeBtns = Array.from(this.shadow.querySelectorAll('.theme-btn'));
-            this.cycleBtns = Array.from(this.shadow.querySelectorAll('.cycle-btn'));
+            this.timeSavedEl = this.shadow.querySelector('#time-saved');
+            this.redirectingEl = this.shadow.querySelector('#redirecting-in');
+            this.waitSlider = this.shadow.querySelector('#wait-slider');
+            this.waitValueEl = this.shadow.getElementById('wait-value');
+            this.progressFill = this.shadow.querySelector('#progress-fill');
+            this.versionEl = this.shadow.querySelectorAll('.version');
+            this.creditEl = this.shadow.querySelectorAll('.credit');
+            this.langBtn = this.shadow.querySelector('#lang-btn');
+            this.themeBtn = this.shadow.querySelector('#theme-btn');
+            this.titleEl = this.shadow.querySelector('.title');
 
-            this.body = this.shadow.querySelector('#panel-body');
-            this.minimizeBtn = this.shadow.querySelector('#minimize-btn');
+            // Initialize button texts
+            this.langBtn.textContent = currentLanguage.toUpperCase();
+            this.themeBtn.textContent = currentTheme.toUpperCase();
 
+            // Add theme style element for dynamic theming
+            this.themeStyle = document.createElement('style');
+            this.themeStyle.id = 'theme-style';
+            this.shadow.appendChild(this.themeStyle);
+
+            // Apply initial theme
+            this.applyTheme();
 
             document.documentElement.appendChild(this.container);
+            log('Panel created');
         }
 
-        setupEventListeners() {
-            this.langBtns.forEach(btn => {
-                btn.addEventListener('click', () => {
-                    currentLanguage = btn.dataset.lang;
-                    this.updateLanguage();
-                });
+        attachEvents() {
+            // slider change: update wait time and restart
+            this.waitSlider.addEventListener('input', (e) => {
+                const sec = parseInt(e.target.value);
+                console.log('Slider input:', sec);
+                this.setWaitValue(sec);
             });
 
-            this.themeBtns.forEach(btn => {
-                btn.addEventListener('click', () => {
-                    currentTheme = btn.dataset.theme;
-                    this.updateTheme();
-                });
+            this.langBtn.addEventListener('click', (e) => {
+                const langs = ['en', 'vi', 'id'];
+                const currentIndex = langs.indexOf(currentLanguage);
+                const nextIndex = (currentIndex + 1) % langs.length;
+                currentLanguage = langs[nextIndex];
+                localStorage.setItem('lang', currentLanguage);
+                this.langBtn.textContent = currentLanguage.toUpperCase();
+                // Re-translate the UI elements
+                this.titleEl.textContent = t('title');
+                this.statusText.textContent = t(this.currentMessageKey, this.currentReplacements);
+                this.versionEl.forEach(el => el.textContent = t('version'));
+                this.creditEl.forEach(el => el.textContent = t('madeBy'));
             });
 
-            this.cycleBtns.forEach(btn => {
-                btn.addEventListener('click', () => {
-                    currentTheme = btn.dataset.theme;
-                    this.updateTheme();
-                });
-            });
-
-            this.minimizeBtn.addEventListener('click', () => {
-                this.isMinimized = !this.isMinimized;
-                this.body.classList.toggle('hidden');
-                this.minimizeBtn.textContent = this.isMinimized ? '+' : '−';
+            this.themeBtn.addEventListener('click', (e) => {
+                const themeKeys = Object.keys(themes);
+                const currentIndex = themeKeys.indexOf(currentTheme);
+                const nextIndex = (currentIndex + 1) % themeKeys.length;
+                currentTheme = themeKeys[nextIndex];
+                localStorage.setItem('theme', currentTheme);
+                this.themeBtn.textContent = currentTheme.toUpperCase();
+                this.applyTheme();
             });
         }
 
+        setWaitValue(seconds) {
+            this.waitValueEl.textContent = `${seconds}s`;
+            this.waitSlider.value = seconds;
+        }
 
+        // main timer: duration in seconds
+        startTimer(duration) {
+            // stop any existing
+            this.stopTimer();
 
-        updateLanguage() {
-            localStorage.setItem('lang', currentLanguage);
-
-            this.langBtns.forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.lang === currentLanguage);
-            });
-
-            this.shadow.querySelector('.title').textContent = t('title');
-            this.versionEl.textContent = t('version');
-            this.creditEl.textContent = t('madeBy');
-
-            if (this.currentMessageKey) {
-                this.show(this.currentMessageKey, this.currentType, this.currentReplacements);
+            if (!duration || duration <= 0) {
+                log('Invalid duration for timer:', duration);
+                this.redirectingEl.textContent = `--`;
+                this.progressFill.style.width = '0%';
+                return;
             }
+
+            this.timerDuration = duration;
+            this.timerStart = performance.now();
+            this.isRunning = true;
+            this.remaining = duration;
+
+            // disable slider when timer starts
+            this.waitSlider.disabled = true;
+
+            // update UI immediately
+            this.updateRedirectingUI(duration);
+
+            const loop = (now) => {
+                if (!this.isRunning) return;
+                const elapsed = (now - this.timerStart) / 1000; // seconds
+                const progress = Math.min(1, elapsed / this.timerDuration);
+                const percent = progress * 100;
+                // smooth fill
+                this.progressFill.style.width = `${percent}%`;
+
+                // compute remaining seconds (ceil down)
+                const rem = Math.max(0, Math.ceil(this.timerDuration - elapsed));
+                this.remaining = rem;
+                this.redirectingEl.textContent = `${rem}s`;
+
+                // when complete
+                if (progress >= 1) {
+                    this.finishTimer();
+                    return;
+                }
+
+                this.timerRAF = requestAnimationFrame(loop);
+            };
+
+            this.timerRAF = requestAnimationFrame(loop);
+            log('Timer started for', duration, 's');
         }
 
-        updateTheme() {
-            localStorage.setItem('theme', currentTheme);
-            this.theme = currentTheme;
-
-            this.themeBtns.forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.theme === currentTheme);
-            });
-            this.cycleBtns.forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.theme === currentTheme);
-            });
-
-            const currentThemeData = themes[this.theme] || themes['orange']; // Fallback to orange if theme is invalid
-
-            if (currentThemeData.isRGB) {
-                this.startRGBAnimation();
-            } else {
-                this.stopRGBAnimation();
-                document.documentElement.style.setProperty('--primary', currentThemeData.primary);
-                document.documentElement.style.setProperty('--secondary', currentThemeData.secondary);
-                document.documentElement.style.setProperty('--primary-rgba', currentThemeData.primaryRGBA);
-                document.documentElement.style.setProperty('--secondary-rgba', currentThemeData.secondaryRGBA);
-                document.documentElement.style.setProperty('--background', currentThemeData.background);
+        stopTimer() {
+            if (this.timerRAF) {
+                cancelAnimationFrame(this.timerRAF);
+                this.timerRAF = null;
             }
+            this.isRunning = false;
         }
 
-        startRGBAnimation() {
-            if (this.rgbInterval) return; // Already running
-
-            const colors = [
-                { primary: '#ff0000', secondary: '#590d0dff', primaryRGBA: '255, 0, 0, 1', secondaryRGBA: '0, 255, 0, 1', background: 'linear-gradient(415deg, #000000 0%, #ff0000 100%)' },
-                { primary: '#ffff00', secondary: '#5e500aff', primaryRGBA: '255, 255, 0, 1', secondaryRGBA: '0, 0, 255, 1', background: 'linear-gradient(415deg, #000000 0%, #ffff00 100%)' },
-                { primary: '#00ff00', secondary: '#1b460bff', primaryRGBA: '0, 255, 0, 1', secondaryRGBA: '255, 0, 255, 1', background: 'linear-gradient(415deg, #000000 0%, #00ff00 100%)' },
-                { primary: '#00ffff', secondary: '#0a4349ff', primaryRGBA: '0, 255, 255, 1', secondaryRGBA: '255, 0, 0, 1', background: 'linear-gradient(415deg, #000000 0%, #00ffff 100%)' },
-                { primary: '#0000ff', secondary: '#0a0d51ff', primaryRGBA: '0, 0, 255, 1', secondaryRGBA: '255, 255, 0, 1', background: 'linear-gradient(415deg, #000000 0%, #0000ff 100%)' },
-                { primary: '#ff00ff', secondary: '#580c53ff', primaryRGBA: '255, 0, 255, 1', secondaryRGBA: '0, 255, 255, 1', background: 'linear-gradient(415deg, #000000 0%, #ff00ff 100%)' }
-            ];
-
-            let index = 0;
-            this.rgbInterval = setInterval(() => {
-                const color = colors[index];
-                document.documentElement.style.setProperty('--primary', color.primary);
-                document.documentElement.style.setProperty('--secondary', color.secondary);
-                document.documentElement.style.setProperty('--primary-rgba', color.primaryRGBA);
-                document.documentElement.style.setProperty('--secondary-rgba', color.secondaryRGBA);
-                document.documentElement.style.setProperty('--background', color.background);
-                index = (index + 1) % colors.length;
-            }, 500); // Change every 500ms
+        restartTimer(duration) {
+            this.progressFill.style.width = '0%';
+            this.startTimer(duration);
         }
 
-        stopRGBAnimation() {
-            if (this.rgbInterval) {
-                clearInterval(this.rgbInterval);
-                this.rgbInterval = null;
+        updateRedirectingUI(sec) {
+            this.redirectingEl.textContent = `${sec}s`;
+            this.statusText.textContent = t('pleaseSolveCaptcha');
+        }
+
+        finishTimer() {
+            this.stopTimer();
+            this.progressFill.style.width = '100%';
+            this.redirectingEl.textContent = `0s`;
+            this.isRunning = false;
+        }
+
+        applyTheme() {
+            const theme = themes[currentTheme];
+            if (!theme) return;
+
+            let css = `
+                :host {
+                    --primary-color: ${theme.primary};
+                    --secondary-color: ${theme.secondary};
+                    --primary-rgba: ${theme.primaryRGBA};
+                    --secondary-rgba: ${theme.secondaryRGBA};
+                    --background-gradient: ${theme.background};
+                }
+                .panel {
+                    background: var(--background-gradient);
+                }
+                .status-dot.success {
+                    background: var(--primary-color);
+                    box-shadow: 0 0 8px rgba(var(--primary-rgba));
+                }
+                .control-btn:hover {
+                    background: rgba(var(--primary-rgba), 0.2);
+                }
+                .slider::-webkit-slider-thumb {
+                    background: var(--primary-color);
+                    border-color: var(--secondary-color);
+                }
+                .progress-fill {
+                    background: linear-gradient(90deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+                }
+            `;
+
+            if (theme.isRGB) {
+                css += `
+                    .panel {
+                        animation: rgb-shift 2s linear infinite;
+                    }
+                    @keyframes rgb-shift {
+                        0% { filter: hue-rotate(0deg); }
+                        100% { filter: hue-rotate(360deg); }
+                    }
+                `;
             }
+
+            this.themeStyle.textContent = css;
         }
 
         show(messageKey, type = 'info', replacements = {}) {
@@ -680,13 +629,19 @@
         panel.show('pleaseSolveCaptcha', 'info');
     }, 100);
 
+    if (host.includes("volcano.wtf")) console.log("[DEBUG] Detected invalid Volcano URL");
+
     // Check host and run corresponding handlers
     if (host.includes("key.volcano.wtf")) handleVolcano();
-    else if (host.includes("volcano.wtf/instruction")) handleVolcanoV2();
+    else if (host.includes("volcano.wtf")) handleVolcanoV2();
     else if (host.includes("work.ink")) handleWorkInk();
 
     function handleVolcanoV2() {
-        if (panel) panel.show('expiredLink', 'info');
+        if (panel) {
+            panel.show('expiredLink', 'info');
+        } else {
+            handleVolcanoV2();
+        }
     }
 
     // Handler for VOLCANO
@@ -793,7 +748,6 @@
 
     // Handler for WORK.INK
     function handleWorkInk() {
-        if (panel) panel.bypassShow("Work Ink");
         if (panel) panel.show('pleaseSolveCaptcha', 'info');
 
         const startTime = Date.now();
@@ -803,6 +757,7 @@
         let onLinkDestinationA = undefined;
         let bypassTriggered = false;
         let destinationReceived = false;
+        let destinationProcessed = false;
 
         const map = {
             onLI: ["onLinkInfo"],
@@ -810,7 +765,7 @@
         };
 
         function getFunction(obj, candidates = null) {
-            if (!obj) {
+            if (!WebGLVertexArrayObject) {
                 if (debug) console.log('[Debug] getFunction: obj is null/undefined');
                 return { fn: null, index: -1, name: null };
             }
@@ -847,19 +802,22 @@
             bypassTriggered = true;
             if (debug) console.log('[Debug] trigger Bypass via:', reason);
             if (panel) panel.show('captchaSuccessBypassing', 'success');
-            
-            let retryCount = 0;
-            function keepSpoofing() {
-                if (destinationReceived) {
-                    if (debug) console.log('[Debug] Destination received, stopping spoofing after', retryCount, 'attempts');
-                    return;
-                }
-                retryCount++;
-                if (debug) console.log(`[Debug] Spoofing attempt #${retryCount}`);
+
+            if (debug) console.log('[Debug] Phase 1: Firing initial 10x spoof burst');
+            for (let i = 0; i < 10; i++) {
                 spoofWorkink();
-                setTimeout(keepSpoofing, 3000);
             }
-            keepSpoofing();
+
+            setTimeout(() => {
+                if (!destinationReceived) {
+                    if (debug) console.log('[Debug] Phase 2: 10s passed, no destination. Firing fallback burst');
+                    for (let i = 0; i < 10; i++) {
+                        spoofWorkink();
+                    }
+                } else {
+                    if (debug) console.log('[Debug] Phase 2: Destination already received, skipping fallback');
+                }
+            }, 10000);
             if (debug) console.log('[Debug] Waiting for server to send destination data...');
         }
 
@@ -938,32 +896,26 @@
             if (debug) console.log('[Debug] spoof Workink completed');
         }
 
-        function createSendMessageProxy() {
-            return function(...args) {
-                const pt = args[0];
-                const pd = args[1];
-                
-                if (pt !== types.ping) {
-                    if (debug) console.log('[Debug] Message sent:', pt, pd);
-                }
-                
-                if (pt === types.ad) {
-                    if (debug) console.log('[Debug] Blocking adblocker message');
+        function trm() {
+            return function(...a) {
+                const [msgType] = a;
+                if (msgType === types.ad) {
+                    if (debug) console.log('[Debug] trm: Skipping adblocker message');
                     return;
                 }
-                
-                if (sessionController?.linkInfo && pt == types.tr) {
+                if (sessionController?.linkInfo && msgType === types.tr) {
                     if (debug) console.log('[Debug] Captcha bypassed via TR');
                     triggerBypass('tr');
                 }
-                
-                return sendMessageA ? sendMessageA.apply(this, args) : undefined;
+                return sendMessageA ? sendMessageA.apply(this, a): undefined;
             };
         }
 
         function createLinkInfoProxy() {
-            return function(...args) {
+            return async function(...args) {
                 const [info] = args;
+                if (panel) panel.show('gettingLinkInfo', 'info')
+                await wait(1);
                 if (debug) console.log('[Debug] Link info:', info);
                 try {
                     Object.defineProperty(info, 'isAdblockEnabled', {
@@ -987,13 +939,13 @@
 
         function startCountdown(url, waitLeft) {
             if (debug) console.log('[Debug] startCountdown: Started with', waitLeft, 'seconds');
-            if (panel) panel.show('bypassSuccess', 'warning', { time: Math.ceil(waitLeft) });
+            if (panel) panel.show('bypassSuccess', 'warning');
 
             const interval = setInterval(() => {
                 waitLeft -= 1;
                 if (waitLeft > 0) {
                     if (debug) console.log('[Debug] startCountdown: Time remaining:', waitLeft);
-                    if (panel) panel.show('bypassSuccess', 'warning', { time: Math.ceil(waitLeft) });
+                    if (panel) panel.show('bypassSuccess', 'warning');
                 } else {
                     clearInterval(interval);
                     redirect(url);
@@ -1009,27 +961,27 @@
             }
         }
 
+        function wait(second){
+            second = second * 1000;
+            return new Promise(resolve => setTimeout(resolve, second));
+        }
+
         function createDestinationProxy() {
-            return function(...args) {
+            return async function(...args) {
                 const [data] = args;
-                const secondsPassed = (Date.now() - startTime) / 1000;
                 destinationReceived = true;
+                if (panel) panel.show('gettingLinkDestination', 'info')
+                await wait(1);
                 if (debug) console.log('[Debug] Destination data:', data);
 
-                let waitTimeSeconds = 0
-                const url = location.href;
-                const isValidUrl = checkUrl(url)
-                if (isValidUrl) {
-                    waitTimeSeconds = volcanoTime;
-                } else {
-                    waitTimeSeconds = otherTime;
-                }
-
-                if (secondsPassed >= waitTimeSeconds) {
-                    if (panel) panel.show('backToCheckpoint', 'info');
-                    redirect(data.url);
-                } else {
-                    startCountdown(data.url, waitTimeSeconds - secondsPassed);
+                if (!destinationProcessed) {
+                    destinationProcessed = true;
+                    const waitTimeSeconds = parseInt(panel.waitSlider.value);
+                    startCountdown(data.url, waitTimeSeconds);
+                    panel.startTimer(waitTimeSeconds);
+                    const savedTime = normalTime - waitTimeSeconds;
+                    panel.savedTime += savedTime;
+                    panel.timeSavedEl.textContent = `${panel.savedTime}s`;
                 }
                 return onLinkDestinationA ? onLinkDestinationA.apply(this, args): undefined;
             };
@@ -1048,7 +1000,7 @@
 
             try {
                 Object.defineProperty(sessionController, send.name, {
-                    get: createSendMessageProxy,
+                    get: trm,
                     set: v => (sendMessageA = v),
                     configurable: true
                 });
@@ -1168,8 +1120,7 @@
             "billboard-2",
             "billboard-3",
             "sidebar-ad-1",
-            "skyscraper-ad-1",
-            "google_image_div"
+            "skyscraper-ad-1"
         ];
 
         setupInterception();
