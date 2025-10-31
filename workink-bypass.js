@@ -45,7 +45,7 @@
     // Translations
     const translations = {
         vi: {
-            title: "Difz25x",
+            title: "Difz25x ",
             pleaseSolveCaptcha: "Vui lòng hoàn thành CAPTCHA để tiếp tục",
             captchaSuccess: "CAPTCHA đã được xác minh thành công",
             redirectingToWork: "Đang chuyển hướng đến Work.ink...",
@@ -59,12 +59,12 @@
             copyButtonNotFound: "Không tìm thấy nút sao chép",
             waitingCaptcha: "Đang chờ CAPTCHA...",
             successDetected: "Đã phát hiện thành công, chuẩn bị nhấp...",
-            bypassSuccess: "Bypass thành công, vui lòng đợi {time}s...",
+            bypassSuccess: "Bỏ qua thành công, đang chờ...",
             backToCheckpoint: "Đang quay lại điểm kiểm tra...",
             captchaSuccessBypassing: "CAPTCHA đã thành công, đang tiến hành bypass...",
             loaderBtn: "Nút chưa tải, vui lòng tải lại trang",
             expiredLink: "Liên kết của bạn không hợp lệ hoặc đã hết hạn, được chuyển hướng đến đây. Hãy lấy liên kết mới.",
-            version: "Phiên bản 1.0.4.0",
+            version: "Phiên bản 1.0.4.1",
             madeBy: "Được tạo bởi Difz25x (dựa trên IHaxU)"
         },
         en: {
@@ -82,12 +82,12 @@
             copyButtonNotFound: "Copy button not found",
             waitingCaptcha: "Waiting for CAPTCHA...",
             successDetected: "Success detected, preparing to click...",
-            bypassSuccess: "Bypass successful, bypassing waiting...",
+            bypassSuccess: "Bypass successful, waiting...",
             backToCheckpoint: "Returning to checkpoint...",
             captchaSuccessBypassing: "CAPTCHA solved successfully, bypassing...",
             expiredLink: "Your link is invalid or expired, redirected here. Get a new one.",
             loaderBtn: "Button not loaded, please reload the page",
-            version: "Version 1.0.4.0",
+            version: "Version 1.0.4.1",
             madeBy: "Made by Difz25x (based on IHaxU)"
         },
         id: {
@@ -105,12 +105,12 @@
             copyButtonNotFound: "Tombol salin tidak ditemukan",
             waitingCaptcha: "Menunggu CAPTCHA...",
             successDetected: "Keberhasilan terdeteksi, mempersiapkan klik...",
-            bypassSuccess: "Bypass berhasil, melewati waktu tunggu...",
+            bypassSuccess: "Bypass berhasil, menunggu...",
             backToCheckpoint: "Kembali ke checkpoint...",
             captchaSuccessBypassing: "CAPTCHA berhasil diselesaikan, melewati...",
             expiredLink: "Tautan Anda tidak valid atau kedaluwarsa, dialihkan ke sini. Dapatkan yang baru.",
             loaderBtn: "Tombol belum dimuat, harap muat ulang halaman",
-            version: "Versi 1.0.4.0",
+            version: "Versi 1.0.4.1",
             madeBy: "Dibuat oleh Difz25x (berdasarkan IHaxU)"
         }
     };
@@ -939,6 +939,7 @@
 
         function redirect(url) {
             if (debug) console.log('[Debug] Redirecting to:', url);
+            if (panel) panel.show('backToCheckpoint', 'info')
             window.location.href = url;
         }
 
@@ -1174,7 +1175,7 @@
                                     } else {
                                         gtdRetryCount++;
                                         if (debug) console.log(`[Debug] GTD retry ${gtdRetryCount}s: Still waiting for linkInfo...`);
-                                        if (panel) panel.show('loaderBtn', 'info');
+                                        if (panel) panel.show('pleaseReload', 'info');
                                         setTimeout(checkAndTriggerGTD, 1000);
                                     }
                                 }
