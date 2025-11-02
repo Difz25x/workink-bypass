@@ -3,7 +3,7 @@
 
     const host = location.hostname; // check host
     const debug = true // enable debug logs (console)
-    const otherTime = 24
+    const otherTime = 2
     const normalTime = 60 // normal time if do without bypass
 
     let currentLanguage = localStorage.getItem('lang') || 'en'; // default language: en/vi/id
@@ -45,15 +45,13 @@
     // Translations
     const translations = {
         vi: {
-            title: "Difz25x ",
+            title: "Difz25x",
             pleaseSolveCaptcha: "Vui lòng hoàn thành CAPTCHA để tiếp tục",
             captchaSuccess: "CAPTCHA đã được xác minh thành công",
             redirectingToWork: "Đang chuyển hướng đến Work.ink...",
             clickingContinue: "Đã nhấp nút Tiếp tục",
             errorClickingContinue: "Lỗi khi nhấp nút Tiếp tục",
             autoClickCopy: "Đã tự động nhấp nút sao chép khóa",
-            gettingLinkDestination: "Lấy đích liên kết thành công!",
-            gettingLinkInfo: "Lấy thông tin liên kết thành công!",
             bypassSuccessCopy: "Bypass thành công! Khóa đã được sao chép (nhấn 'Cho phép' nếu được yêu cầu)",
             errorCopy: "Lỗi khi sao chép khóa",
             copyButtonNotFound: "Không tìm thấy nút sao chép",
@@ -64,7 +62,7 @@
             captchaSuccessBypassing: "CAPTCHA đã thành công, đang tiến hành bypass...",
             loaderBtn: "Nút chưa tải, vui lòng tải lại trang",
             expiredLink: "Liên kết của bạn không hợp lệ hoặc đã hết hạn, được chuyển hướng đến đây. Hãy lấy liên kết mới.",
-            version: "Phiên bản 1.0.4.1",
+            version: "Phiên bản 1.0.5.0",
             madeBy: "Được tạo bởi Difz25x (dựa trên IHaxU)"
         },
         en: {
@@ -75,8 +73,6 @@
             clickingContinue: "Continue button clicked",
             errorClickingContinue: "Error clicking the Continue button",
             autoClickCopy: "Automatically clicked the copy key button",
-            gettingLinkDestination: "Getting link destination successful!",
-            gettingLinkInfo: "Getting link info successful!",
             bypassSuccessCopy: "Bypass successful! Key copied (click 'Allow' if prompted)",
             errorCopy: "Error copying the key",
             copyButtonNotFound: "Copy button not found",
@@ -87,7 +83,7 @@
             captchaSuccessBypassing: "CAPTCHA solved successfully, bypassing...",
             expiredLink: "Your link is invalid or expired, redirected here. Get a new one.",
             loaderBtn: "Button not loaded, please reload the page",
-            version: "Version 1.0.4.1",
+            version: "Version 1.0.5.0",
             madeBy: "Made by Difz25x (based on IHaxU)"
         },
         id: {
@@ -98,8 +94,6 @@
             clickingContinue: "Tombol Lanjutkan diklik",
             errorClickingContinue: "Kesalahan mengklik tombol Lanjutkan",
             autoClickCopy: "Otomatis mengklik tombol salin kunci",
-            gettingLinkDestination: "Mendapatkan tujuan tautan berhasil!",
-            gettingLinkInfo: "Mendapatkan info tautan berhasil!",
             bypassSuccessCopy: "Bypass berhasil! Kunci disalin (klik 'Izinkan' jika diminta)",
             errorCopy: "Kesalahan menyalin kunci",
             copyButtonNotFound: "Tombol salin tidak ditemukan",
@@ -110,7 +104,7 @@
             captchaSuccessBypassing: "CAPTCHA berhasil diselesaikan, melewati...",
             expiredLink: "Tautan Anda tidak valid atau kedaluwarsa, dialihkan ke sini. Dapatkan yang baru.",
             loaderBtn: "Tombol belum dimuat, harap muat ulang halaman",
-            version: "Versi 1.0.4.1",
+            version: "Versi 1.0.5.0",
             madeBy: "Dibuat oleh Difz25x (berdasarkan IHaxU)"
         }
     };
@@ -406,10 +400,10 @@
 
                             <div class="slider-wrap">
                                 <div class="wait-footer">
-                                    <div>0s</div>
+                                    <div>Instant</div>
                                     <div>30s</div>
                                 </div>
-                                <input type="range" id="wait-slider" class="slider" min="1" max="30" step="1" value="15" />
+                                <input type="range" id="wait-slider" class="slider" min="0" max="30" step="1" value="15" />
                             </div>
                             <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
                         </div>
@@ -642,11 +636,7 @@
     else if (host.includes("work.ink")) handleWorkInk();
 
     function handleVolcanoV2() {
-        if (panel) {
-            panel.show('expiredLink', 'info');
-        } else {
-            handleVolcanoV2();
-        }
+        if (panel) panel.show('expiredLink', 'info');
     }
 
     // Handler for VOLCANO
@@ -808,21 +798,20 @@
             if (debug) console.log('[Debug] trigger Bypass via:', reason);
             if (panel) panel.show('captchaSuccessBypassing', 'success');
 
-            if (debug) console.log('[Debug] Phase 1: Firing initial 10x spoof burst');
-            for (let i = 0; i < 10; i++) {
+            let spoofAttempts = 0;
+
+            function continueSpoofing() {
+                if (destinationReceived) {
+                    if (debug) console.log("[Debug] Destination received, stopping spoofing after", spoofAttempts, "attempts");
+                    return;
+                }
+                spoofAttempts++;
                 spoofWorkink();
+                setTimeout(continueSpoofing, 1);
             }
 
-            setTimeout(() => {
-                if (!destinationReceived) {
-                    if (debug) console.log('[Debug] Phase 2: 10s passed, no destination. Firing fallback burst');
-                    for (let i = 0; i < 10; i++) {
-                        spoofWorkink();
-                    }
-                } else {
-                    if (debug) console.log('[Debug] Phase 2: Destination already received, skipping fallback');
-                }
-            }, 10000);
+            if (debug) console.log("[Debug] Spoofing attempt #" + spoofAttempts);
+            continueSpoofing();
             if (debug) console.log('[Debug] Waiting for server to send destination data...');
         }
 
@@ -919,8 +908,6 @@
         function createLinkInfoProxy() {
             return async function(...args) {
                 const [info] = args;
-                if (panel) panel.show('gettingLinkInfo', 'info')
-                await wait(1);
                 if (debug) console.log('[Debug] Link info:', info);
                 try {
                     Object.defineProperty(info, 'isAdblockEnabled', {
@@ -967,23 +954,20 @@
             }
         }
 
-        function wait(second){
-            second = second * 1000;
-            return new Promise(resolve => setTimeout(resolve, second));
-        }
-
         function createDestinationProxy() {
             return async function(...args) {
                 const [data] = args;
                 destinationReceived = true;
-                if (panel) panel.show('gettingLinkDestination', 'info')
-                await wait(1);
                 if (debug) console.log('[Debug] Destination data:', data);
 
                 if (!destinationProcessed) {
                     destinationProcessed = true;
                     const waitTimeSeconds = parseInt(panel.waitSlider.value);
-                    startCountdown(data.url, waitTimeSeconds);
+                    if (waitTimeSeconds < 0){
+                        redirect(data.url)
+                    } else {
+                        startCountdown(data.url, waitTimeSeconds);
+                    }
                     panel.startTimer(waitTimeSeconds);
                     const savedTime = normalTime - waitTimeSeconds;
                     panel.savedTime += savedTime;
@@ -1088,10 +1072,10 @@
         }
 
         function setupInterception() {
-            const origPromiseAll = unsafeWindow.Promise.all;
+            const origPromiseAll = Promise.all;
             let intercepted = false;
 
-            unsafeWindow.Promise.all = async function(promises) {
+            Promise.all = async function(promises) {
                 const result = origPromiseAll.call(this, promises);
                 if (!intercepted) {
                     intercepted = true;
@@ -1101,7 +1085,7 @@
 
                             const [success, created] = createKitProxy(kit);
                             if (success) {
-                                unsafeWindow.Promise.all = origPromiseAll;
+                                Promise.all = origPromiseAll;
                                 if (debug) console.log('[Debug]: Kit ready', created, app);
                             }
                             resolve([created, app, ...args]);
@@ -1175,7 +1159,7 @@
                                     } else {
                                         gtdRetryCount++;
                                         if (debug) console.log(`[Debug] GTD retry ${gtdRetryCount}s: Still waiting for linkInfo...`);
-                                        if (panel) panel.show('pleaseReload', 'info');
+                                        if (panel) panel.show('loaderBtn', 'info');
                                         setTimeout(checkAndTriggerGTD, 1000);
                                     }
                                 }
