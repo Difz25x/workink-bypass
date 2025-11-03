@@ -3,7 +3,7 @@
 
     const host = location.hostname; // check host
     const debug = true // enable debug logs (console)
-    const otherTime = 2
+    const otherTime = 5
     const normalTime = 60 // normal time if do without bypass
 
     let currentLanguage = localStorage.getItem('lang') || 'en'; // default language: en/vi/id
@@ -45,7 +45,7 @@
     // Translations
     const translations = {
         vi: {
-            title: "Difz25x",
+            title: "Nadhif",
             pleaseSolveCaptcha: "Vui lòng hoàn thành CAPTCHA để tiếp tục",
             captchaSuccess: "CAPTCHA đã được xác minh thành công",
             redirectingToWork: "Đang chuyển hướng đến Work.ink...",
@@ -62,11 +62,11 @@
             captchaSuccessBypassing: "CAPTCHA đã thành công, đang tiến hành bypass...",
             loaderBtn: "Nút chưa tải, vui lòng tải lại trang",
             expiredLink: "Liên kết của bạn không hợp lệ hoặc đã hết hạn, được chuyển hướng đến đây. Hãy lấy liên kết mới.",
-            version: "Phiên bản 1.0.5.0",
+            version: "Phiên bản 1.0.5.1",
             madeBy: "Được tạo bởi Difz25x (dựa trên IHaxU)"
         },
         en: {
-            title: "Difz25x",
+            title: "Nadhif",
             pleaseSolveCaptcha: "Please complete the CAPTCHA to continue",
             captchaSuccess: "CAPTCHA solved successfully",
             redirectingToWork: "Redirecting to Work.ink...",
@@ -83,11 +83,11 @@
             captchaSuccessBypassing: "CAPTCHA solved successfully, bypassing...",
             expiredLink: "Your link is invalid or expired, redirected here. Get a new one.",
             loaderBtn: "Button not loaded, please reload the page",
-            version: "Version 1.0.5.0",
+            version: "Version 1.0.5.1",
             madeBy: "Made by Difz25x (based on IHaxU)"
         },
         id: {
-            title: "Difz25x",
+            title: "Nadhif",
             pleaseSolveCaptcha: "Harap lengkapi CAPTCHA untuk melanjutkan",
             captchaSuccess: "CAPTCHA berhasil diselesaikan",
             redirectingToWork: "Mengalihkan ke Work.ink...",
@@ -104,7 +104,7 @@
             captchaSuccessBypassing: "CAPTCHA berhasil diselesaikan, melewati...",
             expiredLink: "Tautan Anda tidak valid atau kedaluwarsa, dialihkan ke sini. Dapatkan yang baru.",
             loaderBtn: "Tombol belum dimuat, harap muat ulang halaman",
-            version: "Versi 1.0.5.0",
+            version: "Versi 1.0.5.1",
             madeBy: "Dibuat oleh Difz25x (berdasarkan IHaxU)"
         }
     };
@@ -401,9 +401,9 @@
                             <div class="slider-wrap">
                                 <div class="wait-footer">
                                     <div>Instant</div>
-                                    <div>30s</div>
+                                    <div>40s</div>
                                 </div>
-                                <input type="range" id="wait-slider" class="slider" min="0" max="30" step="1" value="15" />
+                                <input type="range" id="wait-slider" class="slider" min="0" max="40" step="1" value="15" />
                             </div>
                             <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
                         </div>
@@ -760,7 +760,7 @@
         };
 
         function getFunction(obj, candidates = null) {
-            if (!WebGLVertexArrayObject) {
+            if (!obj || typeof obj !== "object") {
                 if (debug) console.log('[Debug] getFunction: obj is null/undefined');
                 return { fn: null, index: -1, name: null };
             }
@@ -798,20 +798,10 @@
             if (debug) console.log('[Debug] trigger Bypass via:', reason);
             if (panel) panel.show('captchaSuccessBypassing', 'success');
 
-            let spoofAttempts = 0;
-
-            function continueSpoofing() {
-                if (destinationReceived) {
-                    if (debug) console.log("[Debug] Destination received, stopping spoofing after", spoofAttempts, "attempts");
-                    return;
-                }
-                spoofAttempts++;
+            if (debug) console.log('Sending 10x spoof burst...')
+            for (let i = 0; i < 10; i++) {
                 spoofWorkink();
-                setTimeout(continueSpoofing, 1);
             }
-
-            if (debug) console.log("[Debug] Spoofing attempt #" + spoofAttempts);
-            continueSpoofing();
             if (debug) console.log('[Debug] Waiting for server to send destination data...');
         }
 
@@ -1072,20 +1062,20 @@
         }
 
         function setupInterception() {
-            const origPromiseAll = Promise.all;
+            const origPromiseAll = unsafeWindow.Promise.all;
             let intercepted = false;
 
-            Promise.all = async function(promises) {
+            unsafeWindow.Promise.all = async function(promises) {
                 const result = origPromiseAll.call(this, promises);
                 if (!intercepted) {
                     intercepted = true;
-                    return await new Promise((resolve) => {
+                    return await new unsafeWindow.Promise((resolve) => {
                         result.then(([kit, app, ...args]) => {
                             if (debug) console.log('[Debug]: Set up Interception!');
 
                             const [success, created] = createKitProxy(kit);
                             if (success) {
-                                Promise.all = origPromiseAll;
+                                unsafeWindow.Promise.all = origPromiseAll;
                                 if (debug) console.log('[Debug]: Kit ready', created, app);
                             }
                             resolve([created, app, ...args]);
@@ -1141,35 +1131,17 @@
                             });
                         });
 
+                        // div
                         if (node.matches('.button.large.accessBtn.pos-relative.svelte-bv7qlp') && node.textContent.includes('Go To Destination')) {
                             if (debug) console.log('[Debug] GTD button detected');
-
-                            if (!bypassTriggered) {
-                                if (debug) console.log('[Debug] GTD: Waiting for linkInfo...');
-
-                                let gtdRetryCount = 0;
-
-                                function checkAndTriggerGTD() {
-                                    const ctrl = sessionController;
-                                    const dest = getFunction(ctrl, map.onLD);
-
-                                    if (ctrl && ctrl.linkInfo && dest.fn) {
-                                        triggerBypass('gtd');
-                                        if (debug) console.log('[Debug] Captcha bypassed via GTD after', gtdRetryCount, 'seconds');
-                                    } else {
-                                        gtdRetryCount++;
-                                        if (debug) console.log(`[Debug] GTD retry ${gtdRetryCount}s: Still waiting for linkInfo...`);
-                                        if (panel) panel.show('loaderBtn', 'info');
-                                        setTimeout(checkAndTriggerGTD, 1000);
-                                    }
-                                }
-
-                                checkAndTriggerGTD();
-
-                            } else {
-                                if (debug) console.log('[Debug] GTD ignored: bypass already triggered via TR');
-                            }
+                            node.click();
                         }
+
+                        // div
+                        //if (node.matches('.w-full.bg-gray-100.hover:bg-gray-200.active:bg-gray-300.text-gray-700.py-4.rounded-full.font-medium.transition-colors') && node.textContent.includes('Go To Destination')) {
+                        //    if (debug) console.log('[Debug] CWA button detected');
+                        //    node.click();
+                        //}
                     }
                 }
             }
