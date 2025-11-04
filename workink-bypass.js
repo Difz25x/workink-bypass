@@ -2,7 +2,6 @@
     'use strict';
 
     const host = location.hostname; // check host
-    const debug = true // enable debug logs (console)
     const otherTime = 5
     const normalTime = 60 // normal time if do without bypass
 
@@ -45,7 +44,7 @@
     // Translations
     const translations = {
         vi: {
-            title: "Nadhif",
+            title: "Difz25x",
             pleaseSolveCaptcha: "Vui lòng hoàn thành CAPTCHA để tiếp tục",
             captchaSuccess: "CAPTCHA đã được xác minh thành công",
             redirectingToWork: "Đang chuyển hướng đến Work.ink...",
@@ -62,11 +61,11 @@
             captchaSuccessBypassing: "CAPTCHA đã thành công, đang tiến hành bypass...",
             loaderBtn: "Nút chưa tải, vui lòng tải lại trang",
             expiredLink: "Liên kết của bạn không hợp lệ hoặc đã hết hạn, được chuyển hướng đến đây. Hãy lấy liên kết mới.",
-            version: "Phiên bản 1.0.5.1",
-            madeBy: "Được tạo bởi Difz25x (dựa trên IHaxU)"
+            version: "Phiên bản 1.0.6.0",
+            madeBy: "Được tạo bởi Difz25x (dựa trên DyRian)"
         },
         en: {
-            title: "Nadhif",
+            title: "Difz25x",
             pleaseSolveCaptcha: "Please complete the CAPTCHA to continue",
             captchaSuccess: "CAPTCHA solved successfully",
             redirectingToWork: "Redirecting to Work.ink...",
@@ -83,11 +82,11 @@
             captchaSuccessBypassing: "CAPTCHA solved successfully, bypassing...",
             expiredLink: "Your link is invalid or expired, redirected here. Get a new one.",
             loaderBtn: "Button not loaded, please reload the page",
-            version: "Version 1.0.5.1",
-            madeBy: "Made by Difz25x (based on IHaxU)"
+            version: "Version 1.0.6.0",
+            madeBy: "Made by Difz25x (based on DyRian)"
         },
         id: {
-            title: "Nadhif",
+            title: "Difz25x",
             pleaseSolveCaptcha: "Harap lengkapi CAPTCHA untuk melanjutkan",
             captchaSuccess: "CAPTCHA berhasil diselesaikan",
             redirectingToWork: "Mengalihkan ke Work.ink...",
@@ -104,8 +103,8 @@
             captchaSuccessBypassing: "CAPTCHA berhasil diselesaikan, melewati...",
             expiredLink: "Tautan Anda tidak valid atau kedaluwarsa, dialihkan ke sini. Dapatkan yang baru.",
             loaderBtn: "Tombol belum dimuat, harap muat ulang halaman",
-            version: "Versi 1.0.5.1",
-            madeBy: "Dibuat oleh Difz25x (berdasarkan IHaxU)"
+            version: "Versi 1.0.6.0",
+            madeBy: "Dibuat oleh Difz25x (berdasarkan DyRian)"
         }
     };
 
@@ -116,10 +115,6 @@
             text = text.replace(`{${placeholder}}`, replacements[placeholder]);
         });
         return text;
-    }
-
-    function log(...args) {
-        if (debug) console.log('[DEBUG]', ...args);
     }
 
     // Bypass Panel (UI)
@@ -403,7 +398,7 @@
                                     <div>Instant</div>
                                     <div>40s</div>
                                 </div>
-                                <input type="range" id="wait-slider" class="slider" min="0" max="40" step="1" value="15" />
+                                <input type="range" id="wait-slider" class="slider" min="0" max="30" step="1" value="15" />
                             </div>
                             <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
                         </div>
@@ -447,7 +442,6 @@
             this.applyTheme();
 
             document.documentElement.appendChild(this.container);
-            log('Panel created');
         }
 
         attachEvents() {
@@ -457,7 +451,6 @@
             // slider change: update wait time and restart
             this.waitSlider.addEventListener('input', (e) => {
                 const sec = parseInt(e.target.value);
-                console.log('Slider input:', sec);
                 this.setWaitValue(sec);
                 localStorage.setItem('waitTime', sec);
             });
@@ -498,7 +491,6 @@
             this.stopTimer();
 
             if (!duration || duration <= 0) {
-                log('Invalid duration for timer:', duration);
                 this.redirectingEl.textContent = `--`;
                 this.progressFill.style.width = '0%';
                 return;
@@ -538,7 +530,6 @@
             };
 
             this.timerRAF = requestAnimationFrame(loop);
-            log('Timer started for', duration, 's');
         }
 
         stopTimer() {
@@ -628,9 +619,6 @@
         panel.show('pleaseSolveCaptcha', 'info');
     }, 100);
 
-    if (host.includes("volcano.wtf")) console.log("[DEBUG] Detected invalid Volcano URL");
-
-    // Check host and run corresponding handlers
     if (host.includes("key.volcano.wtf")) handleVolcano();
     else if (host.includes("volcano.wtf")) handleVolcanoV2();
     else if (host.includes("work.ink")) handleWorkInk();
@@ -642,7 +630,6 @@
     // Handler for VOLCANO
     function handleVolcano() {
         if (panel) panel.show('pleaseSolveCaptcha', 'info');
-        if (debug) console.log('[Debug] Waiting Captcha');
 
         let alreadyDoneContinue = false;
         let alreadyDoneCopy = false;
@@ -663,7 +650,6 @@
                         if (visible && !disabled) {
                             alreadyDoneContinue = true;
                             if (panel) panel.show('captchaSuccess', 'success');
-                            if (debug) console.log('[Debug] Captcha Solved');
 
                             for (const btn of buttons) {
                                 const currentBtn = btn;
@@ -673,9 +659,8 @@
                                     try {
                                         currentBtn.click();
                                         if (currentPanel) currentPanel.show('redirectingToWork', 'info');
-                                        if (debug) console.log('[Debug] Clicking Continue');
                                     } catch (err) {
-                                        if (debug) console.log('[Debug] No Continue Found', err);
+                                        setTimeout(actOnCheckpoint, 1000)
                                     }
                                 }, 300);
                             }
@@ -694,10 +679,9 @@
                 setInterval(() => {
                     try {
                         copyBtn.click();
-                        if (debug) console.log('[Debug] Copy button spam click');
                         if (panel) panel.show('bypassSuccessCopy', 'success');
                     } catch (err) {
-                        if (debug) console.log('[Debug] No Copy Found', err);
+                        copyBtn.click();
                     }
                 }, 500);
                 return true;
@@ -761,7 +745,6 @@
 
         function getFunction(obj, candidates = null) {
             if (!obj || typeof obj !== "object") {
-                if (debug) console.log('[Debug] getFunction: obj is null/undefined');
                 return { fn: null, index: -1, name: null };
             }
 
@@ -791,54 +774,50 @@
 
         function triggerBypass(reason) {
             if (bypassTriggered) {
-                if (debug) console.log('[Debug] trigger Bypass skipped, already triggered');
                 return;
             }
             bypassTriggered = true;
-            if (debug) console.log('[Debug] trigger Bypass via:', reason);
             if (panel) panel.show('captchaSuccessBypassing', 'success');
 
-            if (debug) console.log('Sending 10x spoof burst...')
-            for (let i = 0; i < 10; i++) {
+            let retryCount = 0;
+            function keepSpoofing() {
+                if (destinationReceived) {
+                    return;
+                }
+                retryCount++;
                 spoofWorkink();
+                setTimeout(keepSpoofing, 1000);
             }
-            if (debug) console.log('[Debug] Waiting for server to send destination data...');
+            keepSpoofing();
         }
 
         function spoofWorkink() {
             if (!sessionController?.linkInfo) {
-                if (debug) console.log('[Debug] spoof Workink skipped: no sessionController.linkInfo');
                 return;
             }
-            if (debug) console.log('[Debug] spoof Workink starting, linkInfo:', sessionController.linkInfo);
 
             const socials = sessionController.linkInfo.socials || [];
-            if (debug) console.log('[Debug] Total socials to fake:', socials.length);
 
             for (let i = 0; i < socials.length; i++) {
                 const soc = socials[i];
                 try {
                     if (sendMessageA) {
                         sendMessageA.call(this, types.ss, { url: soc.url });
-                        if (debug) console.log(`[Debug] Faked social [${i+1}/${socials.length}]:`, soc.url);
                     } else {
-                        if (debug) console.warn(`[Debug] No send message for social [${i+1}/${socials.length}]:`, soc.url);
+                        return;
                     }
                 } catch (e) {
-                    if (debug) console.error(`[Debug] Error faking social [${i+1}/${socials.length}]:`, soc.url, e);
+                    return;
                 }
             }
 
             const monetizations = sessionController.linkInfo.monetizations || [];
-            if (debug) console.log('[Debug] Total monetizations to fake:', monetizations.length);
-
             for (let i = 0; i < monetizations.length; i++) {
                 const monetization = monetizations[i];
                 try {
                     switch (monetization) {
                         case 22:
                             sendMessageA && sendMessageA.call(this, types.mo, { type: 'readArticles2', payload: { event: 'read' } });
-                            if (debug) console.log(`[Debug] Faked readArticles2 [${i+1}/${monetizations.length}]`);
                             break;
                         case 25:
                             sendMessageA && sendMessageA.call(this, types.mo, { type: 'operaGX', payload: { event: 'start' } });
@@ -848,47 +827,38 @@
                                 mode: 'no-cors',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({ noteligible: true })
-                            }).catch((e) => { if (debug) console.warn('[Debug] operaGX fetch failed:', e); });
-                            if (debug) console.log(`[Debug] Faked operaGX [${i+1}/${monetizations.length}]`);
+                            }).catch();
                             break;
                         case 34:
                             sendMessageA && sendMessageA.call(this, types.mo, { type: 'norton', payload: { event: 'start' } });
                             sendMessageA && sendMessageA.call(this, types.mo, { type: 'norton', payload: { event: 'installClicked' } });
-                            if (debug) console.log(`[Debug] Faked norton [${i+1}/${monetizations.length}]`);
                             break;
                         case 71:
                             sendMessageA && sendMessageA.call(this, types.mo, { type: 'externalArticles', payload: { event: 'start' } });
                             sendMessageA && sendMessageA.call(this, types.mo, { type: 'externalArticles', payload: { event: 'installClicked' } });
-                            if (debug) console.log(`[Debug] Faked externalArticles [${i+1}/${monetizations.length}]`);
                             break;
                         case 45:
                             sendMessageA && sendMessageA.call(this, types.mo, { type: 'pdfeditor', payload: { event: 'installed' } });
-                            if (debug) console.log(`[Debug] Faked pdfeditor [${i+1}/${monetizations.length}]`);
                             break;
                         case 57:
                             sendMessageA && sendMessageA.call(this, types.mo, { type: 'betterdeals', payload: { event: 'installed' } });
-                            if (debug) console.log(`[Debug] Faked betterdeals [${i+1}/${monetizations.length}]`);
                             break;
                         default:
-                            if (debug) console.log(`[Debug] Unknown monetization [${i+1}/${monetizations.length}]:`, monetization);
+                            return;
                     }
                 } catch (e) {
-                    if (debug) console.error(`[Debug] Error faking monetization [${i+1}/${monetizations.length}]:`, monetization, e);
+
                 }
             }
-
-            if (debug) console.log('[Debug] spoof Workink completed');
         }
 
         function trm() {
             return function(...a) {
                 const [msgType] = a;
                 if (msgType === types.ad) {
-                    if (debug) console.log('[Debug] trm: Skipping adblocker message');
                     return;
                 }
                 if (sessionController?.linkInfo && msgType === types.tr) {
-                    if (debug) console.log('[Debug] Captcha bypassed via TR');
                     triggerBypass('tr');
                 }
                 return sendMessageA ? sendMessageA.apply(this, a): undefined;
@@ -898,7 +868,6 @@
         function createLinkInfoProxy() {
             return async function(...args) {
                 const [info] = args;
-                if (debug) console.log('[Debug] Link info:', info);
                 try {
                     Object.defineProperty(info, 'isAdblockEnabled', {
                         get: () => false,
@@ -906,28 +875,24 @@
                         configurable: false,
                         enumerable: true
                     });
-                    if (debug) console.log('[Debug] Adblock disabled in linkInfo');
                 } catch (e) {
-                    if (debug) console.warn('[Debug] Define Property failed:', e);
+
                 }
                 return onLinkInfoA ? onLinkInfoA.apply(this, args): undefined;
             };
         }
 
         function redirect(url) {
-            if (debug) console.log('[Debug] Redirecting to:', url);
             if (panel) panel.show('backToCheckpoint', 'info')
             window.location.href = url;
         }
 
         function startCountdown(url, waitLeft) {
-            if (debug) console.log('[Debug] startCountdown: Started with', waitLeft, 'seconds');
             if (panel) panel.show('bypassSuccess', 'warning');
 
             const interval = setInterval(() => {
                 waitLeft -= 1;
                 if (waitLeft > 0) {
-                    if (debug) console.log('[Debug] startCountdown: Time remaining:', waitLeft);
                     if (panel) panel.show('bypassSuccess', 'warning');
                 } else {
                     clearInterval(interval);
@@ -936,19 +901,10 @@
             }, 1000);
         }
 
-        function checkUrl(url) {
-            if (url.includes('42rk6hcq') || url.includes('ito4wckq') || url.includes('pzarvhq1')) {
-                return true
-            } else {
-                return false
-            }
-        }
-
         function createDestinationProxy() {
             return async function(...args) {
                 const [data] = args;
                 destinationReceived = true;
-                if (debug) console.log('[Debug] Destination data:', data);
 
                 if (!destinationProcessed) {
                     destinationProcessed = true;
@@ -994,9 +950,8 @@
                     set: v => (onLinkDestinationA = v),
                     configurable: true
                 });
-                if (debug) console.log('[Debug] setupProxies: Proxies set successfully');
             } catch (e) {
-                if (debug) console.warn('[Debug] setupProxies: Failed to set proxies:', e);
+
             }
         }
 
@@ -1006,12 +961,10 @@
                 getFunction(value).fn &&
                 getFunction(value, map.onLI).fn &&
                 getFunction(value, map.onLD).fn &&
-                !sessionController) {
+                !sessionController
+            ) {
                 sessionController = value;
-                if (debug) console.log('[Debug] Controller detected:', sessionController);
                 setupProxies();
-            } else {
-                if (debug) console.log('[Debug] checkController: No controller found for prop:', prop);
             }
             return Reflect.set(target, prop, value);
         }
@@ -1071,12 +1024,9 @@
                     intercepted = true;
                     return await new unsafeWindow.Promise((resolve) => {
                         result.then(([kit, app, ...args]) => {
-                            if (debug) console.log('[Debug]: Set up Interception!');
-
                             const [success, created] = createKitProxy(kit);
                             if (success) {
                                 unsafeWindow.Promise.all = origPromiseAll;
-                                if (debug) console.log('[Debug]: Kit ready', created, app);
                             }
                             resolve([created, app, ...args]);
                         });
@@ -1092,7 +1042,9 @@
             "adsbygoogle",
             "adsense-wrapper",
             "inline-ad",
-            "gpt-billboard-container"
+            "gpt-billboard-container",
+            "[&:not(:first-child)]:mt-12",
+            "lg:block"
         ];
 
         const blockedIds = [
@@ -1112,40 +1064,84 @@
                         blockedClasses.forEach((cls) => {
                             if (node.classList?.contains(cls)) {
                                 node.remove();
-                                if (debug) console.log('[Debug]: Removed ad by class:', cls, node);
                             }
-                            node.querySelectorAll?.(`.${cls}`).forEach((el) => {
+                            node.querySelectorAll?.(`.${CSS.escape(cls)}`).forEach((el) => {
                                 el.remove();
-                                if (debug) console.log('[Debug]: Removed nested ad by class:', cls, el);
                             });
                         });
 
                         blockedIds.forEach((id) => {
                             if (node.id === id) {
                                 node.remove();
-                                if (debug) console.log('[Debug]: Removed ad by id:', id, node);
                             }
                             node.querySelectorAll?.(`#${id}`).forEach((el) => {
                                 el.remove();
-                                if (debug) console.log('[Debug]: Removed nested ad by id:', id, el);
                             });
                         });
 
-                        // div
-                        if (node.matches('.button.large.accessBtn.pos-relative.svelte-bv7qlp') && node.textContent.includes('Go To Destination')) {
-                            if (debug) console.log('[Debug] GTD button detected');
-                            node.click();
+                        if (node.matches('.button.large.accessBtn.pos-relative.svelte-1ao8oou') && node.textContent.includes('Go To Destination')) {
+                            node.click()
                         }
-
-                        // div
-                        //if (node.matches('.w-full.bg-gray-100.hover:bg-gray-200.active:bg-gray-300.text-gray-700.py-4.rounded-full.font-medium.transition-colors') && node.textContent.includes('Go To Destination')) {
-                        //    if (debug) console.log('[Debug] CWA button detected');
-                        //    node.click();
-                        //}
                     }
                 }
             }
         });
-        ob.observe(document.documentElement, { childList: true, subtree: true });
+        ob.observe(document.documentElement, { childList: true, subtree: true, attributes: true });
     }
+})();
+
+(function() {
+    'use strict';
+
+    let clickGTD = false;
+
+    function abc() {
+        const accessOptionsDiv = document.querySelector('div.bg-white.rounded-2xl.w-full.max-w-md.relative.shadow-2xl.animate-fade-in');
+        const modalDiv = document.querySelector('div.fixed.inset-0.bg-black\\/50.backdrop-blur-sm.flex.items-center.justify-center.p-4.main-modal.svelte-9kfsb0');
+
+        if (accessOptionsDiv) {
+            accessOptionsDiv.remove();
+            abcd();
+        }
+
+        if (modalDiv) {
+            modalDiv.remove();
+            abcd();
+        }
+
+        // Re-run async 0ms
+        setTimeout(abc, 0);
+    }
+
+    function abcd() {
+        const GTDiv = document.querySelector('div.button.large.accessBtn.pos-relative.svelte-1ao8oou');
+        if (!GTDiv) return;
+
+        const disabled = GTDiv.classList.contains("button-disabled");
+
+        if (!disabled && !clickGTD) {
+            try {
+                clickGTD = true;
+                GTDiv.click();
+            } catch (e) {
+                console.log("Error in GTDiv", e);
+            }
+            abcde();
+        }
+
+        // Async re-run
+        setTimeout(abcd, 0);
+    }
+
+    function abcde() {
+        const GoogleDiv = document.querySelector('div.fixed.top-16.left-0.right-0.bottom-0.bg-white.z-40.overflow-y-auto');
+        if (GoogleDiv) {
+            GoogleDiv.remove();
+        }
+
+        // Async re-run
+        setTimeout(abcde, 0);
+    }
+
+    window.addEventListener('load', () => setTimeout(abc, 0));
 })();
