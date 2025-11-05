@@ -742,7 +742,7 @@
 
         function triggerBypass(reason) {
             if (bypassTriggered) {
-                if (debug) console.log('[Debug] trigger Bypass skipped, already triggered');
+                console.log('[Debug] trigger Bypass skipped, already triggered');
                 return;
             }
             bypassTriggered = true;
