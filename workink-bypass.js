@@ -1073,7 +1073,9 @@
                             });
                         });
 
-                        if (node.matches('.button.large.accessBtn.pos-relative.svelte-1ao8oou') && node.textContent.includes('Go To Destination')) {
+                        let btnId = "1ao8oou"
+
+                        if (node.matches(`.button.large.accessBtn.pos-relative.svelte-${btnId}`) && node.textContent.includes('Go To Destination')) {
                             node.click()
                             triggerBypass('gtd');
                         }
@@ -1088,6 +1090,7 @@
 (function() {
     'use strict';
     let clickGTD = false;
+    let btnId = "1ao8oou"
 
     function abc() {
         const accessOptionsDiv = document.querySelector('div.bg-white.rounded-2xl.w-full.max-w-md.relative.shadow-2xl.animate-fade-in');
@@ -1109,7 +1112,7 @@
     }
 
     function abcd() {
-        const GTDiv = document.querySelector('div.button.large.accessBtn.pos-relative.svelte-1ao8oou');
+        const GTDiv = document.querySelector(`div.button.large.accessBtn.pos-relative.svelte-${btnId}`);
         if (!GTDiv) {
             requestAnimationFrame(abcd);
             return;
