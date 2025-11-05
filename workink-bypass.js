@@ -1,13 +1,13 @@
 (function () {
     'use strict';
 
-    const host = location.hostname; // check host
-    const otherTime = 5
-    const normalTime = 60 // normal time if do without bypass
+    const host = location.hostname;
+    const defaultTime = 8;
+    const normalTime = 60;
 
-    let currentLanguage = localStorage.getItem('lang') || 'en'; // default language: en/vi/id
+    let currentLanguage = localStorage.getItem('lang') || 'en';
     let currentTheme = localStorage.getItem('theme') || 'orange';
-    let currentTime = localStorage.getItem('waitTime') || 24;
+    let currentTime = localStorage.getItem('waitTime') || defaultTime;
 
     const themes = {
         orange: {
@@ -15,397 +15,427 @@
             secondary: '#cc1616ff',
             primaryRGBA: '255, 69, 0, 1',
             secondaryRGBA: '204, 22, 22, 1',
-            background: 'linear-gradient(415deg, #000000 0%, #ff4500 100%)'
+            background: 'linear-gradient(135deg, #4e2606ff 0%, #5f2e06ff 50%, #783004ff 100%)',
+            glow: 'rgba(221, 127, 77, 1)'
         },
         purple: {
             primary: '#800080',
             secondary: '#4b0082',
             primaryRGBA: '128, 0, 128, 1',
             secondaryRGBA: '75, 0, 130, 1',
-            background: 'radial-gradient(circle, #800080 0%, #000000 100%)'
+            background: 'linear-gradient(135deg, #25064eff 0%, #27065fff 50%, #320478ff 100%)',
+            glow: 'rgba(164, 95, 225, 1)'
         },
         blue: {
             primary: '#0080ffff',
             secondary: '#005a8bff',
             primaryRGBA: '0, 128, 255, 1',
             secondaryRGBA: '0, 90, 139, 1',
-            background: 'linear-gradient(415deg, #0080ffff 0%, #000000 100%)'
+            background: 'linear-gradient(135deg, #06304eff 0%, #063d5fff 50%, #044878ff 100%)',
+            glow: 'rgba(0, 37, 139, 1)'
+        },
+        green: {
+            primary: '#10b981',
+            secondary: '#059669',
+            primaryRGBA: '16, 185, 129, 1',
+            secondaryRGBA: '5, 150, 105, 1',
+            background: 'linear-gradient(135deg, #064e3b 0%, #065f46 50%, #047857 100%)',
+            glow: 'rgba(73, 209, 152, 1)'
         },
         rgb: {
             primary: '#ff4500',
             secondary: '#cc1616ff',
             primaryRGBA: '255, 69, 0, 1',
             secondaryRGBA: '204, 22, 22, 1',
-            background: 'linear-gradient(415deg, #000000 0%, #ff4500 100%)',
+            background: 'linear-gradient(135deg, #4e2606ff 0%, #5f2e06ff 50%, #783004ff 100%)',
+            glow: '#e28757ff',
             isRGB: true
         }
     };
 
-    // Translations
     const translations = {
         vi: {
             title: "Difz25x",
             pleaseSolveCaptcha: "Vui lòng hoàn thành CAPTCHA để tiếp tục",
             captchaSuccess: "CAPTCHA đã được xác minh thành công",
             redirectingToWork: "Đang chuyển hướng đến Work.ink...",
-            clickingContinue: "Đã nhấp nút Tiếp tục",
-            errorClickingContinue: "Lỗi khi nhấp nút Tiếp tục",
-            autoClickCopy: "Đã tự động nhấp nút sao chép khóa",
-            bypassSuccessCopy: "Bypass thành công! Khóa đã được sao chép (nhấn 'Cho phép' nếu được yêu cầu)",
-            errorCopy: "Lỗi khi sao chép khóa",
-            copyButtonNotFound: "Không tìm thấy nút sao chép",
-            waitingCaptcha: "Đang chờ CAPTCHA...",
-            successDetected: "Đã phát hiện thành công, chuẩn bị nhấp...",
+            bypassSuccessCopy: "Bypass thành công! Khóa đã được sao chép",
             bypassSuccess: "Bỏ qua thành công, đang chờ...",
             backToCheckpoint: "Đang quay lại điểm kiểm tra...",
             captchaSuccessBypassing: "CAPTCHA đã thành công, đang tiến hành bypass...",
-            loaderBtn: "Nút chưa tải, vui lòng tải lại trang",
-            expiredLink: "Liên kết của bạn không hợp lệ hoặc đã hết hạn, được chuyển hướng đến đây. Hãy lấy liên kết mới.",
-            version: "Phiên bản 1.0.6.0",
-            madeBy: "Được tạo bởi Difz25x (dựa trên DyRian)"
+            expiredLink: "Liên kết của bạn không hợp lệ hoặc đã hết hạn",
+            version: "Phiên bản 1.0.6.1",
+            madeBy: "Được tạo bởi Difz25x",
+            timeSaved: "THỜI GIAN TIẾT KIỆM",
+            redirectIn: "CHUYỂN HƯỚNG SAU",
+            waitTime: "Thời gian chờ",
+            instant: "Tức thì"
         },
         en: {
             title: "Difz25x",
             pleaseSolveCaptcha: "Please complete the CAPTCHA to continue",
             captchaSuccess: "CAPTCHA solved successfully",
             redirectingToWork: "Redirecting to Work.ink...",
-            clickingContinue: "Continue button clicked",
-            errorClickingContinue: "Error clicking the Continue button",
-            autoClickCopy: "Automatically clicked the copy key button",
-            bypassSuccessCopy: "Bypass successful! Key copied (click 'Allow' if prompted)",
-            errorCopy: "Error copying the key",
-            copyButtonNotFound: "Copy button not found",
-            waitingCaptcha: "Waiting for CAPTCHA...",
-            successDetected: "Success detected, preparing to click...",
+            bypassSuccessCopy: "Bypass successful! Key copied",
             bypassSuccess: "Bypass successful, waiting...",
             backToCheckpoint: "Returning to checkpoint...",
             captchaSuccessBypassing: "CAPTCHA solved successfully, bypassing...",
-            expiredLink: "Your link is invalid or expired, redirected here. Get a new one.",
-            loaderBtn: "Button not loaded, please reload the page",
-            version: "Version 1.0.6.0",
-            madeBy: "Made by Difz25x (based on DyRian)"
+            expiredLink: "Your link is invalid or expired",
+            version: "Version 1.0.6.1",
+            madeBy: "Made by Difz25x",
+            timeSaved: "TIME SAVED",
+            redirectIn: "REDIRECT IN",
+            waitTime: "Wait Time",
+            instant: "Instant"
         },
         id: {
             title: "Difz25x",
             pleaseSolveCaptcha: "Harap lengkapi CAPTCHA untuk melanjutkan",
             captchaSuccess: "CAPTCHA berhasil diselesaikan",
             redirectingToWork: "Mengalihkan ke Work.ink...",
-            clickingContinue: "Tombol Lanjutkan diklik",
-            errorClickingContinue: "Kesalahan mengklik tombol Lanjutkan",
-            autoClickCopy: "Otomatis mengklik tombol salin kunci",
-            bypassSuccessCopy: "Bypass berhasil! Kunci disalin (klik 'Izinkan' jika diminta)",
-            errorCopy: "Kesalahan menyalin kunci",
-            copyButtonNotFound: "Tombol salin tidak ditemukan",
-            waitingCaptcha: "Menunggu CAPTCHA...",
-            successDetected: "Keberhasilan terdeteksi, mempersiapkan klik...",
+            bypassSuccessCopy: "Bypass berhasil! Kunci disalin",
             bypassSuccess: "Bypass berhasil, menunggu...",
             backToCheckpoint: "Kembali ke checkpoint...",
             captchaSuccessBypassing: "CAPTCHA berhasil diselesaikan, melewati...",
-            expiredLink: "Tautan Anda tidak valid atau kedaluwarsa, dialihkan ke sini. Dapatkan yang baru.",
-            loaderBtn: "Tombol belum dimuat, harap muat ulang halaman",
-            version: "Versi 1.0.6.0",
-            madeBy: "Dibuat oleh Difz25x (berdasarkan DyRian)"
+            expiredLink: "Tautan Anda tidak valid atau kedaluwarsa",
+            version: "Versi 1.0.6.1",
+            madeBy: "Dibuat oleh Difz25x",
+            timeSaved: "WAKTU TERSIMPAN",
+            redirectIn: "ALIHKAN DALAM",
+            waitTime: "Waktu Tunggu",
+            instant: "Instan"
         }
     };
 
-    // Translation function
-    function t(key, replacements = {}) {
-        let text = translations[currentLanguage][key] || key;
-        Object.keys(replacements).forEach(placeholder => {
-            text = text.replace(`{${placeholder}}`, replacements[placeholder]);
-        });
-        return text;
+    function t(key) {
+        return translations[currentLanguage][key] || key;
     }
 
-    // Bypass Panel (UI)
     class BypassPanel {
         constructor() {
             this.container = null;
             this.shadow = null;
-            this.panel = null;
-
             this.statusText = null;
-            this.statusDot = null;
-
             this.timeSavedEl = null;
             this.redirectingEl = null;
-
             this.waitSlider = null;
-            this.waitValueEl = null;
             this.progressFill = null;
-
-            this.versionEl = null;
-            this.creditEl = null;
-
-            // Timer state
             this.timerStart = null;
             this.timerDuration = null;
             this.timerRAF = null;
-            this.remaining = 0;
             this.isRunning = false;
-
-            this.savedTime = 0; // example "time saved" counter
-
+            this.savedTime = 0;
+            this.currentMessageKey = 'pleaseSolveCaptcha';
             this.init();
         }
 
         init() {
             this.createPanel();
             this.attachEvents();
-
-            // set default wait time based on host, but do not start timer yet
-            const defaultTime = parseInt(localStorage.getItem('waitTime')) || otherTime;
-            this.setWaitValue(defaultTime);
+            this.setWaitValue(currentTime);
         }
 
         createPanel() {
-            // create host container + closed shadow to avoid clash
             this.container = document.createElement('div');
             this.shadow = this.container.attachShadow({ mode: 'open' });
 
             const style = document.createElement('style');
             style.textContent = `
                 :host { all: initial; }
-                * { box-sizing: border-box; font-family: 'Inter', 'Segoe UI', Roboto, Arial, sans-serif; }
+                * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+
                 .panel-container {
                     position: fixed;
-                    bottom: 18px;
-                    right: 18px;
-                    width: 450px;
-                    max-height: 80vh;
+                    bottom: 20px;
+                    right: 20px;
+                    width: 520px;
                     z-index: 2147483647;
-                    cursor: default;
                 }
+
                 .panel {
-                    background: linear-gradient(135deg, #0f1113 0%, #1a1d20 100%);
-                    border-radius: 16px;
-                    padding: 16px;
-                    color: #e5e7eb;
-                    box-shadow: 0 12px 40px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.05);
-                    border: 1px solid rgba(255,255,255,0.08);
+                    background: var(--background-gradient);
+                    border-radius: 20px;
+                    padding: 24px;
+                    box-shadow: 0 20px 60px rgba(0,0,0,0.5),
+                                0 0 0 1px rgba(255,255,255,0.1) inset;
+                    backdrop-filter: blur(20px);
+                    position: relative;
                     overflow: hidden;
-                    backdrop-filter: blur(10px);
-                    -webkit-backdrop-filter: blur(10px);
                 }
+
+                .panel::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    height: 3px;
+                    background: linear-gradient(90deg,
+                        transparent,
+                        var(--primary-color),
+                        transparent);
+                }
+
                 .header {
-                    display:flex;
-                    align-items: center;
+                    display: flex;
                     justify-content: space-between;
-                    padding: 8px 6px;
-                    margin-bottom: 8px;
+                    align-items: center;
+                    margin-bottom: 20px;
                 }
+
                 .title {
+                    font-size: 18px;
                     font-weight: 700;
-                    font-size: 16px;
-                    color: #f3f4f6;
+                    color: #fff;
+                    text-shadow: 0 0 20px var(--glow-color), 0.5);
                 }
+
                 .controls {
                     display: flex;
                     gap: 8px;
                 }
+
                 .control-btn {
-                    background: rgba(255,255,255,0.1);
-                    border: 1px solid rgba(255,255,255,0.2);
-                    color: #d7d7d7;
-                    padding: 4px 8px;
-                    border-radius: 6px;
+                    background: rgba(255,255,255,0.05);
+                    border: 1px solid rgba(255,255,255,0.1);
+                    color: #fff;
+                    padding: 6px 12px;
+                    border-radius: 8px;
                     font-size: 11px;
+                    font-weight: 600;
                     cursor: pointer;
-                    transition: background 0.2s;
+                    transition: all 0.3s;
                 }
+
                 .control-btn:hover {
-                    background: rgba(255,255,255,0.2);
+                    background: var(--primary-color);
+                    border-color: var(--primary-color);
+                    transform: translateY(-2px);
+                    box-shadow: 0 4px 12px var(--glow-color), 0.4);
                 }
-                .version {
-                    font-size: 11px;
-                    color: rgba(255,255,255,0.45);
+
+                .status-card {
+                    background: rgba(0,0,0,0.3);
+                    border-radius: 12px;
+                    padding: 16px;
+                    margin-bottom: 16px;
+                    border: 1px solid rgba(255,255,255,0.05);
                 }
-                .status-section {
-                    margin: 6px 0 12px 0;
-                }
-                .status-box {
-                    background: #121418;
-                    border-radius: 10px;
-                    padding: 12px;
-                    border: 1px solid rgba(255,255,255,0.02);
-                    display:flex;
-                    gap:10px;
-                    align-items:center;
-                }
-                .status-dot {
-                    width: 12px;
-                    height: 12px;
-                    border-radius: 50%;
-                    background: #60a5fa;
-                    box-shadow: 0 0 8px rgba(58,130,247,0.18);
-                    flex-shrink: 0;
-                }
+
                 .status-text {
-                    font-size: 13px;
-                    color: #e6e7e8;
-                    line-height: 1.3;
+                    font-size: 14px;
+                    color: #fff;
+                    font-weight: 500;
+                    text-align: center;
                 }
 
-                .grid-2 {
-                    display:flex;
-                    gap:12px;
-                    margin: 12px 0;
-                }
-                .info-card {
-                    flex:1;
-                    background: #0e1012;
-                    border-radius: 10px;
-                    padding: 12px;
-                    text-align:center;
-                    border: 1px solid rgba(255,255,255,0.02);
-                }
-                .info-value {
-                    font-size: 28px;
-                    font-weight: 700;
-                    color: #dbeafe; /* slightly bluish for emphasis */
-                }
-                .info-label {
-                    font-size: 11px;
-                    color: rgba(255,255,255,0.45);
-                    margin-top:6px;
-                    letter-spacing: 1px;
+                .stats-grid {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 12px;
+                    margin-bottom: 20px;
                 }
 
-                .wait-section {
-                    margin-top: 6px;
-                    background: transparent;
-                }
-                .wait-header {
-                    display:flex;
-                    justify-content:space-between;
-                    align-items:center;
-                    margin-bottom:8px;
-                }
-                .wait-title { font-size:13px; color:#d7d7d7; }
-                .wait-value { font-size:13px; color:rgba(255,255,255,0.55); }
-
-                /* slider main */
-                .slider-wrap {
-                    padding: 10px 6px 18px 6px;
-                    background: #0f1113;
-                    border-radius: 10px;
-                    border: 1px solid rgba(255,255,255,0.02);
-                }
-                .slider {
-                    -webkit-appearance: none;
-                    width: 100%;
-                    height: 8px;
-                    background: rgba(255,255,255,0.06);
-                    border-radius: 999px;
-                    outline: none;
-                    position: relative;
-                }
-                .slider::-webkit-slider-thumb {
-                    -webkit-appearance: none;
-                    width: 20px; height: 20px;
-                    border-radius: 50%;
-                    background: #cbd5e1;
-                    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-                    border: 3px solid #1f2937;
-                    margin-top: -6px;
-                }
-                .slider::-moz-range-thumb {
-                    width: 20px; height: 20px; border-radius:50%;
-                    background: #cbd5e1; border: 3px solid #1f2937;
-                }
-
-                /* progress fill under slider (thin bar) */
-                .progress-track {
-                    height: 6px;
-                    background: rgba(255,255,255,0.03);
-                    border-radius: 6px;
-                    margin-top: 8px;
+                .stat-card {
+                    background: rgba(0,0,0,0.3);
+                    border-radius: 12px;
+                    padding: 16px;
+                    text-align: center;
+                    border: 1px solid rgba(255,255,255,0.05);
                     position: relative;
                     overflow: hidden;
                 }
-                .progress-fill {
+
+                .stat-card::before {
+                    content: '';
                     position: absolute;
-                    left: 0;
                     top: 0;
-                    bottom: 0;
-                    width: 0%;
-                    background: linear-gradient(90deg, #131212ff 0% #111010 100%);
-                    box-shadow: 0 6px 18px rgba(18, 17, 17, 0.12);
-                    border-radius: 6px;
-                    transition: width 0.1s linear;
+                    left: 0;
+                    right: 0;
+                    height: 1px;
+                    background: linear-gradient(90deg,
+                        transparent,
+                        var(--primary-color),
+                        transparent);
                 }
 
-                .wait-footer {
-                    display:flex; justify-content:space-between; font-size:11px; color:rgba(255,255,255,0.35);
-                    margin-top:8px;
+                .stat-value {
+                    font-size: 28px;
+                    font-weight: 700;
+                    color: var(--primary-color);
+                    text-shadow: 0 0 20px var(--glow-color), 2);
+                    margin-bottom: 4px;
+                }
+
+                .stat-label {
+                    font-size: 10px;
+                    color: rgba(255,255,255,0.5);
+                    text-transform: uppercase;
+                    letter-spacing: 1px;
+                }
+
+                .slider-section {
+                    background: rgba(0,0,0,0.3);
+                    border-radius: 12px;
+                    padding: 16px;
+                    border: 1px solid rgba(255,255,255,0.05);
+                }
+
+                .slider-header {
+                    display: flex;
+                    justify-content: space-between;
+                    margin-bottom: 12px;
+                }
+
+                .slider-title {
+                    font-size: 12px;
+                    color: rgba(255,255,255,0.7);
+                    font-weight: 600;
+                }
+
+                .slider-value {
+                    font-size: 12px;
+                    color: var(--primary-color);
+                    font-weight: 700;
+                }
+
+                .slider {
+                    width: 100%;
+                    height: 6px;
+                    background: rgba(255,255,255,0.1);
+                    border-radius: 10px;
+                    outline: none;
+                    -webkit-appearance: none;
+                    margin-bottom: 12px;
+                }
+
+                .slider::-webkit-slider-thumb {
+                    -webkit-appearance: none;
+                    width: 18px;
+                    height: 18px;
+                    background: var(--primary-color);
+                    border-radius: 50%;
+                    cursor: pointer;
+                    box-shadow: 0 0 15px var(--glow-color), 2);
+                    transition: all 0.3s;
+                }
+
+                .slider::-webkit-slider-thumb:hover {
+                    transform: scale(1.2);
+                    box-shadow: 0 0 25px var(--glow-color), 0.8);
+                }
+
+                .slider::-moz-range-thumb {
+                    width: 18px;
+                    height: 18px;
+                    background: var(--primary-color);
+                    border-radius: 50%;
+                    cursor: pointer;
+                    border: none;
+                    box-shadow: 0 0 15px var(--glow-color), 0.6);
+                }
+
+                .progress-bar {
+                    width: 100%;
+                    height: 4px;
+                    background: rgba(255,255,255,0.1);
+                    border-radius: 10px;
+                    overflow: hidden;
+                    margin-bottom: 8px;
+                }
+
+                .progress-fill {
+                    height: 100%;
+                    width: 0%;
+                    background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+                    border-radius: 10px;
+                    transition: width 0.1s linear;
+                    box-shadow: 0 0 15px var(--glow-color), 0.6);
+                }
+
+                .slider-labels {
+                    display: flex;
+                    justify-content: space-between;
+                    font-size: 10px;
+                    color: rgba(255,255,255,0.4);
                 }
 
                 .footer {
-                    margin-top: 10px;
-                    display:flex;
-                    justify-content:space-between;
-                    align-items:center;
-                    font-size:11px;
-                    color:rgba(255,255,255,0.45);
+                    display: flex;
+                    justify-content: space-between;
+                    margin-top: 16px;
+                    font-size: 11px;
+                    color: rgba(255,255,255,0.4);
                 }
 
                 @media (max-width: 460px) {
-                    .panel-container { left:12px; right:12px; width:auto; top:12px; }
+                    .panel-container {
+                        left: 12px;
+                        right: 12px;
+                        width: auto;
+                        bottom: 12px;
+                    }
+                }
+
+                @keyframes rgb-shift {
+                    0% { filter: hue-rotate(0deg); }
+                    100% { filter: hue-rotate(360deg); }
+                }
+
+                .rgb-mode {
+                    animation: rgb-shift 3s linear infinite;
                 }
             `;
 
             this.shadow.appendChild(style);
 
             const html = `
-                <div class="panel-container" id="difz25x-panel">
-                    <div class="panel">
+                <div class="panel-container">
+                    <div class="panel" id="main-panel">
                         <div class="header">
-                            <div>
-                                <div class="title">${t('title')}</div>
-                            </div>
+                            <div class="title" id="panel-title">${t('title')}</div>
                             <div class="controls">
-                                <button id="lang-btn" class="control-btn">EN</button>
-                                <button id="theme-btn" class="control-btn">GRAY</button>
+                                <button id="lang-btn" class="control-btn">${currentLanguage.toUpperCase()}</button>
+                                <button id="theme-btn" class="control-btn">${currentTheme.toUpperCase()}</button>
                             </div>
                         </div>
 
-                        <div class="status-section">
-                            <div class="status-box">
-                                <div class="status-dot" id="status-dot"></div>
-                                <div class="status-text" id="status-text">${t('pleaseSolveCaptcha')}</div>
+                        <div class="status-card">
+                            <div class="status-text" id="status-text">${t('pleaseSolveCaptcha')}</div>
+                        </div>
+
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-value" id="time-saved">0s</div>
+                                <div class="stat-label" id="saved-label">${t('timeSaved')}</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value" id="redirect-time">--</div>
+                                <div class="stat-label" id="redirect-label">${t('redirectIn')}</div>
                             </div>
                         </div>
 
-                        <div class="grid-2">
-                            <div class="info-card">
-                                <div class="info-value" id="time-saved">--</div>
-                                <div class="info-label">TIME SAVED</div>
+                        <div class="slider-section">
+                            <div class="slider-header">
+                                <div class="slider-title" id="wait-title">${t('waitTime')}</div>
+                                <div class="slider-value" id="wait-value">24s</div>
                             </div>
-                            <div class="info-card">
-                                <div class="info-value" id="redirecting-in">--</div>
-                                <div class="info-label">REDIRECTING IN</div>
+                            <input type="range" id="wait-slider" class="slider" min="0" max="30" value="15">
+                            <div class="slider-labels">
+                                <span id="instant-label">${t('instant')}</span>
+                                <span>30s</span>
                             </div>
-                        </div>
-
-                        <div class="wait-section">
-                            <div class="wait-header">
-                                <div class="wait-title">Wait Time</div>
-                                <div class="wait-value" id="wait-value">15s</div>
-                            </div>
-
-                            <div class="slider-wrap">
-                                <div class="wait-footer">
-                                    <div>Instant</div>
-                                    <div>40s</div>
-                                </div>
-                                <input type="range" id="wait-slider" class="slider" min="0" max="30" step="1" value="15" />
-                            </div>
-                            <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
                         </div>
 
                         <div class="footer">
-                            <div class="version">${t('version')}</div>
-                            <div class="credit">${t('madeBy')}</div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="progress-fill"></div>
+                            </div>
+                        </div>
+
+                        <div class="footer">
+                            <span id="version-text">${t('version')}</span>
+                            <span id="credit-text">${t('madeBy')}</span>
                         </div>
                     </div>
                 </div>
@@ -415,69 +445,60 @@
             wrapper.innerHTML = html;
             this.shadow.appendChild(wrapper.firstElementChild);
 
-            // store references
-            this.statusText = this.shadow.querySelector('#status-text');
-            this.statusDot = this.shadow.querySelector('#status-dot');
-            this.timeSavedEl = this.shadow.querySelector('#time-saved');
-            this.redirectingEl = this.shadow.querySelector('#redirecting-in');
-            this.waitSlider = this.shadow.querySelector('#wait-slider');
+            this.statusText = this.shadow.getElementById('status-text');
+            this.timeSavedEl = this.shadow.getElementById('time-saved');
+            this.redirectingEl = this.shadow.getElementById('redirect-time');
+            this.waitSlider = this.shadow.getElementById('wait-slider');
             this.waitValueEl = this.shadow.getElementById('wait-value');
-            this.progressFill = this.shadow.querySelector('#progress-fill');
-            this.versionEl = this.shadow.querySelectorAll('.version');
-            this.creditEl = this.shadow.querySelectorAll('.credit');
-            this.langBtn = this.shadow.querySelector('#lang-btn');
-            this.themeBtn = this.shadow.querySelector('#theme-btn');
-            this.titleEl = this.shadow.querySelector('.title');
+            this.progressFill = this.shadow.getElementById('progress-fill');
+            this.mainPanel = this.shadow.getElementById('main-panel');
 
-            // Initialize button texts
-            this.langBtn.textContent = currentLanguage.toUpperCase();
-            this.themeBtn.textContent = currentTheme.toUpperCase();
-
-            // Add theme style element for dynamic theming
             this.themeStyle = document.createElement('style');
-            this.themeStyle.id = 'theme-style';
             this.shadow.appendChild(this.themeStyle);
 
-            // Apply initial theme
             this.applyTheme();
-
             document.documentElement.appendChild(this.container);
         }
 
         attachEvents() {
+            this.waitSlider.value = currentTime;
+            this.setWaitValue(currentTime);
 
-            this.waitSlider.value = currentTime || 24;
-            this.setWaitValue(currentTime || 24);
-            // slider change: update wait time and restart
             this.waitSlider.addEventListener('input', (e) => {
                 const sec = parseInt(e.target.value);
                 this.setWaitValue(sec);
                 localStorage.setItem('waitTime', sec);
+                currentTime = sec;
             });
 
-            this.langBtn.addEventListener('click', (e) => {
+            this.shadow.getElementById('lang-btn').addEventListener('click', () => {
                 const langs = ['en', 'vi', 'id'];
-                const currentIndex = langs.indexOf(currentLanguage);
-                const nextIndex = (currentIndex + 1) % langs.length;
-                currentLanguage = langs[nextIndex];
+                const idx = langs.indexOf(currentLanguage);
+                currentLanguage = langs[(idx + 1) % langs.length];
                 localStorage.setItem('lang', currentLanguage);
-                this.langBtn.textContent = currentLanguage.toUpperCase();
-                // Re-translate the UI elements
-                this.titleEl.textContent = t('title');
-                this.statusText.textContent = t(this.currentMessageKey, this.currentReplacements);
-                this.versionEl.forEach(el => el.textContent = t('version'));
-                this.creditEl.forEach(el => el.textContent = t('madeBy'));
+                this.updateLanguage();
             });
 
-            this.themeBtn.addEventListener('click', (e) => {
+            this.shadow.getElementById('theme-btn').addEventListener('click', () => {
                 const themeKeys = Object.keys(themes);
-                const currentIndex = themeKeys.indexOf(currentTheme);
-                const nextIndex = (currentIndex + 1) % themeKeys.length;
-                currentTheme = themeKeys[nextIndex];
+                const idx = themeKeys.indexOf(currentTheme);
+                currentTheme = themeKeys[(idx + 1) % themeKeys.length];
                 localStorage.setItem('theme', currentTheme);
-                this.themeBtn.textContent = currentTheme.toUpperCase();
                 this.applyTheme();
+                this.shadow.getElementById('theme-btn').textContent = currentTheme.toUpperCase();
             });
+        }
+
+        updateLanguage() {
+            this.shadow.getElementById('lang-btn').textContent = currentLanguage.toUpperCase();
+            this.shadow.getElementById('panel-title').textContent = t('title');
+            this.shadow.getElementById('status-text').textContent = t(this.currentMessageKey);
+            this.shadow.getElementById('saved-label').textContent = t('timeSaved');
+            this.shadow.getElementById('redirect-label').textContent = t('redirectIn');
+            this.shadow.getElementById('wait-title').textContent = t('waitTime');
+            this.shadow.getElementById('instant-label').textContent = t('instant');
+            this.shadow.getElementById('version-text').textContent = t('version');
+            this.shadow.getElementById('credit-text').textContent = t('madeBy');
         }
 
         setWaitValue(seconds) {
@@ -485,13 +506,10 @@
             this.waitSlider.value = seconds;
         }
 
-        // main timer: duration in seconds
         startTimer(duration) {
-            // stop any existing
             this.stopTimer();
-
             if (!duration || duration <= 0) {
-                this.redirectingEl.textContent = `--`;
+                this.redirectingEl.textContent = '--';
                 this.progressFill.style.width = '0%';
                 return;
             }
@@ -499,33 +517,20 @@
             this.timerDuration = duration;
             this.timerStart = performance.now();
             this.isRunning = true;
-            this.remaining = duration;
-
-            // disable slider when timer starts
             this.waitSlider.disabled = true;
-
-            // update UI immediately
-            this.updateRedirectingUI(duration);
 
             const loop = (now) => {
                 if (!this.isRunning) return;
-                const elapsed = (now - this.timerStart) / 1000; // seconds
+                const elapsed = (now - this.timerStart) / 1000;
                 const progress = Math.min(1, elapsed / this.timerDuration);
-                const percent = progress * 100;
-                // smooth fill
-                this.progressFill.style.width = `${percent}%`;
-
-                // compute remaining seconds (ceil down)
+                this.progressFill.style.width = `${progress * 100}%`;
                 const rem = Math.max(0, Math.ceil(this.timerDuration - elapsed));
-                this.remaining = rem;
                 this.redirectingEl.textContent = `${rem}s`;
 
-                // when complete
                 if (progress >= 1) {
                     this.finishTimer();
                     return;
                 }
-
                 this.timerRAF = requestAnimationFrame(loop);
             };
 
@@ -540,76 +545,39 @@
             this.isRunning = false;
         }
 
-        restartTimer(duration) {
-            this.progressFill.style.width = '0%';
-            this.startTimer(duration);
-        }
-
-        updateRedirectingUI(sec) {
-            this.redirectingEl.textContent = `${sec}s`;
-            this.statusText.textContent = t('pleaseSolveCaptcha');
-        }
-
         finishTimer() {
             this.stopTimer();
             this.progressFill.style.width = '100%';
-            this.redirectingEl.textContent = `0s`;
-            this.isRunning = false;
+            this.redirectingEl.textContent = '0s';
         }
 
         applyTheme() {
             const theme = themes[currentTheme];
             if (!theme) return;
 
-            let css = `
+            const css = `
                 :host {
                     --primary-color: ${theme.primary};
                     --secondary-color: ${theme.secondary};
                     --primary-rgba: ${theme.primaryRGBA};
                     --secondary-rgba: ${theme.secondaryRGBA};
                     --background-gradient: ${theme.background};
-                }
-                .panel {
-                    background: var(--background-gradient);
-                }
-                .status-dot.success {
-                    background: var(--primary-color);
-                    box-shadow: 0 0 8px rgba(var(--primary-rgba));
-                }
-                .control-btn:hover {
-                    background: rgba(var(--primary-rgba), 0.2);
-                }
-                .slider::-webkit-slider-thumb {
-                    background: var(--primary-color);
-                    border-color: var(--secondary-color);
-                }
-                .progress-fill {
-                    background: linear-gradient(90deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+                    --glow-color: ${theme.glow};
                 }
             `;
 
-            if (theme.isRGB) {
-                css += `
-                    .panel {
-                        animation: rgb-shift 2s linear infinite;
-                    }
-                    @keyframes rgb-shift {
-                        0% { filter: hue-rotate(0deg); }
-                        100% { filter: hue-rotate(360deg); }
-                    }
-                `;
-            }
-
             this.themeStyle.textContent = css;
+
+            if (theme.isRGB) {
+                this.mainPanel.classList.add('rgb-mode');
+            } else {
+                this.mainPanel.classList.remove('rgb-mode');
+            }
         }
 
-        show(messageKey, type = 'info', replacements = {}) {
+        show(messageKey, type = 'info') {
             this.currentMessageKey = messageKey;
-            this.currentType = type;
-            this.currentReplacements = replacements;
-            const message = t(messageKey, replacements);
-            this.statusText.textContent = message;
-            this.statusDot.className = `status-dot ${type}`;
+            this.statusText.textContent = t(messageKey);
         }
     }
 
@@ -774,50 +742,62 @@
 
         function triggerBypass(reason) {
             if (bypassTriggered) {
+                if (debug) console.log('[Debug] trigger Bypass skipped, already triggered');
                 return;
             }
             bypassTriggered = true;
+            console.log('[Debug] trigger Bypass via:', reason);
             if (panel) panel.show('captchaSuccessBypassing', 'success');
 
             let retryCount = 0;
             function keepSpoofing() {
                 if (destinationReceived) {
+                    console.log('[Debug] Destination received, stopping spoofing after', retryCount, 'attempts');
                     return;
                 }
                 retryCount++;
+                console.log(`[Debug] Spoofing attempt #${retryCount}`);
                 spoofWorkink();
-                setTimeout(keepSpoofing, 1000);
+                setTimeout(keepSpoofing, 3000);
             }
             keepSpoofing();
+             console.log('[Debug] Waiting for server to send destination data...');
         }
 
         function spoofWorkink() {
             if (!sessionController?.linkInfo) {
+                console.log('[Debug] spoof Workink skipped: no sessionController.linkInfo');
                 return;
             }
+            console.log('[Debug] spoof Workink starting, linkInfo:', sessionController.linkInfo);
 
             const socials = sessionController.linkInfo.socials || [];
+            console.log('[Debug] Total socials to fake:', socials.length);
 
             for (let i = 0; i < socials.length; i++) {
                 const soc = socials[i];
                 try {
                     if (sendMessageA) {
                         sendMessageA.call(this, types.ss, { url: soc.url });
+                        console.log(`[Debug] Faked social [${i+1}/${socials.length}]:`, soc.url);
                     } else {
-                        return;
+                        console.warn(`[Debug] No send message for social [${i+1}/${socials.length}]:`, soc.url);
                     }
                 } catch (e) {
-                    return;
+                    console.error(`[Debug] Error faking social [${i+1}/${socials.length}]:`, soc.url, e);
                 }
             }
 
             const monetizations = sessionController.linkInfo.monetizations || [];
+            console.log('[Debug] Total monetizations to fake:', monetizations.length);
+
             for (let i = 0; i < monetizations.length; i++) {
                 const monetization = monetizations[i];
                 try {
                     switch (monetization) {
                         case 22:
                             sendMessageA && sendMessageA.call(this, types.mo, { type: 'readArticles2', payload: { event: 'read' } });
+                            console.log(`[Debug] Faked readArticles2 [${i+1}/${monetizations.length}]`);
                             break;
                         case 25:
                             sendMessageA && sendMessageA.call(this, types.mo, { type: 'operaGX', payload: { event: 'start' } });
@@ -828,20 +808,29 @@
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({ noteligible: true })
                             }).catch();
+                            console.log(`[Debug] Faked operaGX [${i+1}/${monetizations.length}]`);
                             break;
                         case 34:
                             sendMessageA && sendMessageA.call(this, types.mo, { type: 'norton', payload: { event: 'start' } });
                             sendMessageA && sendMessageA.call(this, types.mo, { type: 'norton', payload: { event: 'installClicked' } });
+                            console.log(`[Debug] Faked norton [${i+1}/${monetizations.length}]`);
                             break;
                         case 71:
                             sendMessageA && sendMessageA.call(this, types.mo, { type: 'externalArticles', payload: { event: 'start' } });
                             sendMessageA && sendMessageA.call(this, types.mo, { type: 'externalArticles', payload: { event: 'installClicked' } });
+                            console.log(`[Debug] Faked externalArticles [${i+1}/${monetizations.length}]`);
                             break;
                         case 45:
                             sendMessageA && sendMessageA.call(this, types.mo, { type: 'pdfeditor', payload: { event: 'installed' } });
+                            console.log(`[Debug] Faked pdfeditor [${i+1}/${monetizations.length}]`);
                             break;
                         case 57:
                             sendMessageA && sendMessageA.call(this, types.mo, { type: 'betterdeals', payload: { event: 'installed' } });
+                            console.log(`[Debug] Faked betterdeals [${i+1}/${monetizations.length}]`);
+                            break;
+                        case 60:
+                            sendMessageA && sendMessageA.call(this, types.mo, { type: 'ldplayer', payload: { event: 'start' } });
+                            sendMessageA && sendMessageA.call(this, types.mo, { type: 'ldplayer', payload: { event: 'installClicked' } });
                             break;
                         default:
                             return;
@@ -965,6 +954,7 @@
             ) {
                 sessionController = value;
                 setupProxies();
+                console.log('[Debug] Controller detected:', sessionController);
             }
             return Reflect.set(target, prop, value);
         }
@@ -1064,23 +1054,28 @@
                         blockedClasses.forEach((cls) => {
                             if (node.classList?.contains(cls)) {
                                 node.remove();
+                                console.log('[Debug]: Removed ad by class:', cls, node);
                             }
                             node.querySelectorAll?.(`.${CSS.escape(cls)}`).forEach((el) => {
                                 el.remove();
+                                console.log('[Debug]: Removed nested ad by class:', cls, el);
                             });
                         });
 
                         blockedIds.forEach((id) => {
                             if (node.id === id) {
                                 node.remove();
+                                console.log('[Debug]: Removed ad by id:', id, node);
                             }
                             node.querySelectorAll?.(`#${id}`).forEach((el) => {
                                 el.remove();
+                                console.log('[Debug]: Removed nested ad by id:', id, el);
                             });
                         });
 
                         if (node.matches('.button.large.accessBtn.pos-relative.svelte-1ao8oou') && node.textContent.includes('Go To Destination')) {
                             node.click()
+                            triggerBypass('gtd');
                         }
                     }
                 }
@@ -1092,7 +1087,6 @@
 
 (function() {
     'use strict';
-
     let clickGTD = false;
 
     function abc() {
@@ -1100,25 +1094,28 @@
         const modalDiv = document.querySelector('div.fixed.inset-0.bg-black\\/50.backdrop-blur-sm.flex.items-center.justify-center.p-4.main-modal.svelte-9kfsb0');
 
         if (accessOptionsDiv) {
+            accessOptionsDiv.style.display = 'none';
             accessOptionsDiv.remove();
             abcd();
         }
-
         if (modalDiv) {
+            modalDiv.style.display = 'none';
             modalDiv.remove();
             abcd();
         }
 
-        // Re-run async 0ms
-        setTimeout(abc, 0);
+        // Re-run with minimal delay
+        requestAnimationFrame(abc);
     }
 
     function abcd() {
         const GTDiv = document.querySelector('div.button.large.accessBtn.pos-relative.svelte-1ao8oou');
-        if (!GTDiv) return;
+        if (!GTDiv) {
+            requestAnimationFrame(abcd);
+            return;
+        }
 
         const disabled = GTDiv.classList.contains("button-disabled");
-
         if (!disabled && !clickGTD) {
             try {
                 clickGTD = true;
@@ -1129,19 +1126,30 @@
             abcde();
         }
 
-        // Async re-run
-        setTimeout(abcd, 0);
+        // Re-run with minimal delay
+        requestAnimationFrame(abcd);
     }
 
     function abcde() {
         const GoogleDiv = document.querySelector('div.fixed.top-16.left-0.right-0.bottom-0.bg-white.z-40.overflow-y-auto');
         if (GoogleDiv) {
+            GoogleDiv.style.display = 'none';
             GoogleDiv.remove();
         }
 
-        // Async re-run
-        setTimeout(abcde, 0);
+        // Re-run with minimal delay
+        requestAnimationFrame(abcde);
     }
 
-    window.addEventListener('load', () => setTimeout(abc, 0));
+    window.addEventListener('load', abc);
+
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.addedNodes.length) {
+                abc();
+            }
+        });
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
 })();
