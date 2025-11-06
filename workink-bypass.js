@@ -4,6 +4,7 @@
     const host = location.hostname;
     const defaultTime = 8;
     const normalTime = 60;
+    const ver = "1.0.6.2";
 
     let currentLanguage = localStorage.getItem('lang') || 'en';
     let currentTheme = localStorage.getItem('theme') || 'orange';
@@ -55,7 +56,7 @@
 
     const translations = {
         vi: {
-            title: "Difz25x",
+            title: "Difz25x ( Thử nghiệm )",
             pleaseSolveCaptcha: "Vui lòng hoàn thành CAPTCHA để tiếp tục",
             captchaSuccess: "CAPTCHA đã được xác minh thành công",
             redirectingToWork: "Đang chuyển hướng đến Work.ink...",
@@ -64,7 +65,7 @@
             backToCheckpoint: "Đang quay lại điểm kiểm tra...",
             captchaSuccessBypassing: "CAPTCHA đã thành công, đang tiến hành bypass...",
             expiredLink: "Liên kết của bạn không hợp lệ hoặc đã hết hạn",
-            version: "Phiên bản 1.0.6.1",
+            version: `Phiên bản ${ver}`,
             madeBy: "Được tạo bởi Difz25x",
             timeSaved: "THỜI GIAN TIẾT KIỆM",
             redirectIn: "CHUYỂN HƯỚNG SAU",
@@ -72,7 +73,7 @@
             instant: "Tức thì"
         },
         en: {
-            title: "Difz25x",
+            title: "Difz25x ( Testing )",
             pleaseSolveCaptcha: "Please complete the CAPTCHA to continue",
             captchaSuccess: "CAPTCHA solved successfully",
             redirectingToWork: "Redirecting to Work.ink...",
@@ -81,7 +82,7 @@
             backToCheckpoint: "Returning to checkpoint...",
             captchaSuccessBypassing: "CAPTCHA solved successfully, bypassing...",
             expiredLink: "Your link is invalid or expired",
-            version: "Version 1.0.6.1",
+            version: `Version ${ver}`,
             madeBy: "Made by Difz25x",
             timeSaved: "TIME SAVED",
             redirectIn: "REDIRECT IN",
@@ -89,7 +90,7 @@
             instant: "Instant"
         },
         id: {
-            title: "Difz25x",
+            title: "Difz25x ( Pengujian )",
             pleaseSolveCaptcha: "Harap lengkapi CAPTCHA untuk melanjutkan",
             captchaSuccess: "CAPTCHA berhasil diselesaikan",
             redirectingToWork: "Mengalihkan ke Work.ink...",
@@ -98,7 +99,7 @@
             backToCheckpoint: "Kembali ke checkpoint...",
             captchaSuccessBypassing: "CAPTCHA berhasil diselesaikan, melewati...",
             expiredLink: "Tautan Anda tidak valid atau kedaluwarsa",
-            version: "Versi 1.0.6.1",
+            version: `Versi ${ver}`,
             madeBy: "Dibuat oleh Difz25x",
             timeSaved: "WAKTU TERSIMPAN",
             redirectIn: "ALIHKAN DALAM",
@@ -742,7 +743,6 @@
 
         function triggerBypass(reason) {
             if (bypassTriggered) {
-                console.log('[Debug] trigger Bypass skipped, already triggered');
                 return;
             }
             bypassTriggered = true;
@@ -752,85 +752,65 @@
             let retryCount = 0;
             function keepSpoofing() {
                 if (destinationReceived) {
-                    console.log('[Debug] Destination received, stopping spoofing after', retryCount, 'attempts');
                     return;
                 }
                 retryCount++;
-                console.log(`[Debug] Spoofing attempt #${retryCount}`);
                 spoofWorkink();
                 setTimeout(keepSpoofing, 3000);
             }
             keepSpoofing();
-             console.log('[Debug] Waiting for server to send destination data...');
         }
 
         function spoofWorkink() {
             if (!sessionController?.linkInfo) {
-                console.log('[Debug] spoof Workink skipped: no sessionController.linkInfo');
                 return;
             }
-            console.log('[Debug] spoof Workink starting, linkInfo:', sessionController.linkInfo);
 
             const socials = sessionController.linkInfo.socials || [];
-            console.log('[Debug] Total socials to fake:', socials.length);
 
             for (let i = 0; i < socials.length; i++) {
                 const soc = socials[i];
                 try {
                     if (sendMessageA) {
                         sendMessageA.call(this, types.ss, { url: soc.url });
-                        console.log(`[Debug] Faked social [${i+1}/${socials.length}]:`, soc.url);
-                    } else {
-                        console.warn(`[Debug] No send message for social [${i+1}/${socials.length}]:`, soc.url);
                     }
                 } catch (e) {
-                    console.error(`[Debug] Error faking social [${i+1}/${socials.length}]:`, soc.url, e);
+
                 }
             }
 
             const monetizations = sessionController.linkInfo.monetizations || [];
-            console.log('[Debug] Total monetizations to fake:', monetizations.length);
 
             for (let i = 0; i < monetizations.length; i++) {
                 const monetization = monetizations[i];
                 try {
                     switch (monetization) {
                         case 22:
-                            sendMessageA && sendMessageA.call(this, types.mo, { type: 'readArticles2', payload: { event: 'read' } });
-                            console.log(`[Debug] Faked readArticles2 [${i+1}/${monetizations.length}]`);
+                            sendMessageA && sendMessageA.call(this, types.mo, { type: 'readArticles2', s: 'yLH1ChaZtldf5ItuZkIcamNhT8d11a2GhNw27JLWFjxk9bXz2HOpxQnuQHNgKqI6', payload: { event: 'read' } });
+                            console.log("Faked readArticles2")
                             break;
                         case 25:
-                            sendMessageA && sendMessageA.call(this, types.mo, { type: 'operaGX', payload: { event: 'start' } });
-                            sendMessageA && sendMessageA.call(this, types.mo, { type: 'operaGX', payload: { event: 'installClicked' } });
-                            fetch('https://work.ink/_api/v2/callback/operaGX', {
-                                method: 'POST',
-                                mode: 'no-cors',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ noteligible: true })
-                            }).catch();
-                            console.log(`[Debug] Faked operaGX [${i+1}/${monetizations.length}]`);
+                            sendMessageA && sendMessageA.call(this, types.mo, { type: 'operaGX', s: 'yLH1ChaZtldf5ItuZkIcamNhT8d11a2GhNw27JLWFjxk9bXz2HOpxQnuQHNgKqI6', payload: { event: 'start' } });
+                            sendMessageA && sendMessageA.call(this, types.mo, { type: 'operaGX', s: 'yLH1ChaZtldf5ItuZkIcamNhT8d11a2GhNw27JLWFjxk9bXz2HOpxQnuQHNgKqI6', payload: { event: 'installClicked' } });
+                            console.log("Faked operaGX")
                             break;
                         case 34:
-                            sendMessageA && sendMessageA.call(this, types.mo, { type: 'norton', payload: { event: 'start' } });
-                            sendMessageA && sendMessageA.call(this, types.mo, { type: 'norton', payload: { event: 'installClicked' } });
-                            console.log(`[Debug] Faked norton [${i+1}/${monetizations.length}]`);
+                            sendMessageA && sendMessageA.call(this, types.mo, { type: 'norton', s: 'yLH1ChaZtldf5ItuZkIcamNhT8d11a2GhNw27JLWFjxk9bXz2HOpxQnuQHNgKqI6', payload: { event: 'start' } });
+                            sendMessageA && sendMessageA.call(this, types.mo, { type: 'norton', s: 'yLH1ChaZtldf5ItuZkIcamNhT8d11a2GhNw27JLWFjxk9bXz2HOpxQnuQHNgKqI6', payload: { event: 'installClicked' } });
+                            console.log("Faked norton")
                             break;
                         case 71:
-                            sendMessageA && sendMessageA.call(this, types.mo, { type: 'externalArticles', payload: { event: 'start' } });
-                            sendMessageA && sendMessageA.call(this, types.mo, { type: 'externalArticles', payload: { event: 'installClicked' } });
-                            console.log(`[Debug] Faked externalArticles [${i+1}/${monetizations.length}]`);
+                            sendMessageA && sendMessageA.call(this, types.mo, { type: 'externalArticles', s: 'yLH1ChaZtldf5ItuZkIcamNhT8d11a2GhNw27JLWFjxk9bXz2HOpxQnuQHNgKqI6', payload: { event: 'start' } });
+                            sendMessageA && sendMessageA.call(this, types.mo, { type: 'externalArticles', s: 'yLH1ChaZtldf5ItuZkIcamNhT8d11a2GhNw27JLWFjxk9bXz2HOpxQnuQHNgKqI6', payload: { event: 'installClicked' } });
+                            console.log("Faked externalArticles")
                             break;
                         case 45:
-                            sendMessageA && sendMessageA.call(this, types.mo, { type: 'pdfeditor', payload: { event: 'installed' } });
-                            console.log(`[Debug] Faked pdfeditor [${i+1}/${monetizations.length}]`);
+                            sendMessageA && sendMessageA.call(this, types.mo, { type: 'pdfeditor', s: 'yLH1ChaZtldf5ItuZkIcamNhT8d11a2GhNw27JLWFjxk9bXz2HOpxQnuQHNgKqI6', payload: { event: 'installed' } });
+                            console.log("Faked pdfeditor")
                             break;
                         case 57:
-                            sendMessageA && sendMessageA.call(this, types.mo, { type: 'betterdeals', payload: { event: 'installed' } });
-                            console.log(`[Debug] Faked betterdeals [${i+1}/${monetizations.length}]`);
-                            break;
-                        case 60:
-                            sendMessageA && sendMessageA.call(this, types.mo, { type: 'ldplayer', payload: { event: 'start' } });
-                            sendMessageA && sendMessageA.call(this, types.mo, { type: 'ldplayer', payload: { event: 'installClicked' } });
+                            sendMessageA && sendMessageA.call(this, types.mo, { type: 'betterdeals', s: 'yLH1ChaZtldf5ItuZkIcamNhT8d11a2GhNw27JLWFjxk9bXz2HOpxQnuQHNgKqI6', payload: { event: 'installed' } });
+                            console.log("Faked betterdeals")
                             break;
                         default:
                             return;
@@ -844,6 +824,9 @@
         function trm() {
             return function(...a) {
                 const [msgType] = a;
+                const packet_type = a[0];
+                const packet_data = a[1];
+                console.log("sendMessage: ", packet_type, packet_data);
                 if (msgType === types.ad) {
                     return;
                 }
@@ -1091,10 +1074,11 @@
     'use strict';
     let clickGTD = false;
     let btnId = "1ao8oou"
+    let modalId = "9kfsb0"
 
     function abc() {
         const accessOptionsDiv = document.querySelector('div.bg-white.rounded-2xl.w-full.max-w-md.relative.shadow-2xl.animate-fade-in');
-        const modalDiv = document.querySelector('div.fixed.inset-0.bg-black\\/50.backdrop-blur-sm.flex.items-center.justify-center.p-4.main-modal.svelte-9kfsb0');
+        const modalDiv = document.querySelector(`div.fixed.inset-0.bg-black\\/50.backdrop-blur-sm.flex.items-center.justify-center.p-4.main-modal.svelte-${modalId}`);
 
         if (accessOptionsDiv) {
             accessOptionsDiv.style.display = 'none';
