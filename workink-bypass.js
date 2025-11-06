@@ -4,7 +4,7 @@
     const host = location.hostname;
     const defaultTime = 8;
     const normalTime = 60;
-    const ver = "1.0.6.2";
+    const ver = "1.0.6.3";
 
     let currentLanguage = localStorage.getItem('lang') || 'en';
     let currentTheme = localStorage.getItem('theme') || 'orange';
@@ -746,7 +746,6 @@
                 return;
             }
             bypassTriggered = true;
-            console.log('[Debug] trigger Bypass via:', reason);
             if (panel) panel.show('captchaSuccessBypassing', 'success');
 
             let retryCount = 0;
@@ -779,38 +778,48 @@
                 }
             }
 
-            const monetizations = sessionController.linkInfo.monetizations || [];
-
-            for (let i = 0; i < monetizations.length; i++) {
-                const monetization = monetizations[i];
+            for (const monetization of sessionController.monetizations) {
+                const monetizationId = monetization.id;
+                const monetizationSendMessage = monetization.sendMessage;
                 try {
-                    switch (monetization) {
+                    switch (monetizationId) {
                         case 22:
-                            sendMessageA && sendMessageA.call(this, types.mo, { type: 'readArticles2', s: 'yLH1ChaZtldf5ItuZkIcamNhT8d11a2GhNw27JLWFjxk9bXz2HOpxQnuQHNgKqI6', payload: { event: 'read' } });
-                            console.log("Faked readArticles2")
+                            monetizationSendMessage.call(monetization, { event: 'read' });
                             break;
                         case 25:
-                            sendMessageA && sendMessageA.call(this, types.mo, { type: 'operaGX', s: 'yLH1ChaZtldf5ItuZkIcamNhT8d11a2GhNw27JLWFjxk9bXz2HOpxQnuQHNgKqI6', payload: { event: 'start' } });
-                            sendMessageA && sendMessageA.call(this, types.mo, { type: 'operaGX', s: 'yLH1ChaZtldf5ItuZkIcamNhT8d11a2GhNw27JLWFjxk9bXz2HOpxQnuQHNgKqI6', payload: { event: 'installClicked' } });
-                            console.log("Faked operaGX")
+                            monetizationSendMessage.call(monetization, { event: 'start' });
+                            monetizationSendMessage.call(monetization, { event: 'installClicked' });
+                            fetch('https://work.ink/_api/v2/affiliate/operaGX', {
+                                method: 'GET',
+                                mode: 'no-cors'
+                            });
+                            setTimeout(() => {
+                                fetch('https://work.ink/_api/v2/callback/operaGX', {
+                                    method: 'POST',
+                                    mode: 'no-cors',
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify({
+                                        'noteligible': true
+                                    })
+                                });
+                            }, 5000);
                             break;
                         case 34:
-                            sendMessageA && sendMessageA.call(this, types.mo, { type: 'norton', s: 'yLH1ChaZtldf5ItuZkIcamNhT8d11a2GhNw27JLWFjxk9bXz2HOpxQnuQHNgKqI6', payload: { event: 'start' } });
-                            sendMessageA && sendMessageA.call(this, types.mo, { type: 'norton', s: 'yLH1ChaZtldf5ItuZkIcamNhT8d11a2GhNw27JLWFjxk9bXz2HOpxQnuQHNgKqI6', payload: { event: 'installClicked' } });
-                            console.log("Faked norton")
+                            monetizationSendMessage.call(monetization, { event: 'start' });
+                            monetizationSendMessage.call(monetization, { event: 'installClicked' });
                             break;
                         case 71:
-                            sendMessageA && sendMessageA.call(this, types.mo, { type: 'externalArticles', s: 'yLH1ChaZtldf5ItuZkIcamNhT8d11a2GhNw27JLWFjxk9bXz2HOpxQnuQHNgKqI6', payload: { event: 'start' } });
-                            sendMessageA && sendMessageA.call(this, types.mo, { type: 'externalArticles', s: 'yLH1ChaZtldf5ItuZkIcamNhT8d11a2GhNw27JLWFjxk9bXz2HOpxQnuQHNgKqI6', payload: { event: 'installClicked' } });
-                            console.log("Faked externalArticles")
+                            monetizationSendMessage.call(monetization, { event: 'start' });
+                            monetizationSendMessage.call(monetization, { event: 'installClicked' });
                             break;
                         case 45:
-                            sendMessageA && sendMessageA.call(this, types.mo, { type: 'pdfeditor', s: 'yLH1ChaZtldf5ItuZkIcamNhT8d11a2GhNw27JLWFjxk9bXz2HOpxQnuQHNgKqI6', payload: { event: 'installed' } });
+                            monetizationSendMessage.call(monetization, { event: 'installed' });
                             console.log("Faked pdfeditor")
                             break;
                         case 57:
-                            sendMessageA && sendMessageA.call(this, types.mo, { type: 'betterdeals', s: 'yLH1ChaZtldf5ItuZkIcamNhT8d11a2GhNw27JLWFjxk9bXz2HOpxQnuQHNgKqI6', payload: { event: 'installed' } });
-                            console.log("Faked betterdeals")
+                            monetizationSendMessage.call(monetization, { event: 'installed' });
                             break;
                         default:
                             return;
@@ -826,7 +835,6 @@
                 const [msgType] = a;
                 const packet_type = a[0];
                 const packet_data = a[1];
-                console.log("sendMessage: ", packet_type, packet_data);
                 if (msgType === types.ad) {
                     return;
                 }
@@ -1037,22 +1045,18 @@
                         blockedClasses.forEach((cls) => {
                             if (node.classList?.contains(cls)) {
                                 node.remove();
-                                console.log('[Debug]: Removed ad by class:', cls, node);
                             }
                             node.querySelectorAll?.(`.${CSS.escape(cls)}`).forEach((el) => {
                                 el.remove();
-                                console.log('[Debug]: Removed nested ad by class:', cls, el);
                             });
                         });
 
                         blockedIds.forEach((id) => {
                             if (node.id === id) {
                                 node.remove();
-                                console.log('[Debug]: Removed ad by id:', id, node);
                             }
                             node.querySelectorAll?.(`#${id}`).forEach((el) => {
                                 el.remove();
-                                console.log('[Debug]: Removed nested ad by id:', id, el);
                             });
                         });
 
@@ -1107,8 +1111,8 @@
             try {
                 clickGTD = true;
                 GTDiv.click();
-            } catch (e) {
-                console.log("Error in GTDiv", e);
+            } catch  {
+                
             }
             abcde();
         }
