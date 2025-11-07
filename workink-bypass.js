@@ -56,7 +56,7 @@
 
     const translations = {
         vi: {
-            title: "Difz25x ( Thử nghiệm )",
+            title: "Difz25x",
             pleaseSolveCaptcha: "Vui lòng hoàn thành CAPTCHA để tiếp tục",
             captchaSuccess: "CAPTCHA đã được xác minh thành công",
             redirectingToWork: "Đang chuyển hướng đến Work.ink...",
@@ -73,7 +73,7 @@
             instant: "Tức thì"
         },
         en: {
-            title: "Difz25x ( Testing )",
+            title: "Difz25x",
             pleaseSolveCaptcha: "Please complete the CAPTCHA to continue",
             captchaSuccess: "CAPTCHA solved successfully",
             redirectingToWork: "Redirecting to Work.ink...",
@@ -90,7 +90,7 @@
             instant: "Instant"
         },
         id: {
-            title: "Difz25x ( Pengujian )",
+            title: "Difz25x",
             pleaseSolveCaptcha: "Harap lengkapi CAPTCHA untuk melanjutkan",
             captchaSuccess: "CAPTCHA berhasil diselesaikan",
             redirectingToWork: "Mengalihkan ke Work.ink...",
@@ -807,6 +807,7 @@
                         case 25: {
                             monetizationSendMessage.call(monetization, { event: 'start' });
                             monetizationSendMessage.call(monetization, { event: 'installedClicked' });
+                            monetizationSendMessage.call(monetization, { event: 'done' });
                             fetch('/_api/v2/affiliate/operaGX', { method: 'GET', mode: 'no-cors' });
                             setTimeout(() => {
                                 fetch('https://work.ink/_api/v2/callback/operaGX', {
@@ -855,7 +856,7 @@
                 const [msgType] = a;
                 const packet_type = a[0];
                 const packet_data = a[1];
-                if (packet_type !== types.ping) {
+                if (packet_type !== types.pi) {
                     console.log('[Debug] Message sent:', packet_type, packet_data);
                 }
                 if (packet_type === types.tr) {
