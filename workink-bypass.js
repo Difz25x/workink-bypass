@@ -4,7 +4,7 @@
     const host = location.hostname;
     const defaultTime = 8;
     const normalTime = 60;
-    const ver = "1.0.6.3";
+    const ver = "1.0.6.4";
 
     let currentLanguage = localStorage.getItem('lang') || 'en';
     let currentTheme = localStorage.getItem('theme') || 'orange';
@@ -589,12 +589,7 @@
     }, 100);
 
     if (host.includes("key.volcano.wtf")) handleVolcano();
-    else if (host.includes("volcano.wtf")) handleVolcanoV2();
     else if (host.includes("work.ink")) handleWorkInk();
-
-    function handleVolcanoV2() {
-        if (panel) panel.show('expiredLink', 'info');
-    }
 
     // Handler for VOLCANO
     function handleVolcano() {
@@ -735,20 +730,33 @@
         }
 
         const types = {
+            an: 'c_announce',
             mo: 'c_monetization',
             ss: 'c_social_started',
+            rr: 'c_recaptcha_response',
+            hr: 'c_hcaptcha_response',
             tr: 'c_turnstile_response',
-            ad: 'c_adblocker_detected'
+            ad: 'c_adblocker_detected',
+            fl: 'c_focus_lost',
+            os: 'c_offers_skipped',
+            ok: 'c_offer_skipped',
+            fo: 'c_focus',
+            wp: 'c_workink_pass_available',
+            wu: 'c_workink_pass_use',
+            pi: 'c_ping',
+            kk: 'c_keyapp_key'
         };
+
 
         function triggerBypass(reason) {
             if (bypassTriggered) {
                 return;
             }
             bypassTriggered = true;
+            console.log('[Debug] trigger Bypass via:', reason);
             if (panel) panel.show('captchaSuccessBypassing', 'success');
-
             let retryCount = 0;
+
             function keepSpoofing() {
                 if (destinationReceived) {
                     return;
@@ -761,38 +769,45 @@
         }
 
         function spoofWorkink() {
-            if (!sessionController?.linkInfo) {
+            if (!onLinkInfoA) {
                 return;
             }
 
-            const socials = sessionController.linkInfo.socials || [];
+            const socials = onLinkInfoA.socials || [];
+            console.log('[Debug] Total socials to fake:', socials.length);
 
             for (let i = 0; i < socials.length; i++) {
                 const soc = socials[i];
                 try {
                     if (sendMessageA) {
-                        sendMessageA.call(this, types.ss, { url: soc.url });
+                        sendMessageA.call(sessionController, types.ss, { url: soc.url });
+                        console.log(`[Debug] Faked social [${i+1}/${socials.length}]:`, soc.url);
+                    } else {
+                        console.warn(`[Debug] No send message for social [${i+1}/${socials.length}]:`, soc.url);
                     }
                 } catch (e) {
-
+                    console.error(`[Debug] Error faking social [${i+1}/${socials.length}]:`, soc.url, e);
                 }
             }
 
-            for (const monetization of sessionController.monetizations) {
+            const monetizations = sessionController?.monetizations || [];
+            console.log('[Debug] Total monetizations to fake:', monetizations.length);
+
+            for (let i = 0; i < monetizations.length; i++) {
+                const monetization = monetizations[i];
+                console.log(`[Debug] Processing monetization [${i+1}/${monetizations.length}]:`, monetization);
                 const monetizationId = monetization.id;
                 const monetizationSendMessage = monetization.sendMessage;
                 try {
                     switch (monetizationId) {
-                        case 22:
+                        case 22: {
                             monetizationSendMessage.call(monetization, { event: 'read' });
                             break;
-                        case 25:
+                        }
+                        case 25: {
                             monetizationSendMessage.call(monetization, { event: 'start' });
-                            monetizationSendMessage.call(monetization, { event: 'installClicked' });
-                            fetch('https://work.ink/_api/v2/affiliate/operaGX', {
-                                method: 'GET',
-                                mode: 'no-cors'
-                            });
+                            monetizationSendMessage.call(monetization, { event: 'installedClicked' });
+                            fetch('/_api/v2/affiliate/operaGX', { method: 'GET', mode: 'no-cors' });
                             setTimeout(() => {
                                 fetch('https://work.ink/_api/v2/callback/operaGX', {
                                     method: 'POST',
@@ -806,26 +821,31 @@
                                 });
                             }, 5000);
                             break;
-                        case 34:
+                        }
+                        case 34: {
                             monetizationSendMessage.call(monetization, { event: 'start' });
-                            monetizationSendMessage.call(monetization, { event: 'installClicked' });
+                            monetizationSendMessage.call(monetization, { event: 'installedClicked' });
                             break;
-                        case 71:
+                        }
+                        case 71: {
                             monetizationSendMessage.call(monetization, { event: 'start' });
-                            monetizationSendMessage.call(monetization, { event: 'installClicked' });
-                            break;
-                        case 45:
-                            monetizationSendMessage.call(monetization, { event: 'installed' });
-                            console.log("Faked pdfeditor")
-                            break;
-                        case 57:
                             monetizationSendMessage.call(monetization, { event: 'installed' });
                             break;
-                        default:
-                            return;
+                        }
+                        case 45: {
+                            monetizationSendMessage.call(monetization, { event: 'installed' });
+                            break;
+                        }
+                        case 57: {
+                            monetizationSendMessage.call(monetization, { event: 'installed' });
+                            break;
+                        }
+                        default: {
+                            break;
+                        }
                     }
                 } catch (e) {
-
+                    console.error(`[Debug] Error faking monetization [${i+1}/${monetizations.length}]:`, monetization, e);
                 }
             }
         }
@@ -835,10 +855,10 @@
                 const [msgType] = a;
                 const packet_type = a[0];
                 const packet_data = a[1];
-                if (msgType === types.ad) {
-                    return;
+                if (packet_type !== types.ping) {
+                    console.log('[Debug] Message sent:', packet_type, packet_data);
                 }
-                if (sessionController?.linkInfo && msgType === types.tr) {
+                if (packet_type === types.tr) {
                     triggerBypass('tr');
                 }
                 return sendMessageA ? sendMessageA.apply(this, a): undefined;
@@ -847,9 +867,10 @@
 
         function createLinkInfoProxy() {
             return async function(...args) {
-                const [info] = args;
+                const [data] = args;
+                console.log("[Debug] LinkInfo data: ", data)
                 try {
-                    Object.defineProperty(info, 'isAdblockEnabled', {
+                    Object.defineProperty(data, 'isAdblockEnabled', {
                         get: () => false,
                         set: () => {},
                         configurable: false,
@@ -885,6 +906,7 @@
             return async function(...args) {
                 const [data] = args;
                 destinationReceived = true;
+                console.log("[Debug] Destination data: ", data)
 
                 if (!destinationProcessed) {
                     destinationProcessed = true;
@@ -1045,25 +1067,28 @@
                         blockedClasses.forEach((cls) => {
                             if (node.classList?.contains(cls)) {
                                 node.remove();
+                                console.log('[Debug]: Removed ad by class:', cls, node);
                             }
                             node.querySelectorAll?.(`.${CSS.escape(cls)}`).forEach((el) => {
                                 el.remove();
+                                console.log('[Debug]: Removed nested ad by class:', cls, el);
                             });
                         });
 
                         blockedIds.forEach((id) => {
                             if (node.id === id) {
                                 node.remove();
+                                console.log('[Debug]: Removed ad by id:', id, node);
                             }
                             node.querySelectorAll?.(`#${id}`).forEach((el) => {
                                 el.remove();
+                                console.log('[Debug]: Removed nested ad by id:', id, el);
                             });
                         });
 
                         let btnId = "1ao8oou"
 
                         if (node.matches(`.button.large.accessBtn.pos-relative.svelte-${btnId}`) && node.textContent.includes('Go To Destination')) {
-                            node.click()
                             triggerBypass('gtd');
                         }
                     }
@@ -1072,75 +1097,4 @@
         });
         ob.observe(document.documentElement, { childList: true, subtree: true, attributes: true });
     }
-})();
-
-(function() {
-    'use strict';
-    let clickGTD = false;
-    let btnId = "1ao8oou"
-    let modalId = "9kfsb0"
-
-    function abc() {
-        const accessOptionsDiv = document.querySelector('div.bg-white.rounded-2xl.w-full.max-w-md.relative.shadow-2xl.animate-fade-in');
-        const modalDiv = document.querySelector(`div.fixed.inset-0.bg-black\\/50.backdrop-blur-sm.flex.items-center.justify-center.p-4.main-modal.svelte-${modalId}`);
-
-        if (accessOptionsDiv) {
-            accessOptionsDiv.style.display = 'none';
-            accessOptionsDiv.remove();
-            abcd();
-        }
-        if (modalDiv) {
-            modalDiv.style.display = 'none';
-            modalDiv.remove();
-            abcd();
-        }
-
-        // Re-run with minimal delay
-        requestAnimationFrame(abc);
-    }
-
-    function abcd() {
-        const GTDiv = document.querySelector(`div.button.large.accessBtn.pos-relative.svelte-${btnId}`);
-        if (!GTDiv) {
-            requestAnimationFrame(abcd);
-            return;
-        }
-
-        const disabled = GTDiv.classList.contains("button-disabled");
-        if (!disabled && !clickGTD) {
-            try {
-                clickGTD = true;
-                GTDiv.click();
-            } catch  {
-                
-            }
-            abcde();
-        }
-
-        // Re-run with minimal delay
-        requestAnimationFrame(abcd);
-    }
-
-    function abcde() {
-        const GoogleDiv = document.querySelector('div.fixed.top-16.left-0.right-0.bottom-0.bg-white.z-40.overflow-y-auto');
-        if (GoogleDiv) {
-            GoogleDiv.style.display = 'none';
-            GoogleDiv.remove();
-        }
-
-        // Re-run with minimal delay
-        requestAnimationFrame(abcde);
-    }
-
-    window.addEventListener('load', abc);
-
-    const observer = new MutationObserver(function(mutations) {
-        mutations.forEach(function(mutation) {
-            if (mutation.addedNodes.length) {
-                abc();
-            }
-        });
-    });
-
-    observer.observe(document.body, { childList: true, subtree: true });
 })();
