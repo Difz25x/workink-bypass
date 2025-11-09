@@ -4,7 +4,7 @@
     const host = location.hostname;
     const defaultTime = 8;
     const normalTime = 60;
-    const ver = "1.0.6.4";
+    const ver = "1.0.6.5";
 
     let currentLanguage = localStorage.getItem('lang') || 'en';
     let currentTheme = localStorage.getItem('theme') || 'orange';
@@ -221,13 +221,16 @@
                     padding: 16px;
                     margin-bottom: 16px;
                     border: 1px solid rgba(255,255,255,0.05);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 12px;
                 }
 
                 .status-text {
                     font-size: 14px;
                     color: #fff;
                     font-weight: 500;
-                    text-align: center;
                 }
 
                 .stats-grid {
@@ -386,6 +389,59 @@
                 .rgb-mode {
                     animation: rgb-shift 3s linear infinite;
                 }
+
+                .status-dot {
+                    width: 14px;
+                    height: 14px;
+                    border-radius: 50%;
+                    animation: pulse-glow 2s ease-in-out infinite;
+                    flex-shrink: 0;
+                    position: relative;
+                }
+
+                @keyframes pulse-glow {
+                    0%, 100% {
+                        opacity: 1;
+                        transform: scale(1);
+                    }
+                    50% {
+                        opacity: 0.9;
+                        transform: scale(1.1);
+                    }
+                }
+
+                .status-dot.info {
+                    background: #60a5fa;
+                    color: #60a5fa;
+                    box-shadow:
+                        0 0 10px #60a5fa,
+                        0 0 20px #4171abff,
+                        0 0 30px #30517aff;
+                }
+                .status-dot.success {
+                    background: #4ade80;
+                    color: #4ade80;
+                    box-shadow:
+                        0 0 10px #4ade80,
+                        0 0 20px #2a8049ff,
+                        0 0 30px #1c5f35ff;
+                }
+                .status-dot.warning {
+                    background: #facc15;
+                    color: #facc15;
+                    box-shadow:
+                        0 0 10px #facc15,
+                        0 0 20px #9c7f0cff,
+                        0 0 30px #735e0aff;
+                }
+                .status-dot.error {
+                    background: #f87171;
+                    color: #f87171;
+                    box-shadow:
+                        0 0 10px #f87171,
+                        0 0 20px #8b3e3eff,
+                        0 0 30px #5b2727ff;
+                }
             `;
 
             this.shadow.appendChild(style);
@@ -402,6 +458,7 @@
                         </div>
 
                         <div class="status-card">
+                            <div class="status-dot info" id="status-dot"></div>
                             <div class="status-text" id="status-text">${t('pleaseSolveCaptcha')}</div>
                         </div>
 
@@ -447,6 +504,7 @@
             this.shadow.appendChild(wrapper.firstElementChild);
 
             this.statusText = this.shadow.getElementById('status-text');
+            this.statusDot = this.shadow.querySelector('#status-dot');
             this.timeSavedEl = this.shadow.getElementById('time-saved');
             this.redirectingEl = this.shadow.getElementById('redirect-time');
             this.waitSlider = this.shadow.getElementById('wait-slider');
@@ -473,7 +531,7 @@
             });
 
             this.shadow.getElementById('lang-btn').addEventListener('click', () => {
-                const langs = ['en', 'vi', 'id'];
+                const langs = Object.keys(translations);
                 const idx = langs.indexOf(currentLanguage);
                 currentLanguage = langs[(idx + 1) % langs.length];
                 localStorage.setItem('lang', currentLanguage);
@@ -579,6 +637,7 @@
         show(messageKey, type = 'info') {
             this.currentMessageKey = messageKey;
             this.statusText.textContent = t(messageKey);
+            this.statusDot.className = `status-dot ${type}`;
         }
     }
 
@@ -693,21 +752,21 @@
     function handleWorkInk() {
         if (panel) panel.show('pleaseSolveCaptcha', 'info');
 
-        const startTime = Date.now();
         let sessionController = undefined;
-        let sendMessageA = undefined;
-        let onLinkInfoA = undefined;
-        let onLinkDestinationA = undefined;
+        let sendMessage = undefined;
+        let LinkInfo = undefined;
+        let LinkDestination = undefined;
         let bypassTriggered = false;
         let destinationReceived = false;
         let destinationProcessed = false;
+        let socialCheckInProgress = false;
 
         const map = {
             onLI: ["onLinkInfo"],
             onLD: ["onLinkDestination"]
         };
 
-        function getFunction(obj, candidates = null) {
+        function getName(obj, candidates = null) {
             if (!obj || typeof obj !== "object") {
                 return { fn: null, index: -1, name: null };
             }
@@ -769,25 +828,17 @@
         }
 
         function spoofWorkink() {
-            if (!onLinkInfoA) {
+            if (!LinkInfo) {
                 return;
             }
 
-            const socials = onLinkInfoA.socials || [];
+            const socials = LinkInfo.socials || [];
             console.log('[Debug] Total socials to fake:', socials.length);
 
-            for (let i = 0; i < socials.length; i++) {
-                const soc = socials[i];
-                try {
-                    if (sendMessageA) {
-                        sendMessageA.call(sessionController, types.ss, { url: soc.url });
-                        console.log(`[Debug] Faked social [${i+1}/${socials.length}]:`, soc.url);
-                    } else {
-                        console.warn(`[Debug] No send message for social [${i+1}/${socials.length}]:`, soc.url);
-                    }
-                } catch (e) {
-                    console.error(`[Debug] Error faking social [${i+1}/${socials.length}]:`, soc.url, e);
-                }
+            for (const social of socials) {
+                sendMessage.call(this, types.ss, {
+                    url: social.url
+                });
             }
 
             const monetizations = sessionController?.monetizations || [];
@@ -795,19 +846,18 @@
 
             for (let i = 0; i < monetizations.length; i++) {
                 const monetization = monetizations[i];
-                console.log(`[Debug] Processing monetization [${i+1}/${monetizations.length}]:`, monetization);
                 const monetizationId = monetization.id;
                 const monetizationSendMessage = monetization.sendMessage;
                 try {
                     switch (monetizationId) {
-                        case 22: {
+                        case 22: { // readArticles2
                             monetizationSendMessage.call(monetization, { event: 'read' });
+                            console.log("Faked readArticles2")
                             break;
                         }
-                        case 25: {
+                        case 25: { // operaGX
                             monetizationSendMessage.call(monetization, { event: 'start' });
-                            monetizationSendMessage.call(monetization, { event: 'installedClicked' });
-                            monetizationSendMessage.call(monetization, { event: 'done' });
+                            monetizationSendMessage.call(monetization, { event: 'installClicked' });
                             fetch('/_api/v2/affiliate/operaGX', { method: 'GET', mode: 'no-cors' });
                             setTimeout(() => {
                                 fetch('https://work.ink/_api/v2/callback/operaGX', {
@@ -821,24 +871,29 @@
                                     })
                                 });
                             }, 5000);
+                            console.log("Faked operaGX")
                             break;
                         }
-                        case 34: {
+                        case 34: { // norton
                             monetizationSendMessage.call(monetization, { event: 'start' });
-                            monetizationSendMessage.call(monetization, { event: 'installedClicked' });
+                            monetizationSendMessage.call(monetization, { event: 'installClicked' });
+                            console.log("Faked norton")
                             break;
                         }
-                        case 71: {
+                        case 71: { // externalArticles
                             monetizationSendMessage.call(monetization, { event: 'start' });
-                            monetizationSendMessage.call(monetization, { event: 'installed' });
+                            monetizationSendMessage.call(monetization, { event: 'installClicked' });
+                            console.log("Faked externalArticles")
                             break;
                         }
-                        case 45: {
+                        case 45: { // pdfeditor
                             monetizationSendMessage.call(monetization, { event: 'installed' });
+                            console.log("Faked pdfeditor")
                             break;
                         }
-                        case 57: {
+                        case 57: { // betterdeals
                             monetizationSendMessage.call(monetization, { event: 'installed' });
+                            console.log("Faked betterdeals")
                             break;
                         }
                         default: {
@@ -851,27 +906,27 @@
             }
         }
 
-        function trm() {
-            return function(...a) {
-                const [msgType] = a;
-                const packet_type = a[0];
-                const packet_data = a[1];
+        function createSendMessage() {
+            return function(...args) {
+                const packet_type = args[0];
+                const packet_data = args[1];
                 if (packet_type !== types.pi) {
                     console.log('[Debug] Message sent:', packet_type, packet_data);
                 }
                 if (packet_type === types.tr) {
                     triggerBypass('tr');
                 }
-                return sendMessageA ? sendMessageA.apply(this, a): undefined;
+                return sendMessage.apply(this, args);
             };
         }
 
-        function createLinkInfoProxy() {
+        function createLinkInfo() {
             return async function(...args) {
-                const [data] = args;
-                console.log("[Debug] LinkInfo data: ", data)
+                const [info] = args;
+                console.log('[Debug] Link info:', info);
+                spoofWorkink();
                 try {
-                    Object.defineProperty(data, 'isAdblockEnabled', {
+                    Object.defineProperty(info, 'isAdblockEnabled', {
                         get: () => false,
                         set: () => {},
                         configurable: false,
@@ -880,7 +935,7 @@
                 } catch (e) {
 
                 }
-                return onLinkInfoA ? onLinkInfoA.apply(this, args): undefined;
+                return LinkInfo.apply(this, args);
             };
         }
 
@@ -903,7 +958,7 @@
             }, 1000);
         }
 
-        function createDestinationProxy() {
+        function createLinkDestination() {
             return async function(...args) {
                 const [data] = args;
                 destinationReceived = true;
@@ -922,35 +977,35 @@
                     panel.savedTime += savedTime;
                     panel.timeSavedEl.textContent = `${panel.savedTime}s`;
                 }
-                return onLinkDestinationA ? onLinkDestinationA.apply(this, args): undefined;
+                return LinkDestination.apply(this, args);
             };
         }
 
         function setupProxies() {
-            const send = getFunction(sessionController);
-            const info = getFunction(sessionController, map.onLI);
-            const dest = getFunction(sessionController, map.onLD);
+            const send = getName(sessionController);
+            const info = getName(sessionController, map.onLI);
+            const dest = getName(sessionController, map.onLD);
 
             if (!send.fn || !info.fn || !dest.fn) return;
 
-            sendMessageA = send.fn;
-            onLinkInfoA = info.fn;
-            onLinkDestinationA = dest.fn;
+            sendMessage = send.fn;
+            LinkInfo = info.fn;
+            LinkDestination = dest.fn;
 
             try {
                 Object.defineProperty(sessionController, send.name, {
-                    get: trm,
-                    set: v => (sendMessageA = v),
+                    get: createSendMessage,
+                    set: v => (sendMessage = v),
                     configurable: true
                 });
                 Object.defineProperty(sessionController, info.name, {
-                    get: createLinkInfoProxy,
-                    set: v => (onLinkInfoA = v),
+                    get: createLinkInfo,
+                    set: v => (LinkInfo = v),
                     configurable: true
                 });
                 Object.defineProperty(sessionController, dest.name, {
-                    get: createDestinationProxy,
-                    set: v => (onLinkDestinationA = v),
+                    get: createLinkDestination,
+                    set: v => (LinkDestination = v),
                     configurable: true
                 });
             } catch (e) {
@@ -961,9 +1016,9 @@
         function checkController(target, prop, value) {
             if (value &&
                 typeof value === 'object' &&
-                getFunction(value).fn &&
-                getFunction(value, map.onLI).fn &&
-                getFunction(value, map.onLD).fn &&
+                getName(value).fn &&
+                getName(value, map.onLI).fn &&
+                getName(value, map.onLD).fn &&
                 !sessionController
             ) {
                 sessionController = value;
