@@ -8,7 +8,7 @@
 // @match        https://work.ink/*
 // @run-at       document-start
 // @grant        unsafeWindow
-// @downloadURL  https://github.com/Difz25x/workink-bypass/raw/main/workink.user.js
-// @updateURL    https://github.com/Difz25x/workink-bypass/raw/main/workink.user.js
-// @require      https://github.com/Difz25x/workink-bypass/raw/main/workink-bypass.js
+// @downloadURL  https://github.com/Difz25x/volcano-bypass/raw/main/workink.user.js
+// @updateURL    https://github.com/Difz25x/volcano-bypass/raw/main/workink.user.js
+// @require      https://github.com/Difz25x/volcano-bypass/raw/main/workink-bypass.js
 // ==/UserScript==
