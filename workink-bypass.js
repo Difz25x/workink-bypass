@@ -1081,18 +1081,18 @@
         }
 
         function setupInterception() {
-            const origPromiseAll = Window.Promise.all;
+            const origPromiseAll = window.Promise.all;
             let intercepted = false;
 
-            Window.Promise.all = async function(promises) {
+            window.Promise.all = async function(promises) {
                 const result = origPromiseAll.call(this, promises);
                 if (!intercepted) {
                     intercepted = true;
-                    return await new Window.Promise((resolve) => {
+                    return await new window.Promise((resolve) => {
                         result.then(([kit, app, ...args]) => {
                             const [success, created] = createKitProxy(kit);
                             if (success) {
-                                Window.Promise.all = origPromiseAll;
+                                window.Promise.all = origPromiseAll;
                             }
                             resolve([created, app, ...args]);
                         });
