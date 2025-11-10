@@ -1,67 +1,23 @@
-(function () {
+(() {
     'use strict';
 
     const host = location.hostname;
     const defaultTime = 8;
     const normalTime = 60;
-    const ver = "1.0.6.5";
+    const ver = "1.0.6.6";
 
     let currentLanguage = localStorage.getItem('lang') || 'en';
-    let currentTheme = localStorage.getItem('theme') || 'orange';
     let currentTime = localStorage.getItem('waitTime') || defaultTime;
-
-    const themes = {
-        orange: {
-            primary: '#ff4500',
-            secondary: '#cc1616ff',
-            primaryRGBA: '255, 69, 0, 1',
-            secondaryRGBA: '204, 22, 22, 1',
-            background: 'linear-gradient(135deg, #4e2606ff 0%, #5f2e06ff 50%, #783004ff 100%)',
-            glow: 'rgba(221, 127, 77, 1)'
-        },
-        purple: {
-            primary: '#800080',
-            secondary: '#4b0082',
-            primaryRGBA: '128, 0, 128, 1',
-            secondaryRGBA: '75, 0, 130, 1',
-            background: 'linear-gradient(135deg, #25064eff 0%, #27065fff 50%, #320478ff 100%)',
-            glow: 'rgba(164, 95, 225, 1)'
-        },
-        blue: {
-            primary: '#0080ffff',
-            secondary: '#005a8bff',
-            primaryRGBA: '0, 128, 255, 1',
-            secondaryRGBA: '0, 90, 139, 1',
-            background: 'linear-gradient(135deg, #06304eff 0%, #063d5fff 50%, #044878ff 100%)',
-            glow: 'rgba(0, 37, 139, 1)'
-        },
-        green: {
-            primary: '#10b981',
-            secondary: '#059669',
-            primaryRGBA: '16, 185, 129, 1',
-            secondaryRGBA: '5, 150, 105, 1',
-            background: 'linear-gradient(135deg, #064e3b 0%, #065f46 50%, #047857 100%)',
-            glow: 'rgba(73, 209, 152, 1)'
-        },
-        rgb: {
-            primary: '#ff4500',
-            secondary: '#cc1616ff',
-            primaryRGBA: '255, 69, 0, 1',
-            secondaryRGBA: '204, 22, 22, 1',
-            background: 'linear-gradient(135deg, #4e2606ff 0%, #5f2e06ff 50%, #783004ff 100%)',
-            glow: '#e28757ff',
-            isRGB: true
-        }
-    };
+    let isMinimazed = localStorage.getItem('isMinimazed') || false;
 
     const translations = {
         vi: {
-            title: "Difz25x",
+            title: "DIFZ25X BYPASS",
             pleaseSolveCaptcha: "Vui lòng hoàn thành CAPTCHA để tiếp tục",
             captchaSuccess: "CAPTCHA đã được xác minh thành công",
             redirectingToWork: "Đang chuyển hướng đến Work.ink...",
             bypassSuccessCopy: "Bypass thành công! Khóa đã được sao chép",
-            bypassSuccess: "Bỏ qua thành công, đang chờ...",
+            bypassSuccess: "Bỏ qua thành công, đang chờ {time}s...",
             backToCheckpoint: "Đang quay lại điểm kiểm tra...",
             captchaSuccessBypassing: "CAPTCHA đã thành công, đang tiến hành bypass...",
             expiredLink: "Liên kết của bạn không hợp lệ hoặc đã hết hạn",
@@ -70,15 +26,17 @@
             timeSaved: "THỜI GIAN TIẾT KIỆM",
             redirectIn: "CHUYỂN HƯỚNG SAU",
             waitTime: "Thời gian chờ",
-            instant: "Tức thì"
+            instant: "Tức thì",
+            vietnameseLabel: "Tiếng Việt",
+            englishLabel: "English"
         },
         en: {
-            title: "Difz25x",
+            title: "DIFZ25X BYPASS",
             pleaseSolveCaptcha: "Please complete the CAPTCHA to continue",
             captchaSuccess: "CAPTCHA solved successfully",
             redirectingToWork: "Redirecting to Work.ink...",
             bypassSuccessCopy: "Bypass successful! Key copied",
-            bypassSuccess: "Bypass successful, waiting...",
+            bypassSuccess: "Bypass successful, waiting {time}s...",
             backToCheckpoint: "Returning to checkpoint...",
             captchaSuccessBypassing: "CAPTCHA solved successfully, bypassing...",
             expiredLink: "Your link is invalid or expired",
@@ -87,15 +45,17 @@
             timeSaved: "TIME SAVED",
             redirectIn: "REDIRECT IN",
             waitTime: "Wait Time",
-            instant: "Instant"
+            instant: "Instant",
+            vietnameseLabel: "Tiếng Việt",
+            englishLabel: "English"
         },
         id: {
-            title: "Difz25x",
+            title: "DIFZ25X BYPASS",
             pleaseSolveCaptcha: "Harap lengkapi CAPTCHA untuk melanjutkan",
             captchaSuccess: "CAPTCHA berhasil diselesaikan",
             redirectingToWork: "Mengalihkan ke Work.ink...",
             bypassSuccessCopy: "Bypass berhasil! Kunci disalin",
-            bypassSuccess: "Bypass berhasil, menunggu...",
+            bypassSuccess: "Bypass berhasil, menunggu {time}d...",
             backToCheckpoint: "Kembali ke checkpoint...",
             captchaSuccessBypassing: "CAPTCHA berhasil diselesaikan, melewati...",
             expiredLink: "Tautan Anda tidak valid atau kedaluwarsa",
@@ -104,29 +64,33 @@
             timeSaved: "WAKTU TERSIMPAN",
             redirectIn: "ALIHKAN DALAM",
             waitTime: "Waktu Tunggu",
-            instant: "Instan"
+            instant: "Instan",
+            vietnameseLabel: "Tiếng Việt",
+            englishLabel: "English"
         }
     };
 
-    function t(key) {
-        return translations[currentLanguage][key] || key;
-    }
+    function t(key, replacements = {}) {
+            const map = translations[currentLanguage] && translations[currentLanguage][key] ? translations[currentLanguage][key] : key;
+            let text = map;
+            Object.keys(replacements).forEach(k => {
+                text = text.replace(`{${k}}`, replacements[k]);
+            });
+            return text;
+     }
 
     class BypassPanel {
         constructor() {
             this.container = null;
             this.shadow = null;
             this.statusText = null;
-            this.timeSavedEl = null;
-            this.redirectingEl = null;
             this.waitSlider = null;
             this.progressFill = null;
-            this.timerStart = null;
-            this.timerDuration = null;
-            this.timerRAF = null;
-            this.isRunning = false;
-            this.savedTime = 0;
             this.currentMessageKey = 'pleaseSolveCaptcha';
+            this.isMinimized = isMinimazed;
+            this.body = null;
+            this.minimizeBtn = null;
+            this.countdownInterval = null;
             this.init();
         }
 
@@ -142,147 +106,254 @@
 
             const style = document.createElement('style');
             style.textContent = `
-                :host { all: initial; }
-                * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+                @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+                * { margin: 0; padding: 0; box-sizing: border-box; }
+
+                @keyframes fadeInScale {
+                    from { opacity: 0; transform: scale(0.9) translateY(20px); }
+                    to { opacity: 1; transform: scale(1) translateY(0); }
+                }
+
+                @keyframes statusGlow {
+                    0%, 100% {
+                        box-shadow: 0 0 10px currentColor, 0 0 20px currentColor, 0 0 30px currentColor;
+                    }
+                    50% {
+                        box-shadow: 0 0 15px currentColor, 0 0 30px currentColor, 0 0 45px currentColor;
+                    }
+                }
+
+                @keyframes slideDown {
+                    from {
+                        max-height: 0;
+                        opacity: 0;
+                    }
+                    to {
+                        max-height: 600px;
+                        opacity: 1;
+                    }
+                }
+
+                @keyframes slideUp {
+                    from {
+                        max-height: 600px;
+                        opacity: 1;
+                    }
+                    to {
+                        max-height: 0;
+                        opacity: 0;
+                    }
+                }
 
                 .panel-container {
                     position: fixed;
-                    bottom: 20px;
-                    right: 20px;
+                    bottom: 24px;
+                    right: 24px;
                     width: 520px;
                     z-index: 2147483647;
+                    font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+                    animation: fadeInScale 0.5s cubic-bezier(0.16, 1, 0.3, 1);
                 }
 
                 .panel {
-                    background: var(--background-gradient);
-                    border-radius: 20px;
-                    padding: 24px;
-                    box-shadow: 0 20px 60px rgba(0,0,0,0.5),
-                                0 0 0 1px rgba(255,255,255,0.1) inset;
-                    backdrop-filter: blur(20px);
-                    position: relative;
+                    background: #1e1c1cff;
+                    border-radius: 24px;
                     overflow: hidden;
+                    border: 1px solid rgba(139, 92, 246, 0.15);
+                    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.9),
+                                0 0 0 1px rgba(139, 92, 246, 0.1);
+                    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
                 }
 
-                .panel::before {
-                    content: '';
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    height: 3px;
-                    background: linear-gradient(90deg,
-                        transparent,
-                        var(--primary-color),
-                        transparent);
+                .panel:hover {
+                    border-color: rgba(139, 92, 246, 0.25);
+                    transform: translateY(-2px);
                 }
 
                 .header {
+                    background: linear-gradient(135deg, #0d0d0d 0%, #151515 100%);
+                    padding: 24px;
+                    position: relative;
                     display: flex;
                     justify-content: space-between;
                     align-items: center;
-                    margin-bottom: 20px;
+                    border-bottom: 1px solid rgba(139, 92, 246, 0.1);
                 }
 
                 .title {
-                    font-size: 18px;
+                    font-size: 16px;
                     font-weight: 700;
-                    color: #fff;
-                    text-shadow: 0 0 20px var(--glow-color), 0.5);
+                    color: #8b5cf6;
+                    letter-spacing: 2px;
+                    text-transform: uppercase;
                 }
 
-                .controls {
-                    display: flex;
-                    gap: 8px;
-                }
-
-                .control-btn {
-                    background: rgba(255,255,255,0.05);
-                    border: 1px solid rgba(255,255,255,0.1);
-                    color: #fff;
-                    padding: 6px 12px;
+                .minimize-btn {
+                    background: transparent;
+                    border: 1px solid rgba(139, 92, 246, 0.3);
+                    color: #8b5cf6;
+                    width: 32px;
+                    height: 32px;
                     border-radius: 8px;
-                    font-size: 11px;
-                    font-weight: 600;
                     cursor: pointer;
-                    transition: all 0.3s;
-                }
-
-                .control-btn:hover {
-                    background: var(--primary-color);
-                    border-color: var(--primary-color);
-                    transform: translateY(-2px);
-                    box-shadow: 0 4px 12px var(--glow-color), 0.4);
-                }
-
-                .status-card {
-                    background: rgba(0,0,0,0.3);
-                    border-radius: 12px;
-                    padding: 16px;
-                    margin-bottom: 16px;
-                    border: 1px solid rgba(255,255,255,0.05);
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    gap: 12px;
+                    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+                    font-size: 18px;
+                    font-weight: 700;
                 }
 
-                .status-text {
-                    font-size: 14px;
-                    color: #fff;
-                    font-weight: 500;
+                .minimize-btn:hover {
+                    background: rgba(139, 92, 246, 0.1);
+                    border-color: #8b5cf6;
                 }
 
-                .stats-grid {
-                    display: grid;
-                    grid-template-columns: 1fr 1fr;
-                    gap: 12px;
-                    margin-bottom: 20px;
+                .minimize-btn.rotating {
+                    transform: rotate(180deg);
                 }
 
-                .stat-card {
-                    background: rgba(0,0,0,0.3);
-                    border-radius: 12px;
-                    padding: 16px;
-                    text-align: center;
-                    border: 1px solid rgba(255,255,255,0.05);
+                .minimize-btn:active {
+                    transform: scale(0.9);
+                }
+
+                .minimize-btn.rotating:active {
+                    transform: scale(0.9) rotate(180deg);
+                }
+
+                .status-section {
+                    padding: 24px;
+                    background: #0d0d0d;
+                }
+
+                .status-box {
+                    background: #151515;
+                    border: 1px solid rgba(139, 92, 246, 0.2);
+                    border-radius: 16px;
+                    padding: 18px;
                     position: relative;
                     overflow: hidden;
+                    transition: all 0.3s ease;
                 }
 
-                .stat-card::before {
+                .status-box:hover {
+                    border-color: rgba(139, 92, 246, 0.35);
+                    background: #181818;
+                }
+
+                .status-content {
+                    display: flex;
+                    align-items: center;
+                    gap: 14px;
+                    position: relative;
+                    z-index: 1;
+                }
+
+                .status-dot {
+                    width: 10px;
+                    height: 10px;
+                    border-radius: 70%;
+                    animation: statusGlow 2s ease-in-out infinite;
+                    flex-shrink: 0;
+                    position: relative;
+                }
+
+                .status-dot::before {
                     content: '';
                     position: absolute;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    height: 1px;
-                    background: linear-gradient(90deg,
-                        transparent,
-                        var(--primary-color),
-                        transparent);
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    width: 18px;
+                    height: 18px;
+                    border-radius: 50%;
+                    border: 1px solid currentColor;
+                    opacity: 0.4;
                 }
 
-                .stat-value {
-                    font-size: 28px;
-                    font-weight: 700;
-                    color: var(--primary-color);
-                    text-shadow: 0 0 20px var(--glow-color), 2);
-                    margin-bottom: 4px;
+                .status-dot.info { background: #3b82f6; color: #3b82f6; }
+                .status-dot.success { background: #10b981; color: #10b981; }
+                .status-dot.warning { background: #f59e0b; color: #f59e0b; }
+                .status-dot.error { background: #ef4444; color: #ef4444; }
+
+                .status-text {
+                    color: #d1d5db;
+                    font-size: 13px;
+                    font-weight: 500;
+                    flex: 1;
+                    line-height: 1.6;
+                    letter-spacing: 0.3px;
                 }
 
-                .stat-label {
-                    font-size: 10px;
-                    color: rgba(255,255,255,0.5);
+                .panel-body {
+                    max-height: 600px;
+                    overflow: hidden;
+                    opacity: 1;
+                    transition: max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+                                opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+                }
+
+                .panel-body.minimizing {
+                    animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+                }
+
+                .panel-body.maximizing {
+                    animation: slideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+                }
+
+                .panel-body.hidden {
+                    max-height: 0;
+                    opacity: 0;
+                }
+
+                .language-section {
+                    padding: 24px;
+                    background: #0d0d0d;
+                    border-bottom: 1px solid rgba(139, 92, 246, 0.1);
+                }
+
+                .lang-toggle {
+                    display: flex;
+                    gap: 10px;
+                    background: #151515;
+                    padding: 4px;
+                    border-radius: 12px;
+                    border: 1px solid rgba(139, 92, 246, 0.1);
+                }
+
+                .lang-btn {
+                    flex: 1;
+                    background: transparent;
+                    border: none;
+                    color: #6b7280;
+                    padding: 10px;
+                    border-radius: 8px;
+                    cursor: pointer;
+                    font-weight: 600;
+                    font-size: 12px;
                     text-transform: uppercase;
                     letter-spacing: 1px;
+                    transition: all 0.2s ease;
+                }
+
+                .lang-btn:hover {
+                    color: #9ca3af;
+                    background: rgba(138, 92, 246, 0.27);
+                }
+
+                .lang-btn.active {
+                    background: #8b5cf6;
+                    color: #000;
+                    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
                 }
 
                 .slider-section {
-                    background: rgba(0,0,0,0.3);
+                    background: #151515;
                     border-radius: 12px;
                     padding: 16px;
-                    border: 1px solid rgba(255,255,255,0.05);
+                    border: 1px solid rgba(139, 92, 246, 0.1);
+                    margin-top: 16px;
                 }
 
                 .slider-header {
@@ -292,69 +363,61 @@
                 }
 
                 .slider-title {
-                    font-size: 12px;
+                    font-size: 11px;
                     color: rgba(255,255,255,0.7);
                     font-weight: 600;
+                    text-transform: uppercase;
+                    letter-spacing: 1px;
                 }
 
                 .slider-value {
-                    font-size: 12px;
-                    color: var(--primary-color);
+                    color: #8b5cf6;
+                    font-size: 13px;
                     font-weight: 700;
+                    background: rgba(139, 92, 246, 0.1);
+                    padding: 4px 10px;
+                    border-radius: 6px;
+                    border: 1px solid rgba(139, 92, 246, 0.2);
+                    min-width: 45px;
+                    text-align: center;
                 }
 
                 .slider {
                     width: 100%;
-                    height: 6px;
-                    background: rgba(255,255,255,0.1);
-                    border-radius: 10px;
+                    height: 4px;
+                    border-radius: 2px;
+                    background: #1f1f1f;
                     outline: none;
                     -webkit-appearance: none;
                     margin-bottom: 12px;
+                    cursor: pointer;
                 }
 
                 .slider::-webkit-slider-thumb {
                     -webkit-appearance: none;
-                    width: 18px;
-                    height: 18px;
-                    background: var(--primary-color);
+                    width: 16px;
+                    height: 16px;
                     border-radius: 50%;
+                    background: #8b5cf6;
                     cursor: pointer;
-                    box-shadow: 0 0 15px var(--glow-color), 2);
-                    transition: all 0.3s;
+                    transition: all 0.2s ease;
+                    box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.2);
                 }
 
                 .slider::-webkit-slider-thumb:hover {
                     transform: scale(1.2);
-                    box-shadow: 0 0 25px var(--glow-color), 0.8);
+                    box-shadow: 0 0 0 6px rgba(139, 92, 246, 0.3);
                 }
 
                 .slider::-moz-range-thumb {
-                    width: 18px;
-                    height: 18px;
-                    background: var(--primary-color);
+                    width: 16px;
+                    height: 16px;
                     border-radius: 50%;
+                    background: #8b5cf6;
                     cursor: pointer;
                     border: none;
-                    box-shadow: 0 0 15px var(--glow-color), 0.6);
-                }
-
-                .progress-bar {
-                    width: 100%;
-                    height: 4px;
-                    background: rgba(255,255,255,0.1);
-                    border-radius: 10px;
-                    overflow: hidden;
-                    margin-bottom: 8px;
-                }
-
-                .progress-fill {
-                    height: 100%;
-                    width: 0%;
-                    background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
-                    border-radius: 10px;
-                    transition: width 0.1s linear;
-                    box-shadow: 0 0 15px var(--glow-color), 0.6);
+                    transition: all 0.2s ease;
+                    box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.2);
                 }
 
                 .slider-labels {
@@ -364,83 +427,70 @@
                     color: rgba(255,255,255,0.4);
                 }
 
-                .footer {
-                    display: flex;
-                    justify-content: space-between;
-                    margin-top: 16px;
+                .progress-bar {
+                    width: 100%;
+                    height: 4px;
+                    background: rgba(255,255,255,0.1);
+                    border-radius: 10px;
+                    overflow: hidden;
+                    margin-top: 12px;
+                }
+
+                .progress-fill {
+                    height: 100%;
+                    width: 0%;
+                    background: linear-gradient(90deg, #8b5cf6, #6366f1);
+                    border-radius: 10px;
+                    transition: width 0.1s linear;
+                }
+
+                .info-section {
+                    padding: 24px;
+                    background: #0d0d0d;
+                    text-align: center;
+                }
+
+                .version, .credit {
+                    color: #6b7280;
                     font-size: 11px;
-                    color: rgba(255,255,255,0.4);
+                    font-weight: 500;
+                    margin-bottom: 8px;
+                    letter-spacing: 0.5px;
+                    text-transform: uppercase;
                 }
 
-                @media (max-width: 460px) {
+                .links {
+                    display: flex;
+                    justify-content: center;
+                    gap: 16px;
+                    font-size: 11px;
+                    margin-top: 12px;
+                }
+
+                .links a {
+                    color: #8b5cf6;
+                    text-decoration: none;
+                    transition: all 0.2s ease;
+                    font-weight: 600;
+                    text-transform: uppercase;
+                    letter-spacing: 1px;
+                    padding: 6px 12px;
+                    border-radius: 6px;
+                    border: 1px solid rgba(139, 92, 246, 0.2);
+                }
+
+                .links a:hover {
+                    background: rgba(139, 92, 246, 0.1);
+                    border-color: #8b5cf6;
+                }
+
+                @media (max-width: 480px) {
                     .panel-container {
-                        left: 12px;
-                        right: 12px;
+                        top: 10px;
+                        right: 10px;
+                        left: 10px;
                         width: auto;
-                        bottom: 12px;
                     }
-                }
-
-                @keyframes rgb-shift {
-                    0% { filter: hue-rotate(0deg); }
-                    100% { filter: hue-rotate(360deg); }
-                }
-
-                .rgb-mode {
-                    animation: rgb-shift 3s linear infinite;
-                }
-
-                .status-dot {
-                    width: 14px;
-                    height: 14px;
-                    border-radius: 50%;
-                    animation: pulse-glow 2s ease-in-out infinite;
-                    flex-shrink: 0;
-                    position: relative;
-                }
-
-                @keyframes pulse-glow {
-                    0%, 100% {
-                        opacity: 1;
-                        transform: scale(1);
-                    }
-                    50% {
-                        opacity: 0.9;
-                        transform: scale(1.1);
-                    }
-                }
-
-                .status-dot.info {
-                    background: #60a5fa;
-                    color: #60a5fa;
-                    box-shadow:
-                        0 0 10px #60a5fa,
-                        0 0 20px #4171abff,
-                        0 0 30px #30517aff;
-                }
-                .status-dot.success {
-                    background: #4ade80;
-                    color: #4ade80;
-                    box-shadow:
-                        0 0 10px #4ade80,
-                        0 0 20px #2a8049ff,
-                        0 0 30px #1c5f35ff;
-                }
-                .status-dot.warning {
-                    background: #facc15;
-                    color: #facc15;
-                    box-shadow:
-                        0 0 10px #facc15,
-                        0 0 20px #9c7f0cff,
-                        0 0 30px #735e0aff;
-                }
-                .status-dot.error {
-                    background: #f87171;
-                    color: #f87171;
-                    box-shadow:
-                        0 0 10px #f87171,
-                        0 0 20px #8b3e3eff,
-                        0 0 30px #5b2727ff;
                 }
             `;
 
@@ -451,49 +501,50 @@
                     <div class="panel" id="main-panel">
                         <div class="header">
                             <div class="title" id="panel-title">${t('title')}</div>
-                            <div class="controls">
-                                <button id="lang-btn" class="control-btn">${currentLanguage.toUpperCase()}</button>
-                                <button id="theme-btn" class="control-btn">${currentTheme.toUpperCase()}</button>
+                            <button id="minimize-btn" class="minimize-btn">−</button>
+                        </div>
+
+                        <div class="status-section">
+                            <div class="status-box">
+                                <div class="status-content">
+                                    <div class="status-dot info" id="status-dot"></div>
+                                    <div class="status-text" id="status-text">${t('pleaseSolveCaptcha')}</div>
+                                </div>
+                            </div>
+
+                            <div class="slider-section">
+                                <div class="slider-header">
+                                    <div class="slider-title" id="wait-title">${t('waitTime')}</div>
+                                    <div class="slider-value" id="wait-value">8s</div>
+                                </div>
+                                <input type="range" id="wait-slider" class="slider" min="0" max="30" value="8">
+                                <div class="slider-labels">
+                                    <span id="instant-label">${t('instant')}</span>
+                                    <span>30s</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="progress-fill"></div>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="status-card">
-                            <div class="status-dot info" id="status-dot"></div>
-                            <div class="status-text" id="status-text">${t('pleaseSolveCaptcha')}</div>
-                        </div>
+                        <div class="panel-body" id="panel-body">
+                            <div class="language-section">
+                                <div class="lang-toggle">
+                                    <button class="lang-btn ${currentLanguage === 'en' ? 'active' : ''}" data-lang="en">English</button>
+                                    <button class="lang-btn ${currentLanguage === 'vi' ? 'active' : ''}" data-lang="vi">Tiếng Việt</button>
+                                    <button class="lang-btn ${currentLanguage === 'id' ? 'active' : ''}" data-lang="id">Indonsia</button>
+                                </div>
+                            </div>
 
-                        <div class="stats-grid">
-                            <div class="stat-card">
-                                <div class="stat-value" id="time-saved">0s</div>
-                                <div class="stat-label" id="saved-label">${t('timeSaved')}</div>
+                            <div class="info-section">
+                                <div class="version" id="version-text">${t('version')}</div>
+                                <div class="credit" id="credit-text">${t('madeBy')}</div>
+                                <div class="links">
+                                    <a href="https://www.youtube.com/@dyydeptry" target="_blank">YouTube</a>
+                                    <a href="https://discord.gg/DWyEfeBCzY" target="_blank">Discord</a>
+                                </div>
                             </div>
-                            <div class="stat-card">
-                                <div class="stat-value" id="redirect-time">--</div>
-                                <div class="stat-label" id="redirect-label">${t('redirectIn')}</div>
-                            </div>
-                        </div>
-
-                        <div class="slider-section">
-                            <div class="slider-header">
-                                <div class="slider-title" id="wait-title">${t('waitTime')}</div>
-                                <div class="slider-value" id="wait-value">24s</div>
-                            </div>
-                            <input type="range" id="wait-slider" class="slider" min="0" max="30" value="15">
-                            <div class="slider-labels">
-                                <span id="instant-label">${t('instant')}</span>
-                                <span>30s</span>
-                            </div>
-                        </div>
-
-                        <div class="footer">
-                            <div class="progress-bar">
-                                <div class="progress-fill" id="progress-fill"></div>
-                            </div>
-                        </div>
-
-                        <div class="footer">
-                            <span id="version-text">${t('version')}</span>
-                            <span id="credit-text">${t('madeBy')}</span>
                         </div>
                     </div>
                 </div>
@@ -505,23 +556,26 @@
 
             this.statusText = this.shadow.getElementById('status-text');
             this.statusDot = this.shadow.querySelector('#status-dot');
-            this.timeSavedEl = this.shadow.getElementById('time-saved');
-            this.redirectingEl = this.shadow.getElementById('redirect-time');
             this.waitSlider = this.shadow.getElementById('wait-slider');
             this.waitValueEl = this.shadow.getElementById('wait-value');
             this.progressFill = this.shadow.getElementById('progress-fill');
             this.mainPanel = this.shadow.getElementById('main-panel');
+            this.body = this.shadow.querySelector('#panel-body');
+            this.minimizeBtn = this.shadow.querySelector('#minimize-btn');
+            this.langBtns = Array.from(this.shadow.querySelectorAll('.lang-btn'));
 
-            this.themeStyle = document.createElement('style');
-            this.shadow.appendChild(this.themeStyle);
-
-            this.applyTheme();
             document.documentElement.appendChild(this.container);
         }
 
         attachEvents() {
             this.waitSlider.value = currentTime;
             this.setWaitValue(currentTime);
+
+            if (isMinimazed) {
+                this.body.classList.add('hidden');
+                this.minimizeBtn.textContent = '+';
+                this.minimizeBtn.classList.add('rotating');
+            }
 
             this.waitSlider.addEventListener('input', (e) => {
                 const sec = parseInt(e.target.value);
@@ -530,30 +584,28 @@
                 currentTime = sec;
             });
 
-            this.shadow.getElementById('lang-btn').addEventListener('click', () => {
-                const langs = Object.keys(translations);
-                const idx = langs.indexOf(currentLanguage);
-                currentLanguage = langs[(idx + 1) % langs.length];
-                localStorage.setItem('lang', currentLanguage);
-                this.updateLanguage();
+            this.langBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    currentLanguage = btn.dataset.lang;
+                    localStorage.setItem('lang', currentLanguage);
+                    this.updateLanguage();
+                });
             });
 
-            this.shadow.getElementById('theme-btn').addEventListener('click', () => {
-                const themeKeys = Object.keys(themes);
-                const idx = themeKeys.indexOf(currentTheme);
-                currentTheme = themeKeys[(idx + 1) % themeKeys.length];
-                localStorage.setItem('theme', currentTheme);
-                this.applyTheme();
-                this.shadow.getElementById('theme-btn').textContent = currentTheme.toUpperCase();
+            this.minimizeBtn.addEventListener('click', () => {
+                this.isMinimized = !this.isMinimized;
+                localStorage.setItem('isMinimazed', this.isMinimized)
+                this.body.classList.toggle('hidden');
+                this.minimizeBtn.textContent = this.isMinimized ? '+' : '−';
             });
         }
 
         updateLanguage() {
-            this.shadow.getElementById('lang-btn').textContent = currentLanguage.toUpperCase();
+            this.langBtns.forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.lang === currentLanguage);
+            });
             this.shadow.getElementById('panel-title').textContent = t('title');
             this.shadow.getElementById('status-text').textContent = t(this.currentMessageKey);
-            this.shadow.getElementById('saved-label').textContent = t('timeSaved');
-            this.shadow.getElementById('redirect-label').textContent = t('redirectIn');
             this.shadow.getElementById('wait-title').textContent = t('waitTime');
             this.shadow.getElementById('instant-label').textContent = t('instant');
             this.shadow.getElementById('version-text').textContent = t('version');
@@ -565,78 +617,38 @@
             this.waitSlider.value = seconds;
         }
 
-        startTimer(duration) {
-            this.stopTimer();
-            if (!duration || duration <= 0) {
-                this.redirectingEl.textContent = '--';
-                this.progressFill.style.width = '0%';
-                return;
+        startCountdown(seconds) {
+            if (this.countdownInterval) {
+                clearInterval(this.countdownInterval);
             }
 
-            this.timerDuration = duration;
-            this.timerStart = performance.now();
-            this.isRunning = true;
-            this.waitSlider.disabled = true;
+            let remaining = seconds;
+            this.progressFill.style.width = '0%';
 
-            const loop = (now) => {
-                if (!this.isRunning) return;
-                const elapsed = (now - this.timerStart) / 1000;
-                const progress = Math.min(1, elapsed / this.timerDuration);
-                this.progressFill.style.width = `${progress * 100}%`;
-                const rem = Math.max(0, Math.ceil(this.timerDuration - elapsed));
-                this.redirectingEl.textContent = `${rem}s`;
+            const updateProgress = () => {
+                const progress = ((seconds - remaining) / seconds) * 100;
+                this.progressFill.style.width = `${progress}%`;
 
-                if (progress >= 1) {
-                    this.finishTimer();
-                    return;
-                }
-                this.timerRAF = requestAnimationFrame(loop);
+                const message = `${t('captchaSuccessBypassing')} ${remaining}s`;
+                this.statusText.textContent = message;
             };
 
-            this.timerRAF = requestAnimationFrame(loop);
-        }
+            updateProgress();
 
-        stopTimer() {
-            if (this.timerRAF) {
-                cancelAnimationFrame(this.timerRAF);
-                this.timerRAF = null;
-            }
-            this.isRunning = false;
-        }
-
-        finishTimer() {
-            this.stopTimer();
-            this.progressFill.style.width = '100%';
-            this.redirectingEl.textContent = '0s';
-        }
-
-        applyTheme() {
-            const theme = themes[currentTheme];
-            if (!theme) return;
-
-            const css = `
-                :host {
-                    --primary-color: ${theme.primary};
-                    --secondary-color: ${theme.secondary};
-                    --primary-rgba: ${theme.primaryRGBA};
-                    --secondary-rgba: ${theme.secondaryRGBA};
-                    --background-gradient: ${theme.background};
-                    --glow-color: ${theme.glow};
+            this.countdownInterval = setInterval(() => {
+                remaining--;
+                if (remaining >= 0) {
+                    updateProgress();
+                } else {
+                    clearInterval(this.countdownInterval);
+                    this.progressFill.style.width = '100%';
                 }
-            `;
-
-            this.themeStyle.textContent = css;
-
-            if (theme.isRGB) {
-                this.mainPanel.classList.add('rgb-mode');
-            } else {
-                this.mainPanel.classList.remove('rgb-mode');
-            }
+            }, 1000);
         }
 
-        show(messageKey, type = 'info') {
+        show(messageKey, type = 'info', replacements = {}) {
             this.currentMessageKey = messageKey;
-            this.statusText.textContent = t(messageKey);
+            this.statusText.textContent = t(messageKey, replacements);
             this.statusDot.className = `status-dot ${type}`;
         }
     }
@@ -850,12 +862,12 @@
                 const monetizationSendMessage = monetization.sendMessage;
                 try {
                     switch (monetizationId) {
-                        case 22: { // readArticles2
+                        case 22: {
                             monetizationSendMessage.call(monetization, { event: 'read' });
                             console.log("Faked readArticles2")
                             break;
                         }
-                        case 25: { // operaGX
+                        case 25: {
                             monetizationSendMessage.call(monetization, { event: 'start' });
                             monetizationSendMessage.call(monetization, { event: 'installClicked' });
                             fetch('/_api/v2/affiliate/operaGX', { method: 'GET', mode: 'no-cors' });
@@ -874,24 +886,24 @@
                             console.log("Faked operaGX")
                             break;
                         }
-                        case 34: { // norton
+                        case 34: {
                             monetizationSendMessage.call(monetization, { event: 'start' });
                             monetizationSendMessage.call(monetization, { event: 'installClicked' });
                             console.log("Faked norton")
                             break;
                         }
-                        case 71: { // externalArticles
+                        case 71: {
                             monetizationSendMessage.call(monetization, { event: 'start' });
                             monetizationSendMessage.call(monetization, { event: 'installClicked' });
                             console.log("Faked externalArticles")
                             break;
                         }
-                        case 45: { // pdfeditor
+                        case 45: {
                             monetizationSendMessage.call(monetization, { event: 'installed' });
                             console.log("Faked pdfeditor")
                             break;
                         }
-                        case 57: { // betterdeals
+                        case 57: {
                             monetizationSendMessage.call(monetization, { event: 'installed' });
                             console.log("Faked betterdeals")
                             break;
@@ -945,12 +957,11 @@
         }
 
         function startCountdown(url, waitLeft) {
-            if (panel) panel.show('bypassSuccess', 'warning');
-
             const interval = setInterval(() => {
                 waitLeft -= 1;
                 if (waitLeft > 0) {
-                    if (panel) panel.show('bypassSuccess', 'warning');
+                    console.log('[Debug] startCountdown: Time remaining:', waitLeft);
+                    if (panel) panel.show('bypassSuccess', 'warning', { time: Math.ceil(waitLeft) });
                 } else {
                     clearInterval(interval);
                     redirect(url);
@@ -967,15 +978,11 @@
                 if (!destinationProcessed) {
                     destinationProcessed = true;
                     const waitTimeSeconds = parseInt(panel.waitSlider.value);
-                    if (waitTimeSeconds < 0){
+                    if (waitTimeSeconds <= 0){
                         redirect(data.url)
                     } else {
                         startCountdown(data.url, waitTimeSeconds);
                     }
-                    panel.startTimer(waitTimeSeconds);
-                    const savedTime = normalTime - waitTimeSeconds;
-                    panel.savedTime += savedTime;
-                    panel.timeSavedEl.textContent = `${panel.savedTime}s`;
                 }
                 return LinkDestination.apply(this, args);
             };
@@ -1074,18 +1081,18 @@
         }
 
         function setupInterception() {
-            const origPromiseAll = unsafeWindow.Promise.all;
+            const origPromiseAll = Window.Promise.all;
             let intercepted = false;
 
-            unsafeWindow.Promise.all = async function(promises) {
+            Window.Promise.all = async function(promises) {
                 const result = origPromiseAll.call(this, promises);
                 if (!intercepted) {
                     intercepted = true;
-                    return await new unsafeWindow.Promise((resolve) => {
+                    return await new Window.Promise((resolve) => {
                         result.then(([kit, app, ...args]) => {
                             const [success, created] = createKitProxy(kit);
                             if (success) {
-                                unsafeWindow.Promise.all = origPromiseAll;
+                                Window.Promise.all = origPromiseAll;
                             }
                             resolve([created, app, ...args]);
                         });
