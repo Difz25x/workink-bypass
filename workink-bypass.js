@@ -1,10 +1,10 @@
-(() {
+(function() {
     'use strict';
 
     const host = location.hostname;
     const defaultTime = 8;
     const normalTime = 60;
-    const ver = "1.0.6.6";
+    const ver = "1.0.6.6.1";
 
     let currentLanguage = localStorage.getItem('lang') || 'en';
     let currentTime = localStorage.getItem('waitTime') || defaultTime;
