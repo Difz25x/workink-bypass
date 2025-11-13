@@ -1,10 +1,10 @@
-(function() {
+(function () {
     'use strict';
 
     const host = location.hostname;
     const defaultTime = 8;
     const normalTime = 60;
-    const ver = "1.0.6.6.1";
+    const ver = "1.0.6.7";
 
     let currentLanguage = localStorage.getItem('lang') || 'en';
     let currentTime = localStorage.getItem('waitTime') || defaultTime;
@@ -21,6 +21,7 @@
             backToCheckpoint: "Đang quay lại điểm kiểm tra...",
             captchaSuccessBypassing: "CAPTCHA đã thành công, đang tiến hành bypass...",
             expiredLink: "Liên kết của bạn không hợp lệ hoặc đã hết hạn",
+            bypassingSocials: "Bỏ qua mạng xã hội... tự động tải lại cho đến khi hoàn tất, {left} hơn!",
             version: `Phiên bản ${ver}`,
             madeBy: "Được tạo bởi Difz25x",
             timeSaved: "THỜI GIAN TIẾT KIỆM",
@@ -40,6 +41,7 @@
             backToCheckpoint: "Returning to checkpoint...",
             captchaSuccessBypassing: "CAPTCHA solved successfully, bypassing...",
             expiredLink: "Your link is invalid or expired",
+            bypassingSocials: "Bypassing socials... auto-reload active until complete, {left} more!",
             version: `Version ${ver}`,
             madeBy: "Made by Difz25x",
             timeSaved: "TIME SAVED",
@@ -59,6 +61,7 @@
             backToCheckpoint: "Kembali ke checkpoint...",
             captchaSuccessBypassing: "CAPTCHA berhasil diselesaikan, melewati...",
             expiredLink: "Tautan Anda tidak valid atau kedaluwarsa",
+            bypassingSocials: "Melewati media sosial...muat ulang otomatis aktif hingga selesai, {left} lagi!",
             version: `Versi ${ver}`,
             madeBy: "Dibuat oleh Difz25x",
             timeSaved: "WAKTU TERSIMPAN",
@@ -71,13 +74,13 @@
     };
 
     function t(key, replacements = {}) {
-            const map = translations[currentLanguage] && translations[currentLanguage][key] ? translations[currentLanguage][key] : key;
-            let text = map;
-            Object.keys(replacements).forEach(k => {
-                text = text.replace(`{${k}}`, replacements[k]);
-            });
-            return text;
-     }
+        const map = translations[currentLanguage] && translations[currentLanguage][key] ? translations[currentLanguage][key] : key;
+        let text = map;
+        Object.keys(replacements).forEach(k => {
+            text = text.replace(`{${k}}`, replacements[k]);
+        });
+        return text;
+    }
 
     class BypassPanel {
         constructor() {
@@ -245,6 +248,7 @@
                 .status-content {
                     display: flex;
                     align-items: center;
+                    text-align: center;
                     gap: 14px;
                     position: relative;
                     z-index: 1;
@@ -507,8 +511,9 @@
                         <div class="status-section">
                             <div class="status-box">
                                 <div class="status-content">
-                                    <div class="status-dot info" id="status-dot"></div>
+                                    <div class="status-dot info" id="status-dot1"></div>
                                     <div class="status-text" id="status-text">${t('pleaseSolveCaptcha')}</div>
+                                    <div class="status-dot info" id="status-dot2"></div>
                                 </div>
                             </div>
 
@@ -555,7 +560,8 @@
             this.shadow.appendChild(wrapper.firstElementChild);
 
             this.statusText = this.shadow.getElementById('status-text');
-            this.statusDot = this.shadow.querySelector('#status-dot');
+            this.statusDot1 = this.shadow.querySelector('#status-dot1');
+            this.statusDot2 = this.shadow.querySelector('#status-dot2');
             this.waitSlider = this.shadow.getElementById('wait-slider');
             this.waitValueEl = this.shadow.getElementById('wait-value');
             this.progressFill = this.shadow.getElementById('progress-fill');
@@ -649,7 +655,8 @@
         show(messageKey, type = 'info', replacements = {}) {
             this.currentMessageKey = messageKey;
             this.statusText.textContent = t(messageKey, replacements);
-            this.statusDot.className = `status-dot ${type}`;
+            this.statusDot1.className = `status-dot ${type}`;
+            this.statusDot2.className = `status-dot ${type}`;
         }
     }
 
@@ -818,6 +825,11 @@
             kk: 'c_keyapp_key'
         };
 
+        console.log('[Debug] WebSocket status:', {
+            exists: !!sessionController?.websocket,
+            readyState: sessionController?.websocket?.readyState,
+            url: sessionController?.websocket?.url
+        });
 
         function triggerBypass(reason) {
             if (bypassTriggered) {
@@ -844,82 +856,131 @@
                 return;
             }
 
+            console.log('[Debug] spoof Workink starting, linkInfo:', LinkInfo);
+
             const socials = LinkInfo.socials || [];
             console.log('[Debug] Total socials to fake:', socials.length);
 
-            for (const social of socials) {
-                sendMessage.call(this, types.ss, {
-                    url: social.url
-                });
-            }
+            if (socials.length > 0) {
+                if (panel) panel.show('bypassingSocials', 'warning', { left: socials.length });
 
-            const monetizations = sessionController?.monetizations || [];
-            console.log('[Debug] Total monetizations to fake:', monetizations.length);
+                (async () => {
+                    for (let i = 0; i < socials.length; i++) {
+                        const soc = socials[i];
+                        try {
+                            if (sendMessage && sessionController) {
+                                const payload = { url: soc.url };
 
-            for (let i = 0; i < monetizations.length; i++) {
-                const monetization = monetizations[i];
-                const monetizationId = monetization.id;
-                const monetizationSendMessage = monetization.sendMessage;
-                try {
-                    switch (monetizationId) {
-                        case 22: {
-                            monetizationSendMessage.call(monetization, { event: 'read' });
-                            console.log("Faked readArticles2")
-                            break;
-                        }
-                        case 25: {
-                            monetizationSendMessage.call(monetization, { event: 'start' });
-                            monetizationSendMessage.call(monetization, { event: 'installClicked' });
-                            fetch('/_api/v2/affiliate/operaGX', { method: 'GET', mode: 'no-cors' });
-                            setTimeout(() => {
-                                fetch('https://work.ink/_api/v2/callback/operaGX', {
-                                    method: 'POST',
-                                    mode: 'no-cors',
-                                    headers: {
-                                        'Content-Type': 'application/json'
-                                    },
-                                    body: JSON.stringify({
-                                        'noteligible': true
-                                    })
-                                });
-                            }, 5000);
-                            console.log("Faked operaGX")
-                            break;
-                        }
-                        case 34: {
-                            monetizationSendMessage.call(monetization, { event: 'start' });
-                            monetizationSendMessage.call(monetization, { event: 'installClicked' });
-                            console.log("Faked norton")
-                            break;
-                        }
-                        case 71: {
-                            monetizationSendMessage.call(monetization, { event: 'start' });
-                            monetizationSendMessage.call(monetization, { event: 'installClicked' });
-                            console.log("Faked externalArticles")
-                            break;
-                        }
-                        case 45: {
-                            monetizationSendMessage.call(monetization, { event: 'installed' });
-                            console.log("Faked pdfeditor")
-                            break;
-                        }
-                        case 57: {
-                            monetizationSendMessage.call(monetization, { event: 'installed' });
-                            console.log("Faked betterdeals")
-                            break;
-                        }
-                        default: {
-                            break;
+                                if (sessionController.websocket && sessionController.websocket.readyState === WebSocket.OPEN) {
+                                    console.log(`[Debug] WebSocket open, sending social [${i + 1}/${socials.length}]`);
+
+                                    sendMessage.call(sessionController, types.ss, payload);
+
+                                    console.log(`[Debug] Social [${i + 1}/${socials.length}] sent successfully`);
+                                } else {
+                                    console.error(`[Debug] WebSocket not ready! State:`, sessionController.websocket?.readyState);
+                                    await new Promise(resolve => setTimeout(resolve, 1000));
+                                    i--;
+                                    continue;
+                                }
+                            } else {
+                                console.warn(`[Debug] sendMessage or sessionController is null`, { sendMessage, sessionController });
+                            }
+                        } catch (e) {
+                            console.error(`[Debug] Error sending social [${i + 1}/${socials.length}]:`, e);
                         }
                     }
-                } catch (e) {
-                    console.error(`[Debug] Error faking monetization [${i+1}/${monetizations.length}]:`, monetization, e);
+
+                    console.log('[Debug] All socials sent, reloading page...');
+                    setTimeout(() => {
+                        console.log('[Debug] Reloading page after social spoof...');
+                        window.location.reload();
+                    }, 1000);
+                })();
+            } else {
+                console.log('[Debug] No socials to send, processing monetizations directly...');
+                handleMonetizations();
+            }
+
+            async function handleMonetizations() {
+                const monetizations = sessionController?.monetizations || [];
+                console.log('[Debug] Total monetizations to fake:', monetizations.length);
+
+                for (let i = 0; i < monetizations.length; i++) {
+                    const monetization = monetizations[i];
+                    console.log(`[Debug] Processing monetization [${i+1}/${monetizations.length}]:`, monetization);
+                    const monetizationId = monetization.id;
+                    const monetizationSendMessage = monetization.sendMessage;
+
+                    if (!monetizationSendMessage) {
+                        console.log(`[Debug] Skipping monetization [${i+1}/${monetizations.length}]: no sendMessage function`);
+                        continue;
+                    }
+
+                    try {
+                        switch (monetizationId) {
+                            case 22: {
+                                monetizationSendMessage.call(monetization, { event: 'read' });
+                                console.log(`[Debug] Faked readArticles2 [${i+1}/${monetizations.length}]`);
+                                break;
+                            }
+                            case 25: {
+                                monetizationSendMessage.call(monetization, { event: 'start' });
+                                monetizationSendMessage.call(monetization, { event: 'installedClicked' });
+                                fetch('/_api/v2/affiliate/operaGX', { method: 'GET', mode: 'no-cors' });
+                                setTimeout(() => {
+                                    fetch('https://work.ink/_api/v2/callback/operaGX', {
+                                        method: 'POST',
+                                        mode: 'no-cors',
+                                        headers: {
+                                            'Content-Type': 'application/json'
+                                        },
+                                        body: JSON.stringify({
+                                            'noteligible': true
+                                        })
+                                    });
+                                }, 5000);
+                                console.log(`[Debug] Faked operaGX [${i+1}/${monetizations.length}]`);
+                                break;
+                            }
+                            case 34: {
+                                monetizationSendMessage.call(monetization, { event: 'start' });
+                                monetizationSendMessage.call(monetization, { event: 'installedClicked' });
+                                console.log(`[Debug] Faked norton [${i+1}/${monetizations.length}]`);
+                                break;
+                            }
+                            case 71: {
+                                monetizationSendMessage.call(monetization, { event: 'start' });
+                                monetizationSendMessage.call(monetization, { event: 'installed' });
+                                console.log(`[Debug] Faked externalArticles [${i+1}/${monetizations.length}]`);
+                                break;
+                            }
+                            case 45: {
+                                monetizationSendMessage.call(monetization, { event: 'installed' });
+                                console.log(`[Debug] Faked pdfeditor [${i+1}/${monetizations.length}]`);
+                                break;
+                            }
+                            case 57: {
+                                monetizationSendMessage.call(monetization, { event: 'installed' });
+                                console.log(`[Debug] Faked betterdeals [${i+1}/${monetizations.length}]`);
+                                break;
+                            }
+                            default: {
+                                console.log(`[Debug] Unknown monetization [${i+1}/${monetizations.length}]:`, monetization);
+                                break;
+                            }
+                        }
+                    } catch (e) {
+                        console.error(`[Debug] Error faking monetization [${i+1}/${monetizations.length}]:`, monetization, e);
+                    }
                 }
+
+                console.log('[Debug] spoof Workink completed');
             }
         }
 
         function createSendMessage() {
-            return function(...args) {
+            return function (...args) {
                 const packet_type = args[0];
                 const packet_data = args[1];
                 if (packet_type !== types.pi) {
@@ -933,21 +994,22 @@
         }
 
         function createLinkInfo() {
-            return async function(...args) {
+            return async function (...args) {
                 const [info] = args;
+                LinkInfo = info
                 console.log('[Debug] Link info:', info);
                 spoofWorkink();
                 try {
                     Object.defineProperty(info, 'isAdblockEnabled', {
                         get: () => false,
-                        set: () => {},
+                        set: () => { },
                         configurable: false,
                         enumerable: true
                     });
                 } catch (e) {
 
                 }
-                return LinkInfo.apply(this, args);
+                return LinkInfo ? LinkInfo.apply(this, args): undefined;
             };
         }
 
@@ -970,7 +1032,7 @@
         }
 
         function createLinkDestination() {
-            return async function(...args) {
+            return async function (...args) {
                 const [data] = args;
                 destinationReceived = true;
                 console.log("[Debug] Destination data: ", data)
@@ -978,13 +1040,13 @@
                 if (!destinationProcessed) {
                     destinationProcessed = true;
                     const waitTimeSeconds = parseInt(panel.waitSlider.value);
-                    if (waitTimeSeconds <= 0){
+                    if (waitTimeSeconds <= 0) {
                         redirect(data.url)
                     } else {
                         startCountdown(data.url, waitTimeSeconds);
                     }
                 }
-                return LinkDestination.apply(this, args);
+                return LinkDestination ? LinkDestination.apply(this, args): undefined;
             };
         }
 
@@ -1063,7 +1125,7 @@
                 new Proxy(kit, {
                     get(target, prop) {
                         if (prop === 'start') {
-                            return function(...args) {
+                            return function (...args) {
                                 const [nodes, , opts] = args;
                                 if (nodes?.nodes && opts?.node_ids) {
                                     const idx = opts.node_ids[1];
@@ -1084,7 +1146,7 @@
             const origPromiseAll = Promise.all;
             let intercepted = false;
 
-            Promise.all = async function(promises) {
+            Promise.all = async function (promises) {
                 const result = origPromiseAll.call(this, promises);
                 if (!intercepted) {
                     intercepted = true;
@@ -1102,7 +1164,7 @@
             };
         }
 
-        window.googletag = {cmd: [], _loaded_: true};
+        window.googletag = { cmd: [], _loaded_: true };
 
         const blockedClasses = [
             "adsbygoogle",
